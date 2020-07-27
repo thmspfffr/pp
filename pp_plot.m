@@ -220,10 +220,28 @@ for isubj = SUBJLIST
   isubj
   for iblock = 1 : 1
     clear src_r
+    try
     load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-    corr_meth(:,isubj) = outp.corr_meth;
-    
+    corr_meth(:,:,isubj) = outp.corr_meth_src;
+    catch me
+      corr_meth(:,:,isubj) = nan(8799,25);
+    end
   end
 end
 
-corr_meth  = corr_meth(:,SUBJLIST);
+corr_meth  = corr_meth(:,:,SUBJLIST);
+%%
+figure_w;
+subplot(2,7,[1 2 3 8 9 10])
+imagesc(nanmean(corr_meth,3),[0.8 1]); 
+colormap(plasma); colorbar
+set(gca,'xtick',[(1:4:25)],'xticklabel',num2cell([freqoi(1:4:end)]))
+xlabel('Frequency [Hz]'); ylabel('Source Region')
+tp_editplots
+
+subplot(2,7,[5 6 7])
+plot(1:25,nanmean(nanmean(corr_meth,3),1),'k')
+set(gca,'xtick',[(1:4:25)],'xticklabel',num2cell([freqoi(1:4:end)]))
+axis([0 26 0 1.1]); tp_editplots;
+xlabel('Frequency [Hz]'); ylabel('Avg. correlation')
+

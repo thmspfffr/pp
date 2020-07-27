@@ -22,10 +22,10 @@ ft_defaults
 outdir = '~/pp/proc/src/';
 ord    = pconn_randomization;
 
-
+addpath /home/gnolte/meth/highlevel/
 %%
 % -------------------------
-for isubj = SUBJLIST
+for isubj = 1:24
   
   clear data dat pupil pup dataf src_r
   
@@ -47,6 +47,7 @@ for isubj = SUBJLIST
       end
       
       pupil = data.trial{1}';
+      f_sample = data.fsample;
       
       % load meg data
       if isubj < 10
@@ -54,6 +55,8 @@ for isubj = SUBJLIST
       else
         load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/meg/sub%d_gla_meg.mat',isubj));
       end
+      
+      [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(3200),0,0.1250:0.1250:200,400);
       
     catch me
       src_r = nan(246,25);
@@ -65,7 +68,6 @@ for isubj = SUBJLIST
 %     pupil = pupil(1:len,:);
     
     k = 2;
-    f_sample = 1000;
     fnq = f_sample/2;
     hil_hi = 0.005;
     hil_lo = 2;
@@ -74,152 +76,194 @@ for isubj = SUBJLIST
     
     pupil = filtfilt(bhil, ahil, pupil(:,4));
     
-    pup_shift = round(400*0.93); % 930s from hoeks and levelt (1992?)
+    pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     
 %     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
     
 %     tmp = data;
-    data.avg = data.trial{1}; %data.trial{1} = [];
-   
+    data.avg = data.trial{1}'; %data.trial{1} = [];
+
     if isubj < 10
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub0%d_gla_lf_BNA5mm.mat',isubj))
     else
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub%d_gla_lf_BNA5mm.mat',isubj))
     end
    
-    
-%     data = tmp;
-            
+                
     for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
 %       
-%       srate = 400;
-%       % freq analysis, pass 1, yields TF Fourier rep ##########################
-%       % - this is for multiplication with the ortho-normalised spatial filter
-%       tfcfg=[]; % this will be carried along ...
-%       tfcfg.method='wavelet';
-%       tfcfg.output='fourier';
-%       tfcfg.channel={'MEG'};
-%       tfcfg.foi=freqoi(ifreq);
-%       tfcfg.width=5.83; % again, as per Hipp et al. (2012) Nat Neurosci
-%       tempSD=1./(2*pi*(tfcfg.foi./tfcfg.width)); % temporal SD in sec
-%       tempWd=round(3*tempSD*srate)/srate; % set to 3 std dev, comp with 1000 Hz sampl rate
-%       tfcfg.toi=tempWd.*(1:floor(data.time{1}(end)./tempWd));
-%       % keep in mind that fieldtrip uses a proprietary setting of the gwidth
-%       % parameter (default = 3 cycles) internally that is independent of the
-%       % here requested time axis
-%       tfcfg.pad='nextpow2';
-%       tf=ft_freqanalysis(tfcfg,data);
-%       % reset freq to requested freq
-%       tf.freq=freqoi(ifreq);
-% 
-% %       mark time bins that coincide with relevant artifacts - outdated
-% %       artifPnts=sortrows([data.cfg.artfctdef.visual.artifact;
-% %                           data.cfg.artfctdef.blink.artifact]);
-% 
-% %       blinks removed via ICA, this is mostly myogenic, sq jumps, etc.
+      srate = 400;
+      % freq analysis, pass 1, yields TF Fourier rep ##########################
+      % - this is for multiplication with the ortho-normalised spatial filter
+      tfcfg=[]; % this will be carried along ...
+      tfcfg.method='wavelet';
+      tfcfg.output='fourier';
+      tfcfg.channel={'MEG'};
+      tfcfg.foi=freqoi(ifreq);
+      tfcfg.width=5.83; % again, as per Hipp et al. (2012) Nat Neurosci
+      tempSD=1./(2*pi*(tfcfg.foi./tfcfg.width)); % temporal SD in sec
+      tempWd=round(3*tempSD*srate)/srate; % set to 3 std dev, comp with 1000 Hz sampl rate
+      tfcfg.toi=tempWd.*(1:floor(data.time{1}(end)./tempWd));
+      % keep in mind that fieldtrip uses a proprietary setting of the gwidth
+      % parameter (default = 3 cycles) internally that is independent of the
+      % here requested time axis
+      tfcfg.pad='nextpow2';
+      tf=ft_freqanalysis(tfcfg,data);
+      % reset freq to requested freq
+      tf.freq=freqoi(ifreq);
+
+%       mark time bins that coincide with relevant artifacts - outdated
+%       artifPnts=sortrows([data.cfg.artfctdef.visual.artifact;
+%                           data.cfg.artfctdef.blink.artifact]);
+
+%       blinks removed via ICA, this is mostly myogenic, sq jumps, etc.
       artifPnts=data.cfg.artfctdef.visual.artifact;
       
       for iart = 1 : size(artifPnts,1)
-        data.avg(:,artifPnts(iart,1):artifPnts(iart,2))=NaN;
+        data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
       end
       
-%       tfPnts   =tf.time*srate;
-% % 
-% %       % only discard those bins that "center" on an artifact
-% %       %critDist =diff(tfPnts([1,2]),[],2)/2; % set critical dist to central 50%
-%       critDist=diff(tfPnts([1,2]),[],2); % set critical dist to central 100%
-%       keepBins=logical([]);
-%       % discard TF bins that overlap with artifacts (set zero in keepBins)
-%       for ibin=1:numel(tfPnts)
-%           keepBins(ibin)=~any(abs(tfPnts(ibin)-ceil(mean(artifPnts,2)))<critDist);   
-%       end
+      tfPnts   =tf.time*srate;
 % 
-%       % additionally omit edge datapoints to excl artif
-%       timeAx=tf.time; % original time axis
-%       timeKp=dsearchn(timeAx.',[3;timeAx(end)-3]); % excl ~ 1st & last 3 sec
-%       keepBins(1:timeKp(1)-1)=false;
-%       keepBins(timeKp(2)+1:end)=false;
-% 
-%       % compute cross-specral density by time bin, then average csd's
-%       csd=zeros(numel(tf.label)*[1,1]);
-%       % csd calc excludes artifact bins
-%       csdTime=tf.time(keepBins);
-%       csdData=tf.fourierspctrm(:,:,:,keepBins);
-%       for itbin=1:numel(csdTime)
-%           fspec=squeeze(csdData(:,:,:,itbin)).';
-%           for ichan=1:numel(tf.label);
-%               csd(:,ichan)=csd(:,ichan)+fspec(ichan)*conj(fspec);
-%           end
-%       end
-%       csd=csd./numel(tf.time); % avg cross-spectral dens matrix
-%       csdData=[]; csdTime=[];
+%       % only discard those bins that "center" on an artifact
+%       %critDist =diff(tfPnts([1,2]),[],2)/2; % set critical dist to central 50%
+      critDist=diff(tfPnts([1,2]),[],2); % set critical dist to central 100%
+      keepBins=logical([]);
+      % discard TF bins that overlap with artifacts (set zero in keepBins)
+      for ibin=1:numel(tfPnts)
+          keepBins(ibin)=~any(abs(tfPnts(ibin)-ceil(mean(artifPnts,2)))<critDist);   
+      end
 
-      
-      [KERNEL,~,opt]=tp_mkwavelet(freqoi(ifreq), .5, 400);
+      % additionally omit edge datapoints to excl artif
+      timeAx=tf.time; % original time axis
+      timeKp=dsearchn(timeAx.',[3;timeAx(end)-3]); % excl ~ 1st & last 3 sec
+      keepBins(1:timeKp(1)-1)=false;
+      keepBins(timeKp(2)+1:end)=false;
 
-      nseg=floor((size(data.avg,2)-opt.n_win)/opt.n_shift+1);
+      % compute cross-specral density by time bin, then average csd's
+      csd=zeros(numel(tf.label)*[1,1]);
+      % csd calc excludes artifact bins
+      csdTime=tf.time(keepBins);
+      csdData=tf.fourierspctrm(:,:,:,keepBins);
+      for itbin=1:numel(csdTime)
+          fspec=squeeze(csdData(:,:,:,itbin)).';
+          for ichan=1:numel(tf.label);
+              csd(:,ichan)=csd(:,ichan)+fspec(ichan)*conj(fspec);
+          end
+      end
       
-      clear dataf csd
+      
+      
+      % TELL CHRISTIAN ABOUT THIS: 
+      % csd used to be divided by numel(tf.time), but
+      % it should rather be tf.time(keepBins)
+      % ------------------
+      csd=csd./numel(tf.time(keepBins)); % avg cross-spectral dens matrix
+      csdData=[]; csdTime=[];
+      % ------------------
+      
+     
+      [KERNEL,f,opt]=tp_mkwavelet(freqoi(ifreq), .5, 400);
+      KERNEL=repmat(KERNEL,1,size(data.avg,2));
+        
+      nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
+     
+      clear dataf tp_csd
       kk = 0;
       
       for j=1:nseg
         
-        dloc2=data.avg(:,(j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win)';
+        dloc2=data.avg((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win,:);
         
-         if any(isnan(dloc2(:,1)))
+        if any(isnan(dloc2(:,1)))
           warning('NaN detected')
-          dataf(:,j)=nan(1,size(dloc2,2));
+          dataf(:,j)=nan(size(dloc2,2),1);
+          
           pup(:,j) = nan;
           continue
         else
           kk = kk + 1;
-          dataf(:,j)=dloc2'*KERNEL;
+%           dataf(:,j) = transpose(sum(dloc2.*KERNEL));
+          dataf(:,j)=dloc2'*KERNEL(:,1);
           tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
           pup(:,j) = mean(tmp.*gausswin(opt.n_win,3));
           if kk == 1
-            csd=dataf(:,j)*dataf(:,j)';
+            tp_csd=dataf(:,j)*dataf(:,j)';
           else
-            csd=csd+dataf(:,j)*dataf(:,j)';
+            tp_csd=tp_csd+dataf(:,j)*dataf(:,j)';
           end
         end
       end
       
-%       outp.corr_meth(ifreq) = mean(diag(corr(abs(squeeze(tf.fourierspctrm(1,:,1,keepBins))),abs(dataf(:,keepBins)))));
-      
-      
-%       
-      csd = csd/kk;
-%       
-      all_csd(:,:,ifreq) = csd;
-%       idx_valid = keepBins;
-      idx_valid = find(~isnan(dataf(1,:))&~isnan(pup(1,:)));
-            
-      % -------------------------------
-      % beamforming
-      % --------------
-      para      = [];
-      para.iscs = 1;
-      para.reg  = 0.05;
-      [filt,pow]      = tp_beamformer(real(csd),lf,para);
+      tp_csd = tp_csd/kk;
+          
 
-      Lr = reshape(lf,[size(lf,1) 8799*3]); csd_noise = Lr*Lr';
-      [~,noise]      = tp_beamformer(real(csd_noise),lf,para);
-      outp.src_nai(:,ifreq) = pow./noise;
+%       [ss,ff,opt]=tp_mkwavelet(freqoi(ifreq), .5, 400);
+%       
+% %       fprintf('\ncomputing TFR...')
+%       for isens = 1:size(data.avg,2)
+%         tmp = conv(data.avg(:,isens),ss','same');
+%         tfr(isens,:) = tmp(round(tfPnts(:)));
+%         
+%       end
+%       
+ 
+      outp.tp_sens_pow(:,ifreq) = mean(diag(abs(tp_csd)));
+      outp.ck_sens_pow(:,ifreq) = mean(diag(abs(csd)));
+
       
-      % -------------------------------
-      % compute power
-      src = abs(filt'*dataf).^2;
-      % correlate with pupil
-      outp.src_r(:,ifreq) = corr(pup(idx_valid(1:end))',src(:,idx_valid(1:end))');
-      
+%       all_csd(:,:,ifreq) = csd;
+% %       idx_valid = find(~isnan(dataf(1,:))&~isnan(pup(1,:)));
+%             
+%       % -------------------------------
+%       % beamforming
+%       % --------------
+%       para      = [];
+%       para.iscs = 1;
+%       para.reg  = 0.05;
+%       [tp_filt,tp_pow]      = tp_beamformer(real(tp_csd),lf,para);
+%       [ck_filt,ck_pow]      = tp_beamformer(real(csd),lf,para);
+% % 
+%       Lr = reshape(lf,[size(lf,1) 8799*3]); csd_noise = Lr*Lr';
+%       [~,noise]      = tp_beamformer(real(csd_noise),lf,para);
+%       outp.tp_src_nai(:,ifreq) = tp_pow./noise;
+%       outp.ck_src_nai(:,ifreq) = ck_pow./noise;
+%       
+%       ck_dataf = squeeze(tf.fourierspctrm(:,:,:,1:end-1));
+%       idx=intersect(find(keepBins),idx_valid);
+%       % -------------------------------
+%       % compute power
+%       tp_src = abs(tp_filt'*dataf).^2;
+%       ck_src = abs(ck_filt'*ck_dataf).^2;
+% 
+%       % correlate with pupil
+% %       outp.tp_src_r(:,ifreq) = corr(pup(idx)',tp_src(:,idx)');
+% %       outp.ck_src_r(:,ifreq) = corr(pup(idx)',ck_src(:,idx)');
+%       outp.corr_meth_src(:,ifreq) = diag(corr(tp_src(:,idx)',ck_src(:,idx)'));
+%       outp.
       clear src pup csd
       
     end
+%     
+%     ff=0.5 : 0.5 : 200;
+%     for ifoi = 1:length(ff)
+%       
+%       ifoi      
+%       segleng = 800;
+%       segshift = 400;
+%       epleng = size(data.trial{1},2);
+%       gn_csd=data2cs_wavelet(data.avg,segleng,segshift,size(data.avg,1),ff(ifoi),400);
+% %       [gn_dataf, gn_csd]=tp_data2cs_wavelet(data.trial{1}',segleng,segshift,epleng,ff(ifoi),f_sample);
+%       
+%       outp.gn_sens_pow(:,ifoi) = mean(diag(abs(gn_csd)));
+%       
+%     end
+%       
     
-    save([outdir fn '.mat'],'outp','all_csd')
+    save([outdir fn '.mat'],'outp')
     tp_parallel(fn,outdir,0)
     
   end
@@ -329,3 +373,17 @@ axis([0 25 -0.075 0.075])
 % tp_editplots
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_gla_src_pupil_power_correlations_lineplot_v%d.pdf',v))
+
+%% 
+ff=0.125 : 0.125 : 150;
+p=zscore(nanmean(outp.pxx,2));
+
+for ifoi = 1 : length(freqoi)
+[~,f,opt]=tp_mkwavelet(freqoi(ifoi), .5, 400);
+
+
+pow(ifoi) = mean(p(outp.fxx>f(1) & outp.fxx<f(2)),1);
+
+end
+
+plot(pow); hold on

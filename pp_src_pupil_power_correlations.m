@@ -157,6 +157,7 @@ for isubj = SUBJLIST
       % -------------------------------
       % compute power
       src = abs(filt'*dataf).^2;
+      
       % correlate with pupil
       outp.src_r(:,ifreq) = corr(pup(idx_valid)',src(:,idx_valid)');
       
