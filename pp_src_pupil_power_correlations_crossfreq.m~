@@ -76,22 +76,38 @@ for isubj = SUBJLIST
     raw_pupil = raw_pupil(pup_shift:end);
     raw_pupil(end+1:end+pup_shift-1)=nan;
     
-    dat = dat(:,1:len);
-    dat(:,isnan(raw_pupil))=[];
-    raw_pupil(isnan(raw_pupil))=[];
-  
-    for ipupfreq = 1 : size(pupil_freqoi,1) 
-      pupil(:,ipupfreq) = ft_preproc_bandpassfilter(raw_pupil', 400, [pupil_freqoi(ipupfreq,1) pupil_freqoi(ipupfreq,2)], 1, 'but', [], 'no');
+    if ipupfreq== 1
+      dat = dat(:,1:len);
+%       dat = dat(:,end:-1:1);
+      dat(:,isnan(raw_pupil))=[];
+      pup
+    end
+    
+    
+        
+    for ipupfreq = 1 : size(pupil_freqoi,1)
+      
+      pup = ft_preproc_bandpassfilter(raw_pupil, 400, [pupil_freqoi(ipupfreq,1) pupil_freqoi(ipupfreq,2)], 1, 'but', [], 'no');
+      
+      
+      
+      % ----------------
+      % THIS NEEDS TO BE CHANGED
+      % ----------------
+      pupil(:,ipupfreq) = pup; clear pup
     end
         
     load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');
         
     for ifreq=1:numel(freqoi)
       
-      para             = [];
-      para.freq        = freqoi(ifreq);
-      para.fsample     = 400;  
-      [csd, dataf,opt] = tp_compute_csd_wavelets(dat,para);
+      ifreq
+
+      para          = [];
+      para.freq     = freqoi(ifreq);
+      para.fsample  = 400;  
+%       para.meth     = 'conv';
+      [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
                   
        % -------------------------------
       % prepare pupil signal

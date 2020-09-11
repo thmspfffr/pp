@@ -13,7 +13,7 @@ SUBJLIST  = 1:24;
 freqoi    = 2.^(1:(1/4):7);
 % -------------------------
 
-addpath ~/Documents/MATLAB/fieldtrip-20160919/
+addpath('~/Documents/MATLAB/fieldtrip-20181231/')
 addpath ~/pconn/matlab/
 load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
 
@@ -25,7 +25,7 @@ ord    = pconn_randomization;
 addpath /home/gnolte/meth/highlevel/
 %%
 % -------------------------
-for isubj = SUBJLIST
+for isubj = 1:24
   
   clear data dat pupil pup dataf src_r
   
@@ -56,8 +56,19 @@ for isubj = SUBJLIST
         load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/meg/sub%d_gla_meg.mat',isubj));
       end
       
-      [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(3200),0,0.1250:0.1250:200,400);
       
+      artifPnts=data.cfg.artfctdef.visual.artifact;
+      
+      cfg=[];
+      cfg.layout='4D248.lay';
+      lay = ft_prepare_layout(cfg);
+      [~, outp.chanidx] = ismember(lay.label(1:248),data.label);
+%       
+      [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
+            
+      outp.tp_sens_pow = nan(248,25);
+      outp.sens_r      = nan(248,25);
+      outp.sens_r_sp   = nan(248,25);
     catch me
       src_r = nan(246,25);
       save([outdir fn '.mat'],'src_r')
@@ -91,10 +102,13 @@ for isubj = SUBJLIST
     end
    
                 
-    for ifreq=10:numel(freqoi)
+    for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
-%       
+    
+      % -------------------------------
+      % START CK TF-ANALYSIS
+      % -------------------------------
       srate = 400;
       % freq analysis, pass 1, yields TF Fourier rep ##########################
       % - this is for multiplication with the ortho-normalised spatial filter
@@ -113,23 +127,17 @@ for isubj = SUBJLIST
       tfcfg.pad='nextpow2';
       tf=ft_freqanalysis(tfcfg,data);
       % reset freq to requested freq
-      tf.freq=freqoi(ifreq);
-
-%       mark time bins that coincide with relevant artifacts - outdated
-%       artifPnts=sortrows([data.cfg.artfctdef.visual.artifact;
-%                           data.cfg.artfctdef.blink.artifact]);
-
-%       blinks removed via ICA, this is mostly myogenic, sq jumps, etc.
-      artifPnts=data.cfg.artfctdef.visual.artifact;
+      tf.freq=freqoi(ifreq);      
+      
+%       artifPnts=data.cfg.artfctdef.visual.artifact;
       
       for iart = 1 : size(artifPnts,1)
         data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
       end
       
       tfPnts   =tf.time*srate;
-% 
-%       % only discard those bins that "center" on an artifact
-%       %critDist =diff(tfPnts([1,2]),[],2)/2; % set critical dist to central 50%
+
+      % only discard those bins that "center" on an artifact
       critDist=diff(tfPnts([1,2]),[],2); % set critical dist to central 100%
       keepBins=logical([]);
       % discard TF bins that overlap with artifacts (set zero in keepBins)
@@ -154,130 +162,93 @@ for isubj = SUBJLIST
               csd(:,ichan)=csd(:,ichan)+fspec(ichan)*conj(fspec);
           end
       end
-      
-      
-      
-      % TELL CHRISTIAN ABOUT THIS: 
-      % csd used to be divided by numel(tf.time), but
-      % it should rather be tf.time(keepBins)
-      % ------------------
       csd=csd./numel(tf.time(keepBins)); % avg cross-spectral dens matrix
       csdData=[]; csdTime=[];
-      % ------------------
+      % -------------------------------
+      % END CK TF-ANALYSIS
+      % -------------------------------
       
-     
-      [KERNEL,f,opt]=tp_mkwavelet(freqoi(ifreq), .5, 400);
-      KERNEL=repmat(KERNEL,1,size(data.avg,2));
+      % -------------------------------
+      % pupil ck
+      % -------------------------------
+      ck_pup = pupil(round(tfPnts));
+      
+      % -------------------------------
+      % compute csd
+      % -------------------------------
+      para          = [];
+      para.freq     = freqoi(ifreq);
+      para.fsample  = 400;  
+      [tp_csd, dataf,opt]=tp_compute_csd_wavelets(data.avg',para);
+      
+      % -------------------------------
+      % compute power from csd
+      % -------------------------------
+      tmp = diag(abs(tp_csd)); 
+      outp.tp_sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
+      outp.ck_sens_pow(:,ifreq) = diag(abs(csd));
 
-%         
+      % -------------------------------
+      % prepare pupil signal
+      % -------------------------------
       nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
-% %  
-%       scale=sqrt(nanmean(nanmean(data.avg.^2)));
-%       data.avg=data.avg/scale;
-%       
-      clear dataf tp_csd
-      kk = 0;
-      
+      pup = nan(nseg,1);
       for j=1:nseg
-        
-        dloc2=data.avg((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win,:);
-        
-        if any(isnan(dloc2(:,1)))
-          warning('NaN detected')
-          dataf(:,j)=nan(size(dloc2,2),1);
-          %           dataf1(:,j)=nan(1,size(dloc2,2));
-          
-          pup(:,j) = nan;
-          continue
-        else
-          kk = kk + 1;
-          dataf(:,j) = transpose(sum(dloc2.*KERNEL));
-%                     dataf(:,j)=dloc2'*KERNEL(:,1);
-          tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
-          pup(:,j) = mean(tmp.*gausswin(opt.n_win,3));
-          if kk == 1
-            tp_csd=dataf(:,j)*dataf(:,j)';
-          else
-            tp_csd=tp_csd+dataf(:,j)*dataf(:,j)';
-          end
-        end
+        tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
+        pup(j) = mean(tmp.*gausswin(opt.n_win,3));
       end
-          
-%       tp_csd = tp_csd/kk;
-%       [dataf, tp_csd] = tp_data2cs_wavelet(data.avg,freqoi(ifreq),f_sample);
-%       [dataf, tp_csd1] = tp_data2cs_wavelet1(data.avg,freqoi(ifreq),f_sample);
 
-      [ss,ff,opt]=tp_mkwavelet(freqoi(ifreq), .5, 400);
-      
-      fprintf('\ncomputing TFR...')
-      for isens = 1:size(data.avg,2)
-        tmp = conv(data.avg(:,isens),ss','same');
-        tfr(isens,:) = tmp(round(tfPnts(:)));
-        
-      end
-      
-      
-%       segleng = round(400/(ff(2)-ff(1)));
-%       segshift = floor(segleng/2);
-%       
-%       data.avg(isnan(data.avg(:,1)),:)=[];
-%       tp_csd = data2cs_wavelet(data.avg,segleng,segshift,size(data.avg,1),freqoi(ifreq),400);
-%       
-%       outp.tp_sens_pow(:,ifreq) = mean(diag(abs(tp_csd)));
-% %        outp.tp_sens_pow1(:,ifreq) = mean(diag(abs(tp_csd1)));
-%       outp.ck_sens_pow(:,ifreq) = mean(diag(abs(csd)));
+      % -------------------------------
+      % beamforming
+      % -------------------------------
+      para      = [];
+      para.iscs = 1;
+      para.reg  = 0.05;
+      [tp_filt,tp_pow]      = tp_beamformer(real(tp_csd(outp.chanidx(outp.chanidx>0),outp.chanidx(outp.chanidx>0))),lf,para);
+      [ck_filt,ck_pow]      = tp_beamformer(real(csd),lf,para);
+      % -------------------------------
+      % Project noise
+      % -------------------------------
+      Lr = reshape(lf,[size(lf,1) 8799*3]); csd_noise = Lr*Lr';
+      [~,noise]      = tp_beamformer(real(csd_noise),lf,para);
+      outp.tp_src_nai(:,ifreq) = tp_pow./noise;
+      outp.ck_src_nai(:,ifreq) = ck_pow./noise;
+      % -------------------------------
 
-      
-%       all_csd(:,:,ifreq) = csd;
-% %       idx_valid = find(~isnan(dataf(1,:))&~isnan(pup(1,:)));
-%             
-%       % -------------------------------
-%       % beamforming
-%       % --------------
-%       para      = [];
-%       para.iscs = 1;
-%       para.reg  = 0.05;
-%       [tp_filt,tp_pow]      = tp_beamformer(real(tp_csd),lf,para);
-%       [ck_filt,ck_pow]      = tp_beamformer(real(csd),lf,para);
-% 
-%       Lr = reshape(lf,[size(lf,1) 8799*3]); csd_noise = Lr*Lr';
-%       [~,noise]      = tp_beamformer(real(csd_noise),lf,para);
-%       outp.tp_src_nai(:,ifreq) = tp_pow./noise;
-%       outp.ck_src_nai(:,ifreq) = ck_pow./noise;
+      ck_dataf = squeeze(tf.fourierspctrm);
 %       
-%       ck_dataf = squeeze(tf.fourierspctrm(:,:,:,1:end-1));
-%       idx=intersect(find(keepBins),idx_valid);
+      tp_idx_valid = find(~isnan(dataf(1,:))'&~isnan(pup));
+      ck_idx_valid = find(~isnan(ck_dataf(1,:))'&~isnan(ck_pup)&keepBins');
+      idx=intersect(ck_idx_valid,tp_idx_valid);
+      % -------------------------------
+      % sensor-level pupil power correlation
+      % -------------------------------
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)');
+      outp.sens_r_sp(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
+      % -------------------------------
+      % compute source-level power
+      % -------------------------------
+      tp_src = abs(tp_filt'*dataf).^2;
+      ck_src = abs(ck_filt'*ck_dataf).^2;
 %       % -------------------------------
-%       % compute power
-%       tp_src = abs(tp_filt'*dataf).^2;
-%       ck_src = abs(ck_filt'*ck_dataf).^2;
-% 
-%       % correlate with pupil
-% %       outp.tp_src_r(:,ifreq) = corr(pup(idx)',tp_src(:,idx)');
-% %       outp.ck_src_r(:,ifreq) = corr(pup(idx)',ck_src(:,idx)');
-%       outp.corr_meth_src(:,ifreq) = diag(corr(tp_src(:,idx)',ck_src(:,idx)'));
-%       outp.
-      clear src pup csd
+      % correlate power with pupil
+      % -------------------------------
+      outp.tp_src_r(:,ifreq) = corr(pup(tp_idx_valid),tp_src(:,tp_idx_valid)');
+      outp.ck_src_r(:,ifreq) = corr(ck_pup(idx),ck_src(:,idx)');
+      % -------------------------------
+      % compare ck and tp source signals
+      % -------------------------------
+      outp.corr_meth_src(:,ifreq) = diag(corr(tp_src(:,idx)',ck_src(:,idx)'));
+      % -------------------------------
+      
+      clear src pup csd tp_csd dataf 
       
     end
-%     
-    ff=0.5 : 0.5 : 200;
-    for ifoi = 1:length(ff)
-      
-      ifoi      
-      segleng = 800;
-      segshift = 400;
-      epleng = size(data.trial{1},2);
-      gn_csd=data2cs_wavelet(data.avg,segleng,segshift,size(data.avg,1),ff(ifoi),400);
-%       [gn_dataf, gn_csd]=tp_data2cs_wavelet(data.trial{1}',segleng,segshift,epleng,ff(ifoi),f_sample);
-      
-      outp.gn_sens_pow(:,ifoi) = mean(diag(abs(gn_csd)));
-      
-    end
-%       
-    
-    save([outdir fn '.mat'],'outp','all_csd')
+
+    save([outdir fn '.mat'],'outp')
     tp_parallel(fn,outdir,0)
+    
+    clear outp
     
   end
 end
@@ -289,7 +260,7 @@ addpath /home/gnolte/meth/highlevel/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 
 SUBJLIST= 1 : 24;
-v = 2;
+v = 3;
 clear all_corr
 i = 0
 for isubj = SUBJLIST
@@ -299,25 +270,37 @@ for isubj = SUBJLIST
     try
       load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
       isubj
-      all_corr(:,:,isubj,iblock) = outp.src_r;
-      all_pow(:,:,isubj,iblock) = outp.src_nai;
+      tp_all_corr(:,:,isubj,iblock) = outp.tp_src_r;
+      ck_all_corr(:,:,isubj,iblock) = outp.ck_src_r;
+      tp_all_nai(:,:,isubj,iblock) = outp.tp_src_nai;
+      ck_all_nai(:,:,isubj,iblock) = outp.ck_src_nai;
     catch me
       warning('!!!')
-      all_corr(:,:,isubj,iblock) = nan(8799,25);
-      all_pow(:,:,isubj,iblock) =  nan(8799,25);
-
+      tp_all_corr(:,:,isubj,iblock) = nan(8799,25);
+      ck_all_corr(:,:,isubj,iblock) = nan(8799,25);
+      tp_all_nai(:,:,isubj,iblock) =  nan(8799,25);
+      ck_all_nai(:,:,isubj,iblock) =  nan(8799,25);
       continue
     end
   end
 end
 
 
-all_corr= nanmean(all_corr(:,:,SUBJLIST,:),4);
-all_pow= nanmean(all_pow(:,:,SUBJLIST,:),4);
+tp_all_corr= nanmean(tp_all_corr(:,:,SUBJLIST,:),4);
+ck_all_corr= nanmean(ck_all_corr(:,:,SUBJLIST,:),4);
+tp_all_nai= nanmean(tp_all_nai(:,:,SUBJLIST,:),4);
+ck_all_nai= nanmean(ck_all_nai(:,:,SUBJLIST,:),4);
+
+% all_pow= nanmean(all_pow(:,:,SUBJLIST,:),4);
 
 for igrid = 1 : max(BNA.tissue_5mm(:))
-  all_corr_BNA(igrid,:,:) = tanh(mean(atanh(all_corr(BNA.tissue_5mm == igrid,:,:))));
-  all_pow_BNA(igrid,:,:) = mean(all_pow(BNA.tissue_5mm == igrid,:,:));
+  tp_all_corr_BNA(igrid,:,:) = tanh(mean(atanh(tp_all_corr(BNA.tissue_5mm == igrid,:,:))));
+  ck_all_corr_BNA(igrid,:,:) = tanh(mean(atanh(ck_all_corr(BNA.tissue_5mm == igrid,:,:))));
+  tp_all_nai_BNA(igrid,:,:) = tanh(mean(atanh(tp_all_nai(BNA.tissue_5mm == igrid,:,:))));
+  ck_all_nai_BNA(igrid,:,:) = tanh(mean(atanh(ck_all_nai(BNA.tissue_5mm == igrid,:,:))));
+
+%   all_pow_BNA(igrid,:,:) = mean(all_pow(BNA.tissue_5mm == igrid,:,:));
+  
 end
 
 load /home/gnolte/meth/templates/mri.mat
@@ -325,16 +308,32 @@ cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
 
 %% PLOT SOURCE MAPS
+% 
+ifoi = 11;
 
-ifoi = 10;
+par=outp.src_nai(:,ifoi)./max(outp.src_nai(:,ifoi)); 
+% 
+% para = []
+% para.colorlimits = [0 1]
+% para.colormaps{1} = jet;
+% para.orientation = 'axial';
+% para.dslice_shown = 0.5;
+% 
+% showmri_transp(mri,para,[BNA.grid_5mm./10 par])
 
-para.colorlimits = [-0.1 0.1]
-para.colormaps{1} = jet;
-para.orientation = 'axial';
-para.dslice_shown = 0.5;
+[i,j]=sort(par);
 
-showmri_transp(mri,para,[BNA.grid_5mm./10 nanmean(all_corr(:,ifoi,:),3)])
+cmap = inferno(max(j));
+figure_w;
 
+for i = 1 :8799
+  i
+%   idx=find(j==i);
+  plot3(BNA.grid_5mm(j(i),1)/10,BNA.grid_5mm(j(i),2)/10,BNA.grid_5mm(j(i),3)/10,'.','color',cmap(i,:))
+  
+  hold on
+end
+axis off
 
 %% STATISTICS (simple t-test)
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/

@@ -5,243 +5,268 @@ restoredefaultpath
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
 addpath ~/pconn/matlab/
-load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
 load /home/gnolte/meth/templates/mri.mat
 
 ft_defaults
 
-outdir = '~/pp/proc/src/';
-ord    = pconn_randomization;
 
-freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
-
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-
-v = 1;
-clear all_corr
-i = 0
-for isubj = SUBJLIST
-  for iblock = 1 : 2
-    clear src_r
-    try
-      load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      isubj
-      all_corr(:,:,isubj,iblock) = outp.src_r;
-      all_nai(:,:,isubj,iblock) = outp.src_nai;
-    catch me
-      all_corr(:,:,isubj,iblock) = nan(8799,25);
-      all_nai(:,:,isubj,iblock) = nan(8799,25);
-      continue
-    end    
-  end
-end
-
-all_corr= nanmean(all_corr(:,:,SUBJLIST,:),4);
-all_nai = nanmean(all_nai(:,:,SUBJLIST,:),4);
-
-for igrid = 1 : max(BNA.tissue_5mm(:))
-  all_nai_BNA(igrid,:,:) = mean(all_nai(BNA.tissue_5mm == igrid,:,:));
-end
-
-
-%% PLOT POWER (SENSOR LEVEL) - HAMBURG & GLASGOW
-for isubj = SUBJLIST
-  isubj
-  for iblock = 1 : 2
-    clear src_r
-    try
-      load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      
-      for ifreq = 1 : 25
-        
-        tmp = all_csd(:,:,ifreq); 
-        pow_ham(ifreq,isubj,iblock) = mean(diag(abs(tmp)));
-      end
-      
-     catch me
-      pow_ham(ifreq,isubj,iblock) = nan;
-    end
-  end
-end
-
-pow_ham = nanmean(pow_ham(:,SUBJLIST,:),3);
-
-for isubj = 1:24
-  isubj
-  for iblock = 1 : 2
-    clear src_r
-    try
-      load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      
-      for ifreq = 1 : 25
-        
-        tmp = all_csd(:,:,ifreq); 
-        pow_gla(ifreq,isubj,iblock) = mean(diag(abs(tmp)));
-      end
-      
-     catch me
-    end
-  end
-end
-
-pow_gla= nanmean(pow_gla(:,1:24,:),3);
-%%
-
-subj_gla = [1 2 3 4 6:24];
-
-figure_w; 
-subplot(4,4,[1 2 3 4 5 6 7 8]); hold on
-plot(log10(freqoi), mean(zscore(pow_ham,0,1),2))
-plot(log10(freqoi), mean(zscore(pow_gla(:,subj_gla),0,1),2))
-axis([0 2.5 -1.5 2.5]); xlabel('Frequency [Hz]'); 
-tp_editplots
-set(gca,'xtick',log10(freqoi(1:4:end)),'xticklabel',num2cell(freqoi(1:4:end)))
-
-subplot(4,4,[9 10 13 14]); hold on
-plot(log10(freqoi), log10(pow_ham),'k')
-xlabel('Frequency [Hz]'); 
-tp_editplots
-set(gca,'xtick',log10(freqoi(1:4:end)),'xticklabel',num2cell(freqoi(1:4:end)))
-
-subplot(4,4,[11 12 15 16]); hold on
-plot(log10(freqoi), log10(pow_gla(:,subj_gla)),'k')
-xlabel('Frequency [Hz]'); 
-tp_editplots
-set(gca,'xtick',log10(freqoi(1:4:end)),'xticklabel',num2cell(freqoi(1:4:end)))
-
-
-
-%% 
-clear all_corr all_pow
-addpath /home/gnolte/meth/highlevel/
+addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-load /home/gnolte/meth/templates/mri.mat
 
-SUBJLIST= 1 : 24; SUBJLIST([5 9]) = [];
-v = 3;
-clear all_corr
-i = 0
-for isubj = SUBJLIST
-  isubj
-  for iblock = 1 : 1
-    clear src_r
-    try
-      load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      isubj
-      corr_gla(:,:,isubj,iblock) = outp.src_r;
-      nai_gla(:,:,isubj,iblock) = outp.src_nai;
-    catch me
-      warning('!!!')
-      corr_gla(:,:,isubj,iblock) = nan(8799,25);
-      nai_gla(:,:,isubj,iblock) =  nan(8799,25);
-      continue
-    end
-  end
+[plt_gla,plt_hh,plt_all]=pp_load_results();
+
+%% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
+freqoi=2.^(1:(1/4):7); 
+
+figure_w
+
+subplot(2,3,1);
+imagesc(nanmean(plt_gla.corr_sens_ord,3),[-0.03 0.03])
+colormap(cmap); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
+subplot(2,3,2);
+imagesc(nanmean(plt_hh.corr_sens_ord,3),[-0.03 0.03])
+colormap(cmap); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
+pooled = cat(3,plt_hh.corr_sens_ord,plt_gla.corr_sens_ord);
+
+subplot(2,3,3);
+imagesc(nanmean(pooled,3),[-0.03 0.03])
+colormap(cmap); tp_editplots; axis square;
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_anterior_post_v%d.pdf',v))
+
+%% PLOT AVERAGES ACROSS SPACE, HAMBURG, GLASGOW, ALL
+
+% -----------------
+% SENSOR SPACE - POWER
+% -----------------
+freqoi=2.^(1:(1/4):7); 
+
+
+par_gla = mean(log10(nanmean(plt_gla.pow_sens,1)),3);
+par_hh = mean(log10(plt_hh.pow_sens),2);
+std_gla = std(log10(nanmean(plt_gla.pow_sens,1)),[],3)/sqrt(size(plt_gla.pow_sens,3));
+std_hh = std(log10(plt_hh.pow_sens),[],2)/sqrt(size(plt_hh.pow_sens,2));
+
+par_all = mean(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),log10(plt_hh.pow_sens)),2);
+std_all = std(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),log10(plt_hh.pow_sens)),[],2)/sqrt(size(plt_hh.pow_sens,2));
+
+figure_w
+subplot(4,3,1)
+shadedErrorBar(log10(freqoi),par_gla,std_gla,'b')
+axis([.3 2.11 -24 -21])
+% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,2)
+shadedErrorBar(log10(freqoi),par_hh,std_hh,'r')
+axis([.3 2.11 -24 -21])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,3)
+shadedErrorBar(log10(freqoi),par_all,std_all,'k')
+axis([.3 2.11 -24 -21])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+
+% -----------------
+% SENSOR SPACE - CORRELATIONS
+% -----------------
+par_gla = mean(nanmean(plt_gla.corr_sens,1),3);
+par_hh = mean(plt_hh.corr_sens,2);
+std_gla = std(nanmean(plt_gla.corr_sens,1),[],3)/sqrt(size(plt_gla.corr_sens,3));
+std_hh = std(plt_hh.corr_sens,[],2)/sqrt(size(plt_hh.corr_sens,2));
+
+par_all = mean(cat(2,squeeze(nanmean(plt_gla.corr_sens,1)),plt_hh.corr_sens),2);
+std_all = std(cat(2,squeeze(nanmean(plt_gla.corr_sens,1)),plt_hh.corr_sens),[],2)/sqrt(50);
+
+
+
+subplot(4,3,7)
+shadedErrorBar(log10(freqoi),par_gla,std_gla,'b')
+axis([.3 2.11 -0.05 0.05])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,8)
+shadedErrorBar(log10(freqoi),par_hh,std_hh,'r')
+axis([.3 2.11 -0.05 0.05])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,9)
+shadedErrorBar(log10(freqoi),par_all,std_all,'k')
+axis([.3 2.11 -0.05 0.05])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+% -----------------
+% SOURCE SPACE
+% -----------------
+par_gla = mean(nanmean(plt_gla.corr_src,1),3);
+par_hh = mean(mean(plt_hh.corr_src,1),3);
+std_gla = std(nanmean(plt_gla.corr_src,1),[],3)/sqrt(size(plt_gla.corr_src,3));
+std_hh = std(nanmean(plt_hh.corr_src,1),[],3)/sqrt(size(plt_hh.corr_src,2));
+
+par_all = nanmean(mean(cat(3,plt_gla.corr_src,plt_hh.corr_src),1),3);
+std_all = std(nanmean(cat(3,plt_gla.corr_src,plt_hh.corr_src),1),[],3)/sqrt(50);
+
+
+subplot(4,3,10)
+shadedErrorBar(log10(freqoi),par_gla,std_gla,'b')
+axis([.3 2.11 -0.05 0.05])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+
+subplot(4,3,11)
+shadedErrorBar(log10(freqoi),par_hh,std_hh,'r')
+axis([.3 2.11 -0.05 0.05])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,12)
+shadedErrorBar(log10(freqoi),par_all,std_all,'k')
+axis([.3 2.11 -0.05 0.05])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_lineplots_v%d.pdf',v))
+
+%% PLOT SOURCE SPACE - FROM ANTERIOR TO POSTERIOR
+figure_w
+subplot(2,3,1)
+[h,p]=ttest(plt_gla.corr_src_BNA,zeros(size(plt_gla.corr_src_BNA)),'dim',3); 
+imagesc(nanmean(plt_gla.corr_src_BNA,3).*h,[-0.05 0.05])
+tp_editplots; colormap(cmap)
+set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]'); ylabel('Brain region')
+
+subplot(2,3,2)
+[h,p]=ttest(plt_hh.corr_src_BNA,zeros(size(plt_hh.corr_src_BNA)),'dim',3); 
+imagesc(nanmean(plt_hh.corr_src_BNA,3).*h,[-0.05 0.05])
+tp_editplots; colormap(cmap)
+set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]'); ylabel('Brain region')
+
+subplot(2,3,3)
+
+pooled= cat(3,plt_hh.corr_src_BNA,plt_gla.corr_src_BNA); 
+[~,p]=ttest(pooled,zeros(size(pooled)),'dim',3); h = p<fdr1(p(:),0.05,0);
+imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
+tp_editplots; colormap(cmap)
+set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]'); ylabel('Brain region')
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_correlations_BNA_v%d.pdf',v))
+
+%% PLOT REGIONS OF INTEREST, SENSORY AREAS
+
+M1 = [-42 -26 54; 38 -32 48];
+V1 = [-20 -86 18; 16 -80 26];
+A1 = [-54 -22 10; 52 -24 12];
+
+for i= 1 : size(BNA.grid_5mm,1)
+  
+  d_A1_l(i) = sqrt((BNA.grid_5mm(i,1)-A1(1,1))^2 + (BNA.grid_5mm(i,2)-A1(1,2))^2 + (BNA.grid_5mm(i,3)-A1(1,3))^2);
+  d_A1_r(i) = sqrt((BNA.grid_5mm(i,1)-A1(2,1))^2 + (BNA.grid_5mm(i,2)-A1(2,2))^2 + (BNA.grid_5mm(i,3)-A1(2,3))^2);
+  d_V1_l(i) = sqrt((BNA.grid_5mm(i,1)-V1(1,1))^2 + (BNA.grid_5mm(i,2)-V1(1,2))^2 + (BNA.grid_5mm(i,3)-V1(1,3))^2);
+  d_V1_r(i) = sqrt((BNA.grid_5mm(i,1)-V1(2,1))^2 + (BNA.grid_5mm(i,2)-V1(2,2))^2 + (BNA.grid_5mm(i,3)-V1(2,3))^2);
+  d_M1_l(i) = sqrt((BNA.grid_5mm(i,1)-M1(1,1))^2 + (BNA.grid_5mm(i,2)-M1(1,2))^2 + (BNA.grid_5mm(i,3)-M1(1,3))^2);
+  d_M1_r(i) = sqrt((BNA.grid_5mm(i,1)-M1(2,1))^2 + (BNA.grid_5mm(i,2)-M1(2,2))^2 + (BNA.grid_5mm(i,3)-M1(2,3))^2);
+  
 end
+[~,A1_l]=min(d_A1_l);
+[~,A1_r]=min(d_A1_r);
+[~,V1_l]=min(d_V1_l);
+[~,V1_r]=min(d_V1_r);
+[~,M1_l]=min(d_M1_l);
+[~,M1_r]=min(d_M1_r);
 
-corr_gla= nanmean(corr_gla(:,:,SUBJLIST,:),4);
-nai_gla= nanmean(nai_gla(:,:,SUBJLIST,:),4);
+figure_w;
+subplot(4,3,1); hold on
+r_A1_lr = corr(nanmean(plt_all.corr_src(A1_l,:,:),3)',nanmean(plt_all.corr_src(A1_r,:,:),3)');
+sig_A1_lr = mean(plt_all.corr_src([A1_l A1_r],:,:),1);
+[~,p]=ttest(sig_A1_lr,zeros(size(sig_A1_lr)),'dim',3); h=(p*25)<0.05;
+shadedErrorBar(log10(freqoi),nanmean(sig_A1_lr,3),std(sig_A1_lr,[],3)/sqrt(size(sig_A1_lr,3)),'k')
+plot(log10(freqoi(h)),nanmean(sig_A1_lr(:,h,:),3),'k.','markersize',8)
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+axis([.3 2.11 -0.05 0.05]); title(sprintf('A1: r = %.3f',r_A1_lr))
 
-for igrid = 1 : max(BNA.tissue_5mm(:))
-  corr_gla_BNA(igrid,:,:) = tanh(mean(atanh(corr_gla(BNA.tissue_5mm == igrid,:,:))));
-  nai_gla_BNA(igrid,:,:) = mean(nai_gla(BNA.tissue_5mm == igrid,:,:));
-end
+subplot(4,3,2); hold on
+r_V1_lr = corr(nanmean(plt_all.corr_src(V1_l,:,:),3)',nanmean(plt_all.corr_src(V1_r,:,:),3)');
+sig_V1_lr = mean(plt_all.corr_src([V1_l V1_r],:,:),1);
+[~,p]=ttest(sig_V1_lr,zeros(size(sig_V1_lr)),'dim',3); h=(p*25)<0.05;
+shadedErrorBar(log10(freqoi),nanmean(sig_V1_lr,3),std(sig_V1_lr,[],3)/sqrt(size(sig_V1_lr,3)),'k')
+plot(log10(freqoi(h)),nanmean(sig_V1_lr(:,h,:),3),'k.','markersize',8)
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+axis([.3 2.11 -0.05 0.05]); title(sprintf('V1: r = %.3f',r_V1_lr))
 
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-v = 1
-for isubj = SUBJLIST
-  isubj
-  for iblock = 1 : 2
-    clear src_r
-    try
-      load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      isubj
-      corr_ham(:,:,isubj,iblock) = outp.src_r;
-      nai_ham(:,:,isubj,iblock) = outp.src_nai;
-    catch me
-      warning('!!!')
-      corr_ham(:,:,isubj,iblock) = nan(8799,25);
-      nai_ham(:,:,isubj,iblock) =  nan(8799,25);
-      continue
-    end
-  end
-end
+subplot(4,3,3); hold on
+r_M1_lr = corr(nanmean(plt_all.corr_src(M1_l,:,:),3)',nanmean(plt_all.corr_src(M1_r,:,:),3)');
+sig_M1_lr = mean(plt_all.corr_src([M1_l M1_r],:,:),1);
+[~,p]=ttest(sig_M1_lr,zeros(size(sig_M1_lr)),'dim',3); h=(p*25)<0.05;
+shadedErrorBar(log10(freqoi),nanmean(sig_M1_lr,3),std(sig_M1_lr,[],3)/sqrt(size(sig_M1_lr,3)),'k')
+plot(log10(freqoi(h)),nanmean(sig_M1_lr(:,h,:),3),'k.','markersize',8)
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+axis([.3 2.11 -0.05 0.05]); title(sprintf('SOM: r = %.3f',r_M1_lr))
 
-corr_ham = nanmean(corr_ham(:,:,SUBJLIST,:),4);
-nai_ham  = nanmean(nai_ham(:,:,SUBJLIST,:),4);
-
-for igrid = 1 : max(BNA.tissue_5mm(:))
-  corr_ham_BNA(igrid,:,:) = tanh(mean(atanh(corr_ham(BNA.tissue_5mm == igrid,:,:))));
-  nai_ham_BNA(igrid,:,:) = mean(nai_ham(BNA.tissue_5mm == igrid,:,:));
-end
-
-corr_all_BNA = cat(3,corr_gla_BNA,corr_ham_BNA);
-nai_all_BNA  = cat(3,nai_gla_BNA,nai_ham_BNA);
-
-corr_all = cat(3,corr_gla,corr_ham);
-nai_all  = cat(3,nai_gla,nai_ham);
-
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_ROIs_v%d.pdf',v))
 
 %% PLOT NAI / POWER
-figure_w;
-
-subplot(1,2,1);
-
-imagesc(nanmean(nai_ham_BNA,3)./max(max(nanmean(nai_ham_BNA,3))),[0 .3])
-colormap(inferno)
-
-subplot(1,2,2);
-
-imagesc(nanmean(nai_gla_BNA,3)./max(max(nanmean(nai_gla_BNA,3))),[0 .3])
-colormap(inferno)
-
-
-% 
-% para.ifoi = [10];
-% para.orientation = 'axial';
-% para.dslice_shown = 0.5;
-% 
-% showmri_transp(mri,para,[BNA.centroids./10 nanmean(nanmean(nai_all_BNA(:,para.ifoi,:),2),3)])
-
-
-%% CORR METHODS
-
-clear all_corr all_pow
 addpath /home/gnolte/meth/highlevel/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
-cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-load /home/gnolte/meth/templates/mri.mat
 
-SUBJLIST= 1 : 24; SUBJLIST([5 9]) = [];
-v = 3;
-clear all_corr
-for isubj = SUBJLIST
-  isubj
-  for iblock = 1 : 1
-    clear src_r
-    try
-    load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-    corr_meth(:,:,isubj) = outp.corr_meth_src;
-    catch me
-      corr_meth(:,:,isubj) = nan(8799,25);
-    end
-  end
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+for ifoi = 12
+% ifoi = 14;
+
+[h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
+h=p<(fdr1(p(:),0.05,0));
+par=nanmean(plt_all.corr_src(:,ifoi,:),3).*h;
+
+clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+para = [];
+para.colorlimits = clim
+para.colormaps{1} = cmap;
+para.orientation = 'axial';
+
+para.dslice_shown = 0.75;
+para.colorbar= 0;
+
+tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
+
 end
 
-corr_meth  = corr_meth(:,:,SUBJLIST);
-%%
-figure_w;
-subplot(2,7,[1 2 3 8 9 10])
-imagesc(nanmean(corr_meth,3),[0.8 1]); 
-colormap(plasma); colorbar
-set(gca,'xtick',[(1:4:25)],'xticklabel',num2cell([freqoi(1:4:end)]))
-xlabel('Frequency [Hz]'); ylabel('Source Region')
-tp_editplots
+%% PLOT CROSS FREQUENCY
 
-subplot(2,7,[5 6 7])
-plot(1:25,nanmean(nanmean(corr_meth,3),1),'k')
-set(gca,'xtick',[(1:4:25)],'xticklabel',num2cell([freqoi(1:4:end)]))
-axis([0 26 0 1.1]); tp_editplots;
-xlabel('Frequency [Hz]'); ylabel('Avg. correlation')
+
+
 

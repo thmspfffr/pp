@@ -82,15 +82,29 @@ for isubj = SUBJLIST
     
     for ifreq=1:numel(freqoi)
       ifreq
-
-      para          = [];
-      para.freq     = freqoi(ifreq);
-      para.fsample  = 400;  
-      [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
+      % DEFINE WAVELETS HERE
+      % --------------------------------
+      [KERNEL,~,opt]=tp_mkwavelet(freqoi(ifreq), .5, 400);
+      % --------------------------------
+      
       nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
-
-      for ipupfreq = 1 : size(pupil_freqoi,1)
+      clear dataf
+      % this can probably be coded more elegantly, but it gets job done
+      for j=1:nseg
         
+        dloc2=dat(:,(j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win)';
+         
+        if any(isnan(dloc2(:,1)))
+%           warning('NaN detected')
+          dataf(:,j)=nan(1,size(dloc2,2));
+          continue
+        else
+          dataf(:,j)=dloc2'*KERNEL;
+        end
+      end
+      
+      for ipupfreq = 1 : size(pupil_freqoi,1)
+        ipupfreq
         for j=1:nseg
           dloc2=dat(:,(j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win)';
           if any(isnan(dloc2(:,1)))
@@ -106,17 +120,23 @@ for isubj = SUBJLIST
       
       % Compute cross spectrum & find NaN segments
       idx_valid     = find(~isnan(dataf(1,:)));
+      csd           = (dataf(:,idx_valid)*dataf(:,idx_valid)')/size(dataf(:,idx_valid ),2);
       nanidx{ifreq} = idx_valid;
       % -----------
       % beamforming (ignore name of leadfield)
       % --------------
       para     	= [];
       para.reg  = 0.05;
-      filt      = tp_beamformer(real(csd),lf,para);
+      [filt]    = tp_beamformer(real(csd),sa.L_genemaps_aal,para);
       % --------------
-      src_pow{ifreq} = abs((filt'*dataf).^2); % compute power
+      filt = spat_filt{ifreq}.spatFilt;
+      src       = abs((filt*dataf).^2); % compute power
       % -----------
-
+%       src = conv(src
+      % compute average 
+      for igrid = 1 : max(BNA.tissue_5mm(:))
+        src_pow{ifreq}(:,igrid) = mean(src(BNA.tissue_5mm == igrid,nanidx{ifreq}));
+      end
       clear src
     end
     
@@ -125,7 +145,7 @@ for isubj = SUBJLIST
     for ipup = 1 : size(pupil,2)
       ipup
       for ifreq = 1 : size(src_pow,2)
-        src_r(:,ifreq,ipup) = corr(src_pow{ifreq}(:,nanidx{ifreq})',pup{ipup}{ifreq}(nanidx{ifreq})');
+        src_r(:,ifreq,ipup) = corr(src_pow{ifreq}(nanidx{ifreq},:),pup{ipup}{ifreq}(nanidx{ifreq})');
       end
     end
     

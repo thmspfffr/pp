@@ -61,8 +61,8 @@ for isubj = SUBJLIST
     
     
     clear pupil nanidx
-
-        
+    
+    
     for ipupfreq = 1 : size(pupil_freqoi,1)
       
       f_sample = 1000;
@@ -97,7 +97,7 @@ for isubj = SUBJLIST
       % THIS NEEDS TO BE CHANGED
       % ----------------
       pupil(:,ipupfreq) = pup; clear pup
-          end
+    end
     % ----------------
     
     load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');
@@ -105,65 +105,61 @@ for isubj = SUBJLIST
     
     for ifreq=1:numel(freqoi)
       
-      % DEFINE WAVELETS HERE
-      % --------------------------------
-      octave     = 0.5; % Frequency resolution
-      foi_min    = 2*freqoi(ifreq)/(2^octave+1);
-      foi_max    = 2*freqoi(ifreq)/(2^-octave+1);
-      delta_freq = foi_max-foi_min; % 2*std in freq domain
-      delta_time = 6/pi./delta_freq;
-      delta_time = round(delta_time*1000)/1000;
-      t_shift    = delta_time/2;
-      n_win      = round(delta_time*data.fsample);
-      n_shift    = round(t_shift*data.fsample);
-      TAPER      = gausswin(n_win,3)'; TAPER = TAPER/sum(TAPER);
-      iEXP       = exp(sqrt(-1) * ((1:n_win)-n_win/2-0.5) /data.fsample*freqoi(ifreq)*2*pi);
-      KERNEL     = (TAPER.*iEXP).';
-      % --------------------------------
+      ifreq
       
-      nseg=floor((size(data.trial,2)-n_win)/n_shift+1);
-      clear dataf
-      % this can probably be coded more elegantly, but it gets job done
+      para          = [];
+      para.freq     = freqoi(ifreq);
+      para.fsample  = 400;
+      %       para.meth     = 'conv';
+      [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
+      
+      %       conv_dataf = conv_dataf(:,round(tfPnts));
+      
+      outp.tp_sens_pow(:,ifreq) = diag(abs(csd));
+      
+      % -------------------------------
+      % prepare pupil signal
+      % -------------------------------
+      nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
+      pup = nan(nseg,1);
       for j=1:nseg
-        
-        dloc2=data.trial(:,(j-1)*n_shift+1:(j-1)*n_shift+n_win)';
-        
-        if any(isnan(dloc2(:,1)))
-          %           warning('NaN detected')
-          dataf(:,j)=nan(1,size(dloc2,2));
-          continue
-        else
-          dataf(:,j)=dloc2'*KERNEL;
-        end
+        tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
+        pup(j) = mean(tmp.*gausswin(opt.n_win,3));
       end
       
       for ipupfreq = 1 : size(pupil_freqoi,1)
         ipupfreq
         for j=1:nseg
-          dloc2=data.trial(:,(j-1)*n_shift+1:(j-1)*n_shift+n_win)';
+          dloc2=dat(:,(j-1)*n_shift+1:(j-1)*n_shift+n_win)';
           if any(isnan(dloc2(:,1)))
             %             warning('NaN detected')
             pup{ipupfreq}{ifreq}(:,j) = nan;
             continue
           else
             tmp = pupil((j-1)*n_shift+1:(j-1)*n_shift+n_win,ipupfreq);
-            pup{ipupfreq}{ifreq}(:,j) = mean(tmp.*gausswin(n_win,3));                 
+            pup{ipupfreq}{ifreq}(:,j) = mean(tmp.*gausswin(n_win,3));
           end
         end
       end
       
       % Compute cross spectrum & find NaN segments
-      idx_valid     = find(~isnan(dataf(1,:)));
-      csd           = (dataf(:,idx_valid)*dataf(:,idx_valid)')/size(dataf(:,idx_valid ),2);
+      idx_valid = find(~isnan(dataf(1,:)));
       nanidx{ifreq} = idx_valid;
       % -----------
-      
-      % Beamforming
-      para      = [];
-      para.iscs = 1;
-      para.reg  = 0.05;
-      filt      = tp_beamformer(csd,sa.L_genemaps_aal,para);
-      src       = abs((filt'*dataf).^2); % compute power
+      % beamforming (ignore name of leadfield)
+      % --------------
+      para          = [];
+      para.reg      = 0.05;
+      [filt,pow] = tp_beamformer(real(csd),sa.L_genemaps_aal,para);
+      % --------------
+      % beamform again with noise to compute "NAI"
+      % --------------
+      Lr = reshape(sa.L_genemaps_aal,[size(sa.L_genemaps_aal,1) 8799*3]); csd_noise = Lr*Lr';
+      [~,noise]      = tp_beamformer(real(csd_noise),sa.L_genemaps_aal,para);
+      outp.src_nai(:,ifreq) = pow./noise;
+      % -------------------------------
+      % compute power
+      src = abs(filt'*dataf).^2;
       
       % compute average
       for igrid = 1 : max(BNA.tissue_5mm(:))
@@ -200,21 +196,21 @@ for isubj = SUBJLIST
   isubj
   for iblock = 1 : 2
     clear src_r
-%     try
-%       
-      load(sprintf([outdir 'pp_cnt_src_pupil_power_correlations_crossfreq_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      all_corr(:,:,:,isubj,2,iblock) = src_r;
-%       
-      load(sprintf([outdir 'pp_src_pupil_power_correlations_crossfreq_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      all_corr(:,:,:,isubj,1,iblock) = src_r;
-      
-      if ~exist('src_r','var')
-        save(sprintf([outdir 'pp_cnt_src_pupil_power_correlations_crossfreq_s%d_b%d_v%d.mat'],isubj,iblock,v),'src_r');
-      end
-%     catch me
-%       all_corr(:,:,:,isubj,1:2,iblock) = nan(246,25,21,2);
-%       continue
-%     end
+    %     try
+    %
+    load(sprintf([outdir 'pp_cnt_src_pupil_power_correlations_crossfreq_s%d_b%d_v%d.mat'],isubj,iblock,v));
+    all_corr(:,:,:,isubj,2,iblock) = src_r;
+    %
+    load(sprintf([outdir 'pp_src_pupil_power_correlations_crossfreq_s%d_b%d_v%d.mat'],isubj,iblock,v));
+    all_corr(:,:,:,isubj,1,iblock) = src_r;
+    
+    if ~exist('src_r','var')
+      save(sprintf([outdir 'pp_cnt_src_pupil_power_correlations_crossfreq_s%d_b%d_v%d.mat'],isubj,iblock,v),'src_r');
+    end
+    %     catch me
+    %       all_corr(:,:,:,isubj,1:2,iblock) = nan(246,25,21,2);
+    %       continue
+    %     end
     
   end
   
