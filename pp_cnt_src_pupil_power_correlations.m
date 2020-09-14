@@ -1,4 +1,4 @@
-%% pp_src_pupil_power_correlations
+%% pp_cnt_src_pupil_power_correlations
 % correlate bandpass filtered (or via wavelets) pupil and MEG signals
 
 clear
@@ -27,6 +27,7 @@ freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 % -------------------------
 for isubj = SUBJLIST
   
+  % identify placebo condition (ord==1)
   im = find(ord(isubj,:)==1);
   
   for iblock = 1:2
@@ -39,10 +40,10 @@ for isubj = SUBJLIST
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
-      % load meg data
-      load(sprintf('~/pp/proc/pp_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
-      % load pupil data
-      load(sprintf('~/pp/proc/pup/pp_pupil_diameter_cleaned_counting_s%d_m%d_b%d.mat',isubj,im,iblock))   
+      % load cleaned meg data
+      load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
+      % load cleanted pupil data
+      load(sprintf('~/pp/proc/pup/pp_pupil_diameter_cleaned_counting_s%d_m%d_b%d.mat',isubj,im,iblock))
     catch me
       continue
     end
@@ -88,8 +89,12 @@ for isubj = SUBJLIST
       
     dat(:,isnan(pupil))=nan(size(dat,1),sum(isnan(pupil)));
     
-    load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');
-        
+    load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');  
+    
+    lf = sa.L_genemaps_aal;
+    
+    save(sprintf('~/pp/proc/sens/pp_meg_pupil_lfs_s%d_b%d.mat',isubj,iblock),'dat','pupil','lf');
+    
     [outp.pxx,outp.fxx]=pwelch(dat(:,~isnan(dat(1,:)))',hanning(400),0,1:1:200,400);
     
     for ifreq=1:numel(freqoi)
@@ -98,11 +103,8 @@ for isubj = SUBJLIST
       para          = [];
       para.freq     = freqoi(ifreq);
       para.fsample  = 400;  
-%       para.meth     = 'conv';
       [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
-      
-%       conv_dataf = conv_dataf(:,round(tfPnts));
-      
+            
       outp.tp_sens_pow(:,ifreq) = diag(abs(csd));
 
       % -------------------------------
@@ -114,12 +116,12 @@ for isubj = SUBJLIST
         tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
         pup(j) = mean(tmp.*gausswin(opt.n_win,3));
       end
-     
+      
       % find indices of non-NAN segments
       idx_valid = find(~isnan(dataf(1,:)));
  
       % correlate pupil with sensor level signal
-      outp.sens_r = corr(pup(:,idx_valid)',abs(dataf(:,idx_valid).^2)');
+      outp.sens_r(:,ifreq) = corr(pup(idx_valid),abs(dataf(:,idx_valid).^2)');
       
       % beamforming (ignore name of leadfield)
       % --------------

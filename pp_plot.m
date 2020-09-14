@@ -180,7 +180,7 @@ xlabel('Frequency [Hz]'); ylabel('Brain region')
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_correlations_BNA_v%d.pdf',v))
 
 %% PLOT REGIONS OF INTEREST, SENSORY AREAS
-
+load ~/pp/proc/pp_atlas_BNA.mat
 M1 = [-42 -26 54; 38 -32 48];
 V1 = [-20 -86 18; 16 -80 26];
 A1 = [-54 -22 10; 52 -24 12];
@@ -244,12 +244,12 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
-for ifoi = 12
+for ifoi = 11
 % ifoi = 14;
 
-[h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
+[h,p] = ttest(plt_hh.corr_src_cnt(:,ifoi,:),zeros(size(plt_hh.corr_src_cnt(:,ifoi,:))),'dim',3);
 h=p<(fdr1(p(:),0.05,0));
-par=nanmean(plt_all.corr_src(:,ifoi,:),3).*h;
+par=nanmean(plt_hh.corr_src_cnt(:,ifoi,:),3);
 
 clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
 para = [];
@@ -261,12 +261,143 @@ para.dslice_shown = 0.75;
 para.colorbar= 0;
 
 tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_src_corr_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
 
 end
 
 %% PLOT CROSS FREQUENCY
+meg_f1 = [2 3 4 6]; pup_f1 = [9 10 11 12 13 14];
+meg_f2 = [9 10 11]; pup_f2 = [6 7 8 9 10];
+meg_f3 = [13 14 15]; pup_f3 = [6 7 8 9 10 11];
+meg_f4 = [10:12];  pup_f4 = [1:5];
+meg_f5 = [21:25];  pup_f5 = [2 3 4 5 6];
+meg_f6 = [9:13];  pup_f6 = [12:17];
+
+pooled = cat(4,plt_hh.cf_corr,plt_gla.cf_corr);
+pupil_freqoi(:,1) = 2.^(-9:(0.5):1);
+pupil_freqoi(:,2) = 2.^(-8:(0.5):2);
+
+
+figure_w;
+
+subplot(2,3,1)
+imagesc(squeeze(nanmean(nanmean(plt_gla.cf_corr,4),1))',[-0.02 0.02]);
+set(gca,'ydir','normal'); axis square
+set(gca,'tickdir','out','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+set(gca,'tickdir','out','ytick',1:2:21,'yticklabel',num2str((round((mean(pupil_freqoi(1:2:21,:),2)*10000))/10000)))
+tp_editplots
+xlabel('MEG frequency [Hz]'); ylabel('Pupil frequency [Hz]')
+colormap(cmap)
+
+subplot(2,3,2)
+imagesc(squeeze(nanmean(nanmean(plt_hh.cf_corr,4),1))',[-0.02 0.02]);
+set(gca,'ydir','normal'); axis square
+set(gca,'tickdir','out','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+set(gca,'tickdir','out','ytick',1:2:21,'yticklabel',num2str((round((mean(pupil_freqoi(1:2:21,:),2)*10000))/10000)))
+tp_editplots
+xlabel('MEG frequency [Hz]'); ylabel('Pupil frequency [Hz]')
+colormap(cmap)
+
+subplot(2,3,3)
+imagesc(squeeze(nanmean(nanmean(pooled,4),1))',[-0.02 0.02]);
+set(gca,'ydir','normal'); axis square
+set(gca,'tickdir','out','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+set(gca,'tickdir','out','ytick',1:2:21,'yticklabel',num2str((round((mean(pupil_freqoi(1:2:21,:),2)*10000))/10000)))
+
+tp_drawsquare(min(meg_f1), max(meg_f1), min(pup_f1), max(pup_f1))
+tp_drawsquare(min(meg_f2), max(meg_f2), min(pup_f2), max(pup_f2))
+tp_drawsquare(min(meg_f3), max(meg_f3), min(pup_f3), max(pup_f3))
+tp_drawsquare(min(meg_f4), max(meg_f4), min(pup_f4), max(pup_f4))
+tp_drawsquare(min(meg_f5), max(meg_f5), min(pup_f5), max(pup_f5))
+tp_drawsquare(min(meg_f6), max(meg_f6), min(pup_f6), max(pup_f6))
+
+tp_editplots
+xlabel('MEG frequency [Hz]'); ylabel('Pupil frequency [Hz]')
+colormap(cmap)
+
+subplot(2,3,4)
+[h,p]=ttest(squeeze(nanmean(pooled,1)),plt_hhzeros(size(squeeze(nanmean(pooled,1)))),'dim',3);
+h=p<0.05;
+imagesc(squeeze(nanmean(nanmean(pooled,4),1))'.*h',[-0.02 0.02]);
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+set(gca,'ytick',1:2:21,'yticklabel','')
+tp_editplots; axis square
+xlabel('MEG frequency [Hz]'); 
+colormap(cmap)
+
+v=3
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_crossfreq_v%d.pdf',v))
+
+%% IMAGE AGAIN
 
 
 
+addpath /home/gnolte/meth/highlevel/
+addpath ~/Documents/MATLAB/cbrewer/cbrewer/
+
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+ifreq = 6
+% [h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
+% h=p<(fdr1(p(:),0.05,0));
+par=nanmean(nanmean(nanmean(plt_hh.cf_corr(:,eval(sprintf('meg_f%d',ifreq)),eval(sprintf('pup_f%d',ifreq)),:),4),3),2);
+
+par_stats=squeeze(nanmean(nanmean(plt_hh.cf_corr(:,eval(sprintf('meg_f%d',ifreq)),eval(sprintf('pup_f%d',ifreq)),:),3),2));
+% [h,p]=ttest(par_stats,zeros(size(par_stats)),'dim',2); h = p<(fdr1(p(:),0.05,0));
+par=par;
+
+clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+para = [];
+para.colorlimits = clim
+para.colormaps{1} = cmap;
+para.orientation = 'axial';
+
+para.dslice_shown = 0.75;
+para.colorbar= 0;
+
+tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
+set(gcf,'renderer','painters')
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_crossfreq_f%d_v%d.tiff',ifreq,v))
+
+
+
+%% FRACTION OF POSITIVE/NEGATIVE CORRELATIONS
+h=ttest(pooled,zeros(size(pooled)),'dim',4);
+par = nanmean(pooled,4);
+par_pos = 100*(squeeze(sum((h>0) & (par>0)))./8799);
+par_neg = 100*(squeeze(sum((h>0) & (par<0)))./8799);
+% permtest
+% idx=randi(2,[50 1000])-1;
+
+% all_dat = cat(4,pooled,zeros(size(pooled)));
+% nsubj = size(pooled,4);
+% for iperm = 1 : 1000
+%   iperm
+%   clear par
+%   par = all_dat(:,:,:,(1:50)'+nsubj.*idx(:,iperm));
+% 
+%   h=ttest(par,zeros(size(pooled)),'dim',4);
+%   par_perm = nanmean(par,4);
+%   par_pos_perm(:,:,iperm) = 100*(squeeze(sum((h>0) & (par_perm>0)))./8799);
+%   par_neg_perm(:,:,iperm) = 100*(squeeze(sum((h>0) & (par_perm<0)))./8799);
+% 
+% end
+
+mask_pos = (1-sum(par_pos>par_pos_perm,3)/1000)<0.05;
+mask_neg = (1-sum(par_neg>par_neg_perm,3)/1000)<0.05;
+
+par = zeros(size(par_pos));
+par(mask_pos)=par_pos(mask_pos);
+par(mask_neg)=-par_neg(mask_neg);
+
+
+k=subplot(2,3,4)
+imagesc(par',[-75 75]);
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+set(gca,'ytick',1:2:21,'yticklabel','')
+tp_editplots; axis square
+xlabel('MEG frequency [Hz]'); 
+colormap(cmap)
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_crossfreq_v%d.pdf',v))
 

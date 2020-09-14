@@ -223,7 +223,7 @@ for isubj = 1:24
       % -------------------------------
       % sensor-level pupil power correlation
       % -------------------------------
-      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)');
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
       outp.sens_r_sp(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
       % -------------------------------
       % compute source-level power
@@ -233,8 +233,8 @@ for isubj = 1:24
 %       % -------------------------------
       % correlate power with pupil
       % -------------------------------
-      outp.tp_src_r(:,ifreq) = corr(pup(tp_idx_valid),tp_src(:,tp_idx_valid)');
-      outp.ck_src_r(:,ifreq) = corr(ck_pup(idx),ck_src(:,idx)');
+      outp.tp_src_r(:,ifreq) = corr(pup(tp_idx_valid),tp_src(:,tp_idx_valid)','type','spearman');
+      outp.ck_src_r(:,ifreq) = corr(ck_pup(idx),ck_src(:,idx)','type','spearman');
       % -------------------------------
       % compare ck and tp source signals
       % -------------------------------
@@ -255,147 +255,3 @@ end
 
 error('!')
 %%
-clear all_corr all_pow
-addpath /home/gnolte/meth/highlevel/
-addpath ~/Documents/MATLAB/cbrewer/cbrewer/
-
-SUBJLIST= 1 : 24;
-v = 3;
-clear all_corr
-i = 0
-for isubj = SUBJLIST
-  isubj
-  for iblock = 1 : 1
-    clear src_r
-    try
-      load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      isubj
-      tp_all_corr(:,:,isubj,iblock) = outp.tp_src_r;
-      ck_all_corr(:,:,isubj,iblock) = outp.ck_src_r;
-      tp_all_nai(:,:,isubj,iblock) = outp.tp_src_nai;
-      ck_all_nai(:,:,isubj,iblock) = outp.ck_src_nai;
-    catch me
-      warning('!!!')
-      tp_all_corr(:,:,isubj,iblock) = nan(8799,25);
-      ck_all_corr(:,:,isubj,iblock) = nan(8799,25);
-      tp_all_nai(:,:,isubj,iblock) =  nan(8799,25);
-      ck_all_nai(:,:,isubj,iblock) =  nan(8799,25);
-      continue
-    end
-  end
-end
-
-
-tp_all_corr= nanmean(tp_all_corr(:,:,SUBJLIST,:),4);
-ck_all_corr= nanmean(ck_all_corr(:,:,SUBJLIST,:),4);
-tp_all_nai= nanmean(tp_all_nai(:,:,SUBJLIST,:),4);
-ck_all_nai= nanmean(ck_all_nai(:,:,SUBJLIST,:),4);
-
-% all_pow= nanmean(all_pow(:,:,SUBJLIST,:),4);
-
-for igrid = 1 : max(BNA.tissue_5mm(:))
-  tp_all_corr_BNA(igrid,:,:) = tanh(mean(atanh(tp_all_corr(BNA.tissue_5mm == igrid,:,:))));
-  ck_all_corr_BNA(igrid,:,:) = tanh(mean(atanh(ck_all_corr(BNA.tissue_5mm == igrid,:,:))));
-  tp_all_nai_BNA(igrid,:,:) = tanh(mean(atanh(tp_all_nai(BNA.tissue_5mm == igrid,:,:))));
-  ck_all_nai_BNA(igrid,:,:) = tanh(mean(atanh(ck_all_nai(BNA.tissue_5mm == igrid,:,:))));
-
-%   all_pow_BNA(igrid,:,:) = mean(all_pow(BNA.tissue_5mm == igrid,:,:));
-  
-end
-
-load /home/gnolte/meth/templates/mri.mat
-cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-
-
-%% PLOT SOURCE MAPS
-% 
-ifoi = 11;
-
-par=outp.src_nai(:,ifoi)./max(outp.src_nai(:,ifoi)); 
-% 
-% para = []
-% para.colorlimits = [0 1]
-% para.colormaps{1} = jet;
-% para.orientation = 'axial';
-% para.dslice_shown = 0.5;
-% 
-% showmri_transp(mri,para,[BNA.grid_5mm./10 par])
-
-[i,j]=sort(par);
-
-cmap = inferno(max(j));
-figure_w;
-
-for i = 1 :8799
-  i
-%   idx=find(j==i);
-  plot3(BNA.grid_5mm(j(i),1)/10,BNA.grid_5mm(j(i),2)/10,BNA.grid_5mm(j(i),3)/10,'.','color',cmap(i,:))
-  
-  hold on
-end
-axis off
-
-%% STATISTICS (simple t-test)
-addpath ~/Documents/MATLAB/cbrewer/cbrewer/
-cmap = cbrewer('div','RdBu',128); cmap = cmap(end:-1:1,:)
-
-[h,p]=ttest(zeros(size(all_corr)),all_corr,'dim',3)
-
-figure; set(gcf,'color','w')
-h=subplot(2,2,[1 3]); hold on
-imagesc(nanmean(all_corr,3),[-0.05 0.05])
-set(gca,'xtick',[1 5 9 13 17 21 25],'xticklabel',num2cell(freqoi([1 5 9 13 17 21 25])),'ydir','reverse')
-xlabel('Frequency [Hz]'); ylabel('BNA Region')
-colormap(cmap); colorbar; axis([1 25 1 246]); tp_editplots
-
-h=subplot(2,2,[2 4]); hold on
-imagesc(nanmean(all_corr,3).*(p<0.0157),[-0.05 0.05])
-set(gca,'xtick',[1 5 9 13 17 21 25],'xticklabel',num2cell(freqoi([1 5 9 13 17 21 25])),'ydir','reverse')
-xlabel('Frequency [Hz]'); ylabel('BNA Region')
-colormap(cmap); colorbar; axis([1 25 1 246]); tp_editplots
-
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_gla_src_pupil_power_correlations_v%d.pdf',v))
-
-%%
-
-for ifoi = 1 : 25
-  
-  m_f(ifoi) = mean(squeeze(nanmean(all_corr(:,ifoi,:),1)));
-  s_f(ifoi) = nanstd(squeeze(nanmean(all_corr(:,ifoi,:),1)))/sqrt(size(all_corr,3));
-  [h(ifoi),p(ifoi)] = ttest(squeeze(nanmean(all_corr(:,ifoi,:),1)));
-  
-end
-
-
-
-figure; set (gcf,'color','w')
-subplot(2,2,1); hold on
-shadedErrorBar([],m_f,[s_f],[]);
-% plot(f,'linewidth',3);
-line([1 25],[0 0],'linestyle',':','color','k')
-set(gca,'xtick',[1 5 9 13 17 21 25],'xticklabel',num2cell(freqoi([1 5 9 13 17 21 25])))
-xlabel('Frequency [Hz]'); ylabel('Correlation coeff.')
-tp_editplots; title('Average over regions')
-axis([0 25 -0.075 0.075])
-% subplot(1,2,2); hold on
-% plot(t,'linewidth',3);
-% line([1 25],[0 0],'linestyle',':','color','k')
-% set(gca,'xtick',[1 5 9 13 17 21 25],'xticklabel',num2cell(freqoi([1 5 9 13 17 21 25])))
-% xlabel('Frequency [Hz]'); ylabel('T-Value')
-% tp_editplots
-
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_gla_src_pupil_power_correlations_lineplot_v%d.pdf',v))
-
-%% 
-ff=0.125 : 0.125 : 150;
-p=zscore(nanmean(outp.pxx,2));
-
-for ifoi = 1 : length(freqoi)
-[~,f,opt]=tp_mkwavelet(freqoi(ifoi), .5, 400);
-
-
-pow(ifoi) = mean(p(outp.fxx>f(1) & outp.fxx<f(2)),1);
-
-end
-
-plot(pow); hold on

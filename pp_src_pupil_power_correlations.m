@@ -139,7 +139,7 @@ for isubj = SUBJLIST
       src = abs(filt'*dataf).^2;
       
       % correlate with pupila
-      outp.src_r(:,ifreq) = corr(pup(idx_valid),src(:,idx_valid)');
+      outp.src_r(:,ifreq) = corr(pup(idx_valid),src(:,idx_valid)','type','Spearman');
       
       clear src pup
 
