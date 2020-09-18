@@ -131,40 +131,49 @@ for isubj = 1:24
       [tp_filt,tp_pow]      = tp_beamformer(real(tp_csd),lf,para);
       % -------------------------------
 %             
-      n_win = 20 * 400;
-      n_shift = n_win/2;
-      nseg=floor((size(dataf,2)-n_win)/n_shift+1);
-
-      for iwin = 1 : nseg
-                
-        iwin
+%       pow=tp_filt'*dataf;
+      pow=(abs(dataf).^2);
+      pow(:,isnan(pow(1,:)))=[];
+      clear tmp
+      for i = 1 : size(pow,1)
         
-        tmp1= dataf(:,(iwin-1)*n_shift+1:(iwin-1)*n_shift+n_win);
-        tmp1 = abs(tp_filt'*tmp1).^2;
-        tmp2 = pup((iwin-1)*n_shift+1:(iwin-1)*n_shift+n_win);
-        
-        if any(isnan(tmp1(1,:))) || any(isnan(tmp2))
-          idx(iwin)=0;
-          continue
-        else 
-          idx(iwin)=1;
-        end
-          
-        
-        [pxx,fxx]=pwelch(tmp1',hanning(n_win),0,0.05:0.05:2,400);
-        X = [ones(1,length(fxx))' log10(fxx)];
-        Y = log10(pxx);
-        tmp = X\Y; slope_meg(:,iwin) = tmp(2,:)';
-        
-        [pxx,fxx]=pwelch(tmp2',hanning(n_win),0,0.05:0.05:2,400);
-        X = [ones(1,length(fxx))' log10(fxx')];
-        Y = log10(pxx);
-        tmp = X\Y'; slope_pup(:,iwin) = tmp(2);
-        
-  
+        [tmp(i,:),outp.fxx]=pwelch(pow(i,:)',hanning(20000),0.5,0.02:0.02:1,400);
+      
       end
       
-      outp.corr(ifreq)=corr(slope_meg(:,idx)',slope_pup(idx)');  
+      outp.pxx(:,ifreq) = nanmean(tmp,2);
+      
+      pupil(isnan(pupil))=[];
+      [outp.pxx_pup,outp.fxx]=pwelch(pupil',hanning(20000),0.5,0.02:0.02:1,400);
+      
+% 
+%       for iwin = 1 : nseg
+%                 
+%         iwin
+%         
+%         tmp1= dataf(:,(iwin-1)*n_shift+1:(iwin-1)*n_shift+n_win);
+%         tmp1 = abs(tp_filt'*tmp1).^2;
+%         tmp2 = pup((iwin-1)*n_shift+1:(iwin-1)*n_shift+n_win);
+%         
+%         if any(isnan(tmp1(1,:))) || any(isnan(tmp2))
+%           idx(iwin)=0;
+%           continue
+%         else 
+%           idx(iwin)=1;
+%         end
+%           
+%         
+%         [pxx,fxx]=pwelch(tmp1',hanning(n_win),0,0.05:0.05:2,400);
+%         X = [ones(1,length(fxx))' log10(fxx)];
+%         Y = log10(pxx);
+%         tmp = X\Y; outp.slope_meg(:,iwin,ifreq) = tmp(2,:)';
+%         
+%         outp.mean_pup(iwin,ifreq) = nanmean(tmp2);
+%         
+%   
+%       end
+      
+%       outp.corr(:,ifreq)=corr(slope_meg(:,logical(idx))',slope_pup(logical(idx))');  
       clear src pup csd tp_csd dataf 
       
     end
@@ -179,3 +188,68 @@ end
 
 error('!')
 %%
+
+for isubj = 1 : 24
+  isubj
+  try
+
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_scaling_s%d_b1_v3.mat',isubj)) 
+
+  catch me
+    r(:,:,isubj) = nan(8799,25);
+    continue
+    
+  end
+    
+idx=logical(outp.mean_pup(:,1)~=0)
+
+for ifreq = 1 : 25
+  
+  r(:,ifreq,isubj)=corr(outp.slope_meg(trans,idx,ifreq)',outp.mean_pup(idx,ifreq));
+  
+end
+
+[~,i]=sort(outp.mean_pup(idx,1));
+len = size(i,1);
+
+tmp1 = outp.slope_meg(:,idx,:);
+
+split_half(:,1,:,isubj) = squeeze(mean(tmp1(:,i(1:floor(len/3)),:),2));
+split_half(:,2,:,isubj) = squeeze(mean(tmp1(:,i(floor(len/3)+1:end),:),2));
+
+
+
+end
+
+
+%% SPLIT HALF
+% figure_w;
+% plot(nanmean(nanmean(r,3),1))
+
+addpath /home/gnolte/meth/highlevel/
+addpath ~/Documents/MATLAB/cbrewer/cbrewer/
+
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+for ifoi = 4
+% ifoi = 14;
+% 
+% [h,p] = ttest(plt_hh.corr_src_cnt(:,ifoi,:),zeros(size(plt_hh.corr_src_cnt(:,ifoi,:))),'dim',3);
+% h=p<(fdr1(p(:),0.05,0));
+% par(logical(ismember(BNA.tissue_5mm,[2:2:246]))) = -1
+
+clim = [-2 2];
+para = [];
+para.colorlimits = clim
+para.colormaps{1} = inferno;
+para.orientation = 'axial';
+
+para.dslice_shown = 1;
+para.colorbar= 1;
+
+tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
+% print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_src_corr_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
+
+end
+
+
