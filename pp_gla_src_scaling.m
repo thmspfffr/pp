@@ -141,7 +141,7 @@ for isubj = 1:24
       
       end
       
-      outp.pxx(:,ifreq) = nanmean(tmp,2);
+      outp.pxx(:,ifreq) = nanmean(tmp,1);
       
       pupil(isnan(pupil))=[];
       [outp.pxx_pup,outp.fxx]=pwelch(pupil',hanning(20000),0.5,0.02:0.02:1,400);
