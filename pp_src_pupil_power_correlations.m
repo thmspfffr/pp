@@ -99,7 +99,7 @@ for isubj = SUBJLIST
     
     [outp.pxx,outp.fxx]=pwelch(dat(:,~isnan(dat(1,:)))',hanning(400),0,1:1:200,400);
     
-    for ifreq=1:numel(freqoi)
+    for ifreq=1:length(freqoi)
       ifreq
 
       para          = [];
@@ -115,7 +115,7 @@ for isubj = SUBJLIST
       % -------------------------------
       % take pupil_df as signal is one sample shorter
       % taking pupil or dat will result in an error
-      nseg=floor((size(pupil_df,2)-opt.n_win)/opt.n_shift+1);
+      nseg=floor((size(pupil_df,1)-opt.n_win)/opt.n_shift+1);
       
       pup = nan(nseg,1);
       pup_df = nan(nseg,1);
@@ -128,7 +128,9 @@ for isubj = SUBJLIST
       
       % find indices of non-NAN segments
       idx_valid = find(~isnan(dataf(1,:)));
-            
+      idx_valid_df = find(~isnan(pup_df)');
+      idx_valid = intersect(idx_valid,idx_valid_df);
+      
       env = abs(dataf(:,idx_valid).^2);
       f_sample = 400/opt.n_shift;
       env_filt=lowpass(env,1,f_sample);
@@ -154,7 +156,7 @@ for isubj = SUBJLIST
       % compute power & lowpass filter
       env = abs(filt'*dataf(:,idx_valid)).^2;
       f_sample = 400/opt.n_shift;
-      env_filt=lowpass(env,2,f_sample);
+      env_filt=lowpass(env,1,f_sample);
       
       % correlate with pupila
       outp.src_r(:,ifreq) = corr(pup(idx_valid),env','type','Spearman');
