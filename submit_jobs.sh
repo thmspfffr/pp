@@ -20,7 +20,7 @@ chmod g=wx $PBS_JOBNAME
 sleep "$var"
 
 
-matlab -nodisplay -nodesktop -r "pp_src_pupil_power_correlations; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
+matlab -nodisplay -nodesktop -r "pp_gla_src_pupil_power_correlations; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
 #export _JAVA_OPTIONS=-Djava.io.tmpdir=/mnt/homes/home024/btalluri/tmp_thms/
 #java -XshowSettings  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err

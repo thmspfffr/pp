@@ -99,13 +99,12 @@ for isubj = SUBJLIST
     
     [outp.pxx,outp.fxx]=pwelch(dat(:,~isnan(dat(1,:)))',hanning(400),0,1:1:200,400);
     
-    for ifreq=1:length(freqoi)
+    for ifreq=1:numel(freqoi)
       ifreq
 
       para          = [];
       para.freq     = freqoi(ifreq);
       para.fsample  = 400;  
-      para.overlap  = 0.5;
       [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
             
       outp.tp_sens_pow(:,ifreq) = diag(abs(csd));
@@ -113,10 +112,7 @@ for isubj = SUBJLIST
       % -------------------------------
       % prepare pupil signal
       % -------------------------------
-      % take pupil_df as signal is one sample shorter
-      % taking pupil or dat will result in an error
-      nseg=floor((size(pupil_df,1)-opt.n_win)/opt.n_shift+1);
-      
+      nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
       pup = nan(nseg,1);
       pup_df = nan(nseg,1);
       for j=1:nseg
@@ -128,18 +124,21 @@ for isubj = SUBJLIST
       
       % find indices of non-NAN segments
       idx_valid = find(~isnan(dataf(1,:)));
-      idx_valid_df = find(~isnan(pup_df)');
-      idx_valid = intersect(idx_valid,idx_valid_df);
       
       env = abs(dataf(:,idx_valid).^2);
-      f_sample = 400/opt.n_shift;
-      env_filt = lowpass(env,hil_lo,f_sample);
+      
+      k = 2; f_sample = 400/opt.n_shift;
+      fnq = f_sample/2;
+      hil_hi = 0.005; hil_lo = 2;
+      hil_Wn=[hil_hi/fnq hil_lo/fnq];
+      [bhil, ahil] = butter(k, hil_Wn);
 
+      env = filtfilt(bhil, ahil, env);
+ 
       % correlate pupil with sensor level signal
-      outp.sens_r(:,ifreq) = corr(pup(idx_valid),env','type','Spearman');
-      outp.sens_r_df(:,ifreq) = corr(pup_df(idx_valid),env','type','Spearman');
-      outp.sens_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
-      outp.sens_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
+      outp.sens_r(:,ifreq) = corr(pup(idx_valid),abs(dataf(:,idx_valid).^2)');
+      outp.sens_r_df(:,ifreq) = corr(pup_df(idx_valid),abs(dataf(:,idx_valid).^2)');
+      
       % beamforming (ignore name of leadfield)
       % --------------
       para          = [];
@@ -152,17 +151,13 @@ for isubj = SUBJLIST
       [~,noise]      = tp_beamformer(real(csd_noise),sa.L_genemaps_aal,para);
       outp.src_nai(:,ifreq) = pow./noise;
       % -------------------------------
-      
-      % compute power & lowpass filter
-      env = abs(filt'*dataf(:,idx_valid)).^2;
-      f_sample = 400/opt.n_shift;
-      env_filt=lowpass(env,hil_lo,f_sample);
+      % compute power
+      src = abs(filt'*dataf).^2;
       
       % correlate with pupila
-      outp.src_r(:,ifreq) = corr(pup(idx_valid),env','type','Spearman');
-      outp.src_r_df(:,ifreq) = corr(pup_df(idx_valid),env','type','Spearman');
-      outp.src_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
-      outp.src_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
+      outp.src_r(:,ifreq) = corr(pup(idx_valid),src(:,idx_valid)','type','Spearman');
+      outp.src_r_df(:,ifreq) = corr(pup_df(idx_valid),src(:,idx_valid)','type','Spearman');
+      
       clear src pup
 
     end
