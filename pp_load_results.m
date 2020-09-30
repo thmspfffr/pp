@@ -24,18 +24,18 @@ for n_subj = 1: length(SUBJ)
       
       plt_gla.pow_sens(:,:,n_subj) = outp.tp_sens_pow;
       plt_gla.corr_sens(:,:,n_subj) = outp.sens_r;
-      plt_gla.corr_src(:,:,n_subj) = outp.tp_src_r(trans,:);
-%       plt_gla.corr_src_df(:,:,n_subj) = outp.src_r_df(trans,:);
-%       plt_gla.corr_src_filt(:,:,n_subj) = outp.src_r_filt(trans,:);
-%       plt_gla.corr_src_df_filt(:,:,n_subj) = outp.src_r_df_filt(trans,:);
+      plt_gla.corr_src(:,:,n_subj) = outp.src_r(trans,:);
+      plt_gla.corr_src_df(:,:,n_subj) = outp.src_r_df(trans,:);
+      plt_gla.corr_src_filt(:,:,n_subj) = outp.src_r_filt(trans,:);
+      plt_gla.corr_src_df_filt(:,:,n_subj) = outp.src_r_df_filt(trans,:);
     catch me
       plt_gla.pow_sens(:,:,n_subj) = nan(248,25);
       plt_gla.corr_sens(:,:,n_subj)= nan(248,25);
       plt_gla.corr_src(:,:,n_subj) = nan(8799,25);
       plt_gla.nai_src(:,:,n_subj) = nan(8799,25);
-%       plt_gla.corr_src_df(:,:,n_subj) = nan(8799,25);
-%       plt_gla.corr_src_filt(:,:,n_subj) = nan(8799,25);
-%       plt_gla.corr_src_df_filt(:,:,n_subj) = nan(8799,25);
+      plt_gla.corr_src_df(:,:,n_subj) = nan(8799,25);
+      plt_gla.corr_src_filt(:,:,n_subj) = nan(8799,25);
+      plt_gla.corr_src_df_filt(:,:,n_subj) = nan(8799,25);
       
       warning('!')
     end
@@ -44,9 +44,9 @@ end
 % 
 for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_gla.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src(BNA.tissue_5mm == igrid,:,:))));
-%   plt_gla.corr_src_filt_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_filt(BNA.tissue_5mm == igrid,:,:))));
-%   plt_gla.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
-%   plt_gla.corr_src_df_filt_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_df_filt(BNA.tissue_5mm == igrid,:,:))));
+  plt_gla.corr_src_filt_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_filt(BNA.tissue_5mm == igrid,:,:))));
+  plt_gla.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
+  plt_gla.corr_src_df_filt_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_df_filt(BNA.tissue_5mm == igrid,:,:))));
 end
 
 plt_hh.pow_sens = nan(274,25,28,2);
@@ -126,6 +126,9 @@ end
 
 % COLLAPSE ACROSS DATASETS
 plt_all.corr_src = cat(3,plt_hh.corr_src,plt_gla.corr_src);
+plt_all.corr_src_df = cat(3,plt_hh.corr_src_df,plt_gla.corr_src_df);
+plt_all.corr_src_df_BNA = cat(3,plt_hh.corr_src_df_BNA,plt_gla.corr_src_df_BNA);
+
 % plt_all.nai_src = cat(3,plt_hh.nai_src,plt_gla.nai_src);
 
 cfg=[];

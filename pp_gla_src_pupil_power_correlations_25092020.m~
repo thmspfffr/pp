@@ -13,9 +13,11 @@ SUBJLIST  = 1:24;
 freqoi    = 2.^(1:(1/4):7);
 % -------------------------
 
+addpath('~/Documents/MATLAB/fieldtrip-20181231/')
 addpath ~/pconn/matlab/
 load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
 
+ft_defaults
 
 outdir = '~/pp/proc/src/';
 ord    = pconn_randomization;
@@ -24,8 +26,7 @@ addpath /home/gnolte/meth/highlevel/
 %%
 % -------------------------
 for isubj = 1:24
-  addpath('~/Documents/MATLAB/fieldtrip-20181231/')
-  ft_defaults
+  
   clear data dat pupil pup dataf src_r
   
   for iblock = 1:1
@@ -62,13 +63,13 @@ for isubj = 1:24
       cfg.layout='4D248.lay';
       lay = ft_prepare_layout(cfg);
       [~, outp.chanidx] = ismember(lay.label(1:248),data.label);
-      
       rmpath(genpath('~/Documents/MATLAB/fieldtrip-20181231/'))
       
       [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
             
       outp.tp_sens_pow = nan(248,25);
       outp.sens_r      = nan(248,25);
+      outp.sens_r_sp   = nan(248,25);
     catch me
       src_r = nan(246,25);
       save([outdir fn '.mat'],'src_r')

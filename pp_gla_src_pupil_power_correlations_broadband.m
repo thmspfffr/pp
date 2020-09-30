@@ -29,11 +29,11 @@ for isubj = 1:24
   clear data dat pupil pup dataf src_r
   
   for iblock = 1:1
-    %
-    fn = sprintf('pp_gla_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-    if tp_parallel(fn,outdir,1,0)
-      continue
-    end
+%     %
+%     fn = sprintf('pp_gla_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
+%     if tp_parallel(fn,outdir,1,0)
+%       continue
+%     end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -84,11 +84,22 @@ for isubj = 1:24
     
     pupil = filtfilt(bhil, ahil, pupil(:,4));
     
-    pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
-    pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
-    pupil_df = diff(pupil);
+%     pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
+%     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+%     pupil_df = diff(pupil);
     
-    data.avg = data.trial{1}'; %data.trial{1} = [];
+    pupil = pupil(500:end-500);
+    len = length(pupil);
+
+    data.avg = filtfilt(bhil, ahil, data.trial{1}(:,500:end-500)'); %data.trial{1} = [];
+    
+    data.avg = data.avg(1:len,:);
+    
+    outp.sens_r = corr(pupil,data.avg);
+    
+    for isens = 1 : size(data.avg,2)
+      [outp.xcorr(:,isens),outp.lag]=xcorr(pupil,data.avg(:,isens),1200,'normalized');
+    end
 
     if isubj < 10
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub0%d_gla_lf_BNA5mm.mat',isubj))

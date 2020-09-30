@@ -194,13 +194,13 @@ for isubj = 1 : 24
   try
 
     load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_scaling_s%d_b1_v3.mat',isubj)) 
-
+pxx_all=outp.pxx;
   catch me
-    r(:,:,isubj) = nan(8799,25);
+    pxx_all(:,:,isubj) = nan(50,25);
     continue
     
   end
-    
+end
 idx=logical(outp.mean_pup(:,1)~=0)
 
 for ifreq = 1 : 25
