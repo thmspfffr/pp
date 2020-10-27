@@ -106,4 +106,14 @@ for isubj = 1:24
 end
 
 error('!')
-%%
+%% LOAD EXPONENTS
+
+for isubj = 1 : 24
+    
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_sens_gla_fooof_exp_s%d.mat',isubj)
+    
+    r_all(:,isubj) = r;
+    
+end
+
+
