@@ -63,6 +63,10 @@ for isubj = 1:24
       cfg.layout='4D248.lay';
       lay = ft_prepare_layout(cfg);
       [~, outp.chanidx] = ismember(lay.label(1:248),data.label);
+      
+      chanidx = outp.chanidx;
+      save(sprintf('~/pp/proc/src/chanidx_s%d.mat',isubj),'chanidx')
+      
 %       
       [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
             

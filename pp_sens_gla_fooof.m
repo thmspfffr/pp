@@ -1,4 +1,4 @@
-%% pp_gla_src_pupil_power_correlations
+%% pp_sens_gla_fooof
 % correlate bandpass filtered (or via wavelets) pupil and MEG signals
 
 clear
@@ -58,12 +58,13 @@ for isubj = 1:24
       
       artifPnts=data.cfg.artfctdef.visual.artifact;
       
-%       cfg=[];
-%       cfg.layout='4D248.lay';
-%       lay = ft_prepare_layout(cfg);
-%       [~, outp.chanidx] = ismember(lay.label(1:248),data.label);
-%       
+      cfg=[];
+      cfg.layout='4D248.lay';
+      lay = ft_prepare_layout(cfg);
+      [~, outp.chanidx] = ismember(lay.label(1:248),data.label);
+      
     
+     
     k = 2;
     fnq = f_sample/2;
     hil_hi = 0.005;
@@ -85,12 +86,14 @@ for isubj = 1:24
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    
+    ff = 2:0.5:40;
+     
+%     pxx = nan(size(ff,2),248,nseg);
     for iseg = 1 : nseg
         
         seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:);
         seg_pup = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(800),[],2:0.5:40,400,'power');
+        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(800),[],ff,400,'power');
         pup(iseg) = seg_pup;
         seg_pup = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
         pup_df(iseg) = seg_pup;
@@ -100,7 +103,7 @@ for isubj = 1:24
     save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     tp_parallel(fn,outdir,0)
     
-    clear outp
+    clear outp clear pxx pup_df fxx seg_pup 
     
   end
 end
@@ -108,12 +111,53 @@ end
 error('!')
 %% LOAD EXPONENTS
 
+
+
+r_all = nan(248,24);
 for isubj = 1 : 24
     
-    load(sprintf('/home/tpfeffer/pp/proc/src/pp_sens_gla_fooof_exp_s%d.mat',isubj)
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_sens_gla_fooof_exp_s%d.mat',isubj))
+    load(sprintf('~/pp/proc/src/chanidx_s%d.mat',isubj))
+    r_all(chanidx>0,isubj) = r(chanidx(chanidx>0));
     
-    r_all(:,isubj) = r;
+%     outp.tp_sens_pow(outp.,ifreq) = tmp();
     
 end
+
+
+
+
+cfg=[];
+cfg.layout='4D248.lay';
+lay = ft_prepare_layout(cfg);
+minmax_gla=[min(lay.pos(:,2)) max(lay.pos(:,2))];
+ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
+r_ord= zeros(size(ser_gla,2)-1,24);
+
+for i = 1 : size(ser_gla,2)-1
+  idx = lay.pos(:,2)<ser_gla(i+1) & lay.pos(:,2)>ser_gla(i);
+  r_ord(i,:,:) = nanmean(r_all(idx,:),1);
+end
+
+
+
+
+pars            = [];
+pars.markersize = 0;
+pars.linewidth  = 9;
+pars.cbar       = 0;
+pars.scale      = [-0.1 0.1]
+pars.cmap       = jet;
+pars.resolution = 600;
+
+figure; set (gcf,'color','w')
+
+par = nanmean(r_all,2);
+par(isnan(par)) = nanmean(par);
+showfield_colormap(par,lay.pos(1:248,:),pars);
+drawnow
+
+
+
 
 
