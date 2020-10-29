@@ -154,8 +154,56 @@ figure; set (gcf,'color','w')
 
 par = nanmean(r_all,2);
 par(isnan(par)) = nanmean(par);
-showfield_colormap(par,lay.pos(1:248,:),pars);
+showfield_colormap(par.*h,lay.pos(1:248,:),pars);
 drawnow
+
+%% SOURCE SPACE
+
+clear r_all
+for isubj = 1 : 24
+    
+    try
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d.mat',isubj));
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_sens_gla_fooof_s%d_b1_v3.mat',isubj))
+    
+    
+    r_all(:,isubj) = corr(slp(trans,:)',pup(:));
+    
+    catch me
+        r_all(:,isubj) = nan(8799,1);
+    end
+    
+%     outp.tp_sens_pow(outp.,ifreq) = tmp();
+    
+end
+
+load /home/gnolte/meth/templates/mri.mat
+
+addpath /home/gnolte/meth/highlevel/
+addpath ~/Documents/MATLAB/cbrewer/cbrewer/
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+% [h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
+% h=p<(fdr1(p(:),0.05,0));
+par=nanmean(r_all(:,:),2)
+
+% par_stats=squeeze(nanmean(nanmean(plt_hh.cf_corr(:,eval(sprintf('meg_f%d',ifreq)),eval(sprintf('pup_f%d',ifreq)),:),3),2));
+% [h,p]=ttest(par_stats,zeros(size(par_stats)),'dim',2); h = p<(fdr1(p(:),0.05,0));
+par=par;
+
+clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+para = [];
+para.colorlimits = clim
+para.colormaps{1} = cmap;
+para.orientation = 'axial';
+
+para.dslice_shown = 0.75;
+para.colorbar= 0;
+
+tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
+set(gcf,'renderer','painters')
+% print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_crossfreq_f%d_v%d.tiff',ifreq,v))
+
 
 
 
