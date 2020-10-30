@@ -111,7 +111,7 @@ for isubj = 1:24
       fprintf('Freq: %d\n',ifreq)
       
       for iart = 1 : size(artifPnts,1)
-        data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
+        data. summaravg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
       end
 
       % -------------------------------
@@ -127,7 +127,6 @@ for isubj = 1:24
     
     tp_csd = nanmean(tp_csd,3);
       
-
     % -------------------------------
     % beamforming
     % -------------------------------
@@ -151,7 +150,6 @@ for isubj = 1:24
     for iseg = 1 : nseg
         iseg
         seg_dat = data_src((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:);
-        seg_pup = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
         [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(800),[],ff,400,'power');
 %         pup(iseg) = seg_pup;
 %         seg_pup = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
@@ -160,7 +158,7 @@ for isubj = 1:24
     
 %     dat
 
-    save([outdir fn '.mat'],'outp')
+    save([outdir fn '.mat'],'pxx','fxx')
     tp_parallel(fn,outdir,0)
     
     clear outp
