@@ -98,14 +98,16 @@ for isubj = 1:24
     
 %     tmp = data;
     data.avg = data.trial{1}'; %data.trial{1} = [];
+    clear data
 
     if isubj < 10
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub0%d_gla_lf_BNA5mm.mat',isubj))
     else
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub%d_gla_lf_BNA5mm.mat',isubj))
     end
-   
-                
+    
+
+    clear tp_csd
     for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
@@ -157,7 +159,7 @@ for isubj = 1:24
         fprintf('%d / %d\n',iseg,nseg)
         seg_dat = data_src((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:);
         
-        if any(isnan(seg_dat(1,:)))
+        if any(isnan(seg_dat(:,1)))
 %             pxx(:,:,iseg) = nan(size(fxx,1),size(tp_filt,2));
             pup(iseg) = nan;
             pup_df(iseg)=nan;
@@ -171,9 +173,10 @@ for isubj = 1:24
         pup_df(iseg) = seg_pup;
     end
     
+    
 %     dat
 
-    save([outdir fn '.mat'],'pxx','fxx')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     tp_parallel(fn,outdir,0)
     
     clear outp

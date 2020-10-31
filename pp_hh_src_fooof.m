@@ -1,4 +1,4 @@
-%% pp_src_pupil_power_correlations
+%% pp_hh_src_fooof
 % correlate bandpass filtered (or via wavelets) pupil and MEG signals
 
 clear
@@ -87,7 +87,7 @@ for isubj = SUBJLIST
         pup_shift = round(400*0.93);
         pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
         
-        pupil_df = diff(pupil);
+        
         
         dat(:,isnan(pupil))=nan(size(dat,1),sum(isnan(pupil)));
         
@@ -96,6 +96,8 @@ for isubj = SUBJLIST
         lf = sa.L_genemaps_aal;
         
         [outp.pxx,outp.fxx]=pwelch(dat(:,~isnan(dat(1,:)))',hanning(400),0,1:1:200,400);
+        
+        clear csd
         
         for ifreq=1:length(freqoi)
             ifreq
@@ -117,27 +119,37 @@ for isubj = SUBJLIST
         
         dat_src = dat'*filt;
         
-        opt.n_win = 4000; % 10s segment length, i.e., 0.1:0.1:100
-        opt.n_shift = 4000; % no overlap
+        idx1 = isnan(dat_src(:,1));
+        idx2 = isnan(pupil);
+        
+        dat_src(idx1 | idx2, : ) = nan;
+        pupil(idx1 | idx2) = nan;
+        pupil_df = diff(pupil);
+        
+        opt.n_win = 800; % 10s segment length, i.e., 0.1:0.1:100
+        opt.n_shift = 800; % no overlap
         
         nseg=floor((size(dat_src,1)-opt.n_win)/opt.n_shift+1);
         clear pxx fxx pup pup_df
         ff = 2:0.5:40;
         
-        %     pxx = nan(size(ff,2),248,nseg);
+        pxx = nan(size(ff,2),size(filt,2),nseg);
         for iseg = 1 : nseg
-            %         iseg/nseg
+            
+            fprintf('%d / %d\n',iseg,nseg)
             seg_dat = dat_src((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:);
-            seg_pup = nanmean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-            [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(800),[],ff,400,'power');
-            pup(iseg) = seg_pup;
-            seg_pup = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-            pup_df(iseg) = seg_pup;
+
+            if any(isnan(seg_dat(:,1)))
+                pup(iseg) = nan;
+                pup_df(iseg)=nan;
+                continue        
+            end
+        
+            [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+            pup(iseg)  = nanmean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+            pup_df(iseg) = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
         end
-        
-        
-        
-        
+  
         save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
         tp_parallel(fn,outdir,0)
         

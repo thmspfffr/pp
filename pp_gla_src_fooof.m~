@@ -104,14 +104,15 @@ for isubj = 1:24
     else
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub%d_gla_lf_BNA5mm.mat',isubj))
     end
-   
-                
+    
+
+    clear tp_csd
     for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
       
       for iart = 1 : size(artifPnts,1)
-        data. summaravg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
+        data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
       end
 
       % -------------------------------
@@ -136,29 +137,45 @@ for isubj = 1:24
     tp_filt   = tp_beamformer(real(tp_csd),lf,para);
     % -------------------------------
     
-    data_src = data.trial{1}'*tp_filt; 
+    data_src = data.avg*tp_filt; 
     clear data
     
-    opt.n_win = 4000; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = 4000; % no overlap
+    opt.n_win = 800; % 10s segment length, i.e., 0.1:0.1:100
+    opt.n_shift = 800; % no overlap
     
     nseg=floor((size(data_src,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 2:0.5:40;
+    ff = 2:1/(opt.n_win/400):40;
+    
+    pupil = pupil(1:size(data_src,1));
+    pup_nanidx = isnan(pupil);
+    pupil_df = diff(pupil);
+    
+    data_src(pup_nanidx,:)=nan;
      
-%     pxx = nan(size(ff,2),248,nseg);
+    pxx = nan(size(ff,2),size(tp_filt,2),nseg);
     for iseg = 1 : nseg
-        iseg
+        fprintf('%d / %d\n',iseg,nseg)
         seg_dat = data_src((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:);
-        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(800),[],ff,400,'power');
-%         pup(iseg) = seg_pup;
-%         seg_pup = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-%         pup_df(iseg) = seg_pup;
+        
+        if any(isnan(seg_dat(:,1)))
+%             pxx(:,:,iseg) = nan(size(fxx,1),size(tp_filt,2));
+            pup(iseg) = nan;
+            pup_df(iseg)=nan;
+            continue        
+        end
+        
+        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+        seg_pup = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+        pup(iseg) = seg_pup;
+        seg_pup = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+        pup_df(iseg) = seg_pup;
     end
+    
     
 %     dat
 
-    save([outdir fn '.mat'],'pxx','fxx')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     tp_parallel(fn,outdir,0)
     
     clear outp
