@@ -7,7 +7,7 @@ restoredefaultpath
 % -------------------------
 % VERSION 4
 % -------------------------
-v = 3;
+v = 4;
 % include 28 subjects, as in pfeffer et al. (2018) plos biology
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % -------------------------
@@ -126,12 +126,12 @@ for isubj = SUBJLIST
         pupil(idx1 | idx2) = nan;
         pupil_df = diff(pupil);
         
-        opt.n_win = 800; % 10s segment length, i.e., 0.1:0.1:100
-        opt.n_shift = 800; % no overlap
+        opt.n_win = 1600; % 10s segment length, i.e., 0.1:0.1:100
+        opt.n_shift = 1600; % no overlap
         
         nseg=floor((size(dat_src,1)-opt.n_win)/opt.n_shift+1);
         clear pxx fxx pup pup_df
-        ff = 2:0.5:40;
+        ff = 3:1/(opt.n_win/400):50;
         
         pxx = nan(size(ff,2),size(filt,2),nseg);
         for iseg = 1 : nseg

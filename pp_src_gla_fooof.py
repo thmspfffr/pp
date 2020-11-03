@@ -4,14 +4,14 @@ import scipy.io
 import os
 
 # isubj = 3
-v=3
+v=4
 
 for isubj in range (0, 24):
 
-    if os.path.exists('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_proc.txt' % (isubj+1)) == True:
+    if os.path.exists('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_v%d_proc.txt' % (isubj+1,v)) == True:
         continue
 
-    os.system('touch /home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_proc.txt' % (isubj+1))
+    os.system('touch /home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_v%d_proc.txt' % (isubj+1,v))
 
     dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_s%s_b1_v%d.mat' % (isubj+1,v))
 
@@ -38,10 +38,10 @@ for isubj in range (0, 24):
         for isens in range(0,np.shape(dat['pxx'])[1]):
             slp[isens][iseg] = tmp[isens][0][1]
 
-    scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d.mat' % (isubj+1), {'slp': slp})
+    scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_slp_s%d_v%d.mat' % (isubj+1,v), {'slp': slp})
 
     r = np.zeros([np.shape(dat['pxx'])[1],1])
     for iseg in range(0,np.shape(dat['pxx'])[1]):
         r[iseg] = np.corrcoef(slp[iseg,:],dat['pup'],rowvar=True)[0][1]
 
-    scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d.mat' % (isubj+1), {'r': r})
+    scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_v%d.mat' % (isubj+1,v), {'r': r})

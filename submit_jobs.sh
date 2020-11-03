@@ -6,7 +6,7 @@
 
 #PBS -q batch
 #PBS -l walltime=700:00:00
-#PBS -l nodes=1:ppn=3
+#PBS -l nodes=1:ppn=1
 #PBS -l mem=10gb
 
 
@@ -19,8 +19,9 @@ chmod g=wx $PBS_JOBNAME
 
 sleep "$var"
 
+source activate pp_fooof
+python pp_src_hh_fooof.py 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
-matlab -nodisplay -nodesktop -r "pp_hh_src_fooof; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
+#matlab -nodisplay -nodesktop -r "pp_hh_src_fooof; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
-#export _JAVA_OPTIONS=-Djava.io.tmpdir=/mnt/homes/home024/btalluri/tmp_thms/
 #java -XshowSettings  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err

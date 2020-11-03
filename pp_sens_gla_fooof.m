@@ -111,12 +111,12 @@ end
 error('!')
 %% LOAD EXPONENTS
 
-
+v=4
 
 r_all = nan(248,24);
 for isubj = 1 : 24
     
-    load(sprintf('/home/tpfeffer/pp/proc/src/pp_sens_gla_fooof_exp_s%d.mat',isubj))
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_sens_gla_fooof_exp_s%d_v%d.mat',isubj,v))
     load(sprintf('~/pp/proc/src/chanidx_s%d.mat',isubj))
     r_all(chanidx>0,isubj) = r(chanidx(chanidx>0));
     
@@ -161,16 +161,21 @@ drawnow
 
 clear r_all
 for isubj = 1 : 24
-    
+    isubj
     try
-    load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d.mat',isubj));
-    load(sprintf('/home/tpfeffer/pp/proc/src/pp_sens_gla_fooof_s%d_b1_v3.mat',isubj))
-    
-    
-    r_all(:,isubj) = corr(slp(trans,:)',pup(:));
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_v%d.mat',isubj,v));
+%     load(sprintf('/home````r/tpfeffer/pp/proc/src/pp_sens_gla_fooof_s%d_b1_v3.mat',isubj))
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_slp_s%d_v%d.mat',isubj,v));
+
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_s%d_b1_v%d.mat',isubj,v));
+    r_all(:,isubj) = r(trans);
+    pup_df = pup_df(~isnan(pup_df));
+    r_all_df(:,isubj)=corr(slp',pup_df');
+    r_all_df(:,isubj) = r_all_df(trans,isubj);
     
     catch me
         r_all(:,isubj) = nan(8799,1);
+        r_all_df(:,isubj) = nan(8799,1);
     end
     
 %     outp.tp_sens_pow(outp.,ifreq) = tmp();
@@ -178,19 +183,19 @@ for isubj = 1 : 24
 end
 
 load /home/gnolte/meth/templates/mri.mat
-
+load /home/gnolte/meth/templates/sa_template.mat
 addpath /home/gnolte/meth/highlevel/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
 % [h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
 % h=p<(fdr1(p(:),0.05,0));
-par=nanmean(r_all(:,:),2)
-
+par=nanmean(r_all_df(:,:),2)
+% par=r;
 % par_stats=squeeze(nanmean(nanmean(plt_hh.cf_corr(:,eval(sprintf('meg_f%d',ifreq)),eval(sprintf('pup_f%d',ifreq)),:),3),2));
 % [h,p]=ttest(par_stats,zeros(size(par_stats)),'dim',2); h = p<(fdr1(p(:),0.05,0));
-par=par;
-
+% par=par.*h;
+% 
 clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
 para = [];
 para.colorlimits = clim
@@ -204,7 +209,7 @@ tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
 set(gcf,'renderer','painters')
 % print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_crossfreq_f%d_v%d.tiff',ifreq,v))
 
-
+%%
 
 
 

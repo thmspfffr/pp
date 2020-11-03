@@ -5,12 +5,21 @@ clear
 restoredefaultpath
 
 % -------------------------
+% VERSION 3
+% -------------------------
+% v = 3;
+% % include 28 subjects, as in pfeffer et al. (2018) plos biology
+% SUBJLIST  = 1:24;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 800;
+% -------------------------
 % VERSION 4
 % -------------------------
-v = 3;
+v = 4;
 % include 28 subjects, as in pfeffer et al. (2018) plos biology
 SUBJLIST  = 1:24;
 freqoi    = 2.^(1:(1/4):7);
+win_len = 1600;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -98,7 +107,7 @@ for isubj = 1:24
     
 %     tmp = data;
     data.avg = data.trial{1}'; %data.trial{1} = [];
-    clear data
+%     clear data
 
     if isubj < 10
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub0%d_gla_lf_BNA5mm.mat',isubj))
@@ -106,15 +115,15 @@ for isubj = 1:24
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub%d_gla_lf_BNA5mm.mat',isubj))
     end
     
+    
+    for iart = 1 : size(artifPnts,1)
+        data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
+    end
 
     clear tp_csd
     for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
-      
-      for iart = 1 : size(artifPnts,1)
-        data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
-      end
 
       % -------------------------------
       % compute csd
@@ -141,12 +150,12 @@ for isubj = 1:24
     data_src = data.avg*tp_filt; 
     clear data
     
-    opt.n_win = 800; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = 800; % no overlap
+    opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
+    opt.n_shift = win_len; % no overlap
     
     nseg=floor((size(data_src,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 2:1/(opt.n_win/400):40;
+    ff = 3:1/(opt.n_win/400):50;
     
     pupil = pupil(1:size(data_src,1));
     pup_nanidx = isnan(pupil);
