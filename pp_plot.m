@@ -10,6 +10,7 @@ load /home/gnolte/meth/templates/mri.mat
 ft_defaults
 
 
+
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);

@@ -1,4 +1,4 @@
-function [plt_gla, plt_hh, plt_all]  = pp_load_results()
+function [plt_gla, plt_hh, plt_all,plt_mue]  = pp_load_results()
 
 %% LOAD GLASGOW DATA
 
@@ -148,12 +148,54 @@ cfg.layout='CTF275.lay';
 lay = ft_prepare_layout(cfg);
 lay.pos([203 276 277],:)=[];
 minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
-ser_hh = linspace(minmax_gla(1),minmax_hh(2),40);
+ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
 plt_hh.corr_sens_ord= zeros(size(ser_hh,2)-1,25,28);
 
 for i = 1 : size(ser_gla,2)-1
   idx = lay.pos(:,2)<ser_hh(i+1) & lay.pos(:,2)>ser_hh(i);
   plt_hh.corr_sens_ord(i,:,:) = nanmean(plt_hh.corr_sens(idx,:,:),1);
+end
+
+for i = 1 : size(ser_gla,2)-1
+  idx = lay.pos(:,2)<ser_hh(i+1) & lay.pos(:,2)>ser_hh(i);
+  plt_mue.corr_sens_ord(i,:,:) = nanmean(plt_mue.corr_sens(idx,:,:),1);
+end
+
+% LOAD MUENSTER DATA
+% ----------------------------
+for isubj = 1:37
+  isubj
+  for iblock = 1 : 1
+    clear src_r
+    try
+      load(sprintf([outdir 'pp_mue_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
+      idx=logical(idx);
+      isubj
+      plt_mue.pow_sens(idx,:,isubj,iblock) = outp.tp_sens_pow;
+      plt_mue.corr_sens(idx,:,isubj,iblock) = outp.sens_r;
+      plt_mue.corr_src(:,:,isubj,iblock) = outp.src_r;
+%       plt_mue.corr_src_df(:,:,isubj,iblock) = outp.src_r_df;
+%       plt_mue.corr_src_filt(:,:,isubj,iblock) =outp.src_r_filt;
+%       plt_mue.corr_src_df_filt(:,:,isubj,iblock) = outp.src_r_df_filt;
+    catch me
+      warning('!!!')
+      plt_mue.pow_sens(idx,:,isubj,iblock) = nan(sum(idx),25,1,1);
+      plt_mue.corr_sens(idx,:,isubj,iblock) = nan(sum(idx),25,1,1);
+      plt_mue.corr_src(:,:,isubj,iblock) = nan(8799,25);
+%       plt_hh.nai_src(:,:,isubj,iblock) = nan(8799,25);
+%       plt_mue.corr_src_df(:,:,isubj) = nan(8799,25);
+%       plt_mue.corr_src_filt(:,:,isubj) = nan(8799,25);
+%       plt_mue.corr_src_df_filt(:,:,isubj) = nan(8799,25);
+      continue
+    end
+  end
+end
+
+for igrid = 1 : max(BNA.tissue_5mm(:))
+  plt_mue.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src(BNA.tissue_5mm == igrid,:,:))));
+%   plt_mue.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
+%   plt_mue.corr_src_filt_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src_filt(BNA.tissue_5mm == igrid,:,:))));
+%   plt_mue.corr_src_df_filt_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src_df_filt(BNA.tissue_5mm == igrid,:,:))));
 end
 
 % -----------------------------
