@@ -3,7 +3,7 @@ import numpy as np
 import scipy.io
 import os
 
-v=3
+v=4
 SUBJLIST = [4,5,6,7,8,9,10,11,12,13,15,16,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
 
 for isubj in SUBJLIST:
@@ -40,10 +40,10 @@ for isubj in SUBJLIST:
             for isens in range(0,np.shape(dat['pxx'])[1]):
                 slp[isens][iseg] = tmp[isens][0][1]
 
-        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d.mat' % (isubj), {'slp': slp})
+        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_slp_s%d_v%d.mat' % (isubj,v), {'slp': slp})
 
         r = np.zeros([np.shape(dat['pxx'])[1],1])
         for iseg in range(0,np.shape(dat['pxx'])[1]):
             r[iseg] = np.corrcoef(slp[iseg,:],dat['pup'],rowvar=True)[0][1]
 
-        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d.mat' % (isubj), {'r': r})
+        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d_v%d.mat' % (isubj,v), {'r': r})

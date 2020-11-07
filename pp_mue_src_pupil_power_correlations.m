@@ -95,6 +95,7 @@ for isubj = 1:size(SUBJLIST,1)
     
     pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    pupil_df = diff(pupil);
     
 %     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
     
@@ -195,9 +196,11 @@ for isubj = 1:size(SUBJLIST,1)
       % -------------------------------
       nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
       pup = nan(nseg,1);
+      pup_df = nan(nseg,1);
       for j=1:nseg
         tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
         pup(j) = mean(tmp.*gausswin(opt.n_win,3));
+        pup_df(j) = mean(tmp2.*gausswin(opt.n_win,3));
       end
 
       % -------------------------------
@@ -220,6 +223,7 @@ for isubj = 1:size(SUBJLIST,1)
 %       ck_dataf = squeeze(tf.fourierspctrm);
 %       
       idx = find(~isnan(dataf(1,:))'&~isnan(pup));
+%       idx_valid_df = find(~isnan(pup_df)');
 %       ck_idx_valid = find(~isnan(ck_dataf(1,:))'&~isnan(ck_pup)&keepBins');
 %       idx=intersect(ck_idx_valid,tp_idx_valid);
       % -------------------------------
