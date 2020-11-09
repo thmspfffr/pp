@@ -3,7 +3,7 @@
 clear
 restoredefaultpath
 
-addpath ~/Documents/MATLAB/fieldtrip-20160919/
+% addpath ~/Documents/MATLAB/fieldtrip-20160919/
 addpath ~/pconn/matlab/
 load /home/gnolte/meth/templates/mri.mat
 
@@ -15,7 +15,7 @@ addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
-[plt_gla,plt_hh,plt_all]=pp_load_results();
+[plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results();
 
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
 freqoi=2.^(1:(1/4):7); 
@@ -33,6 +33,13 @@ imagesc(nanmean(plt_hh.corr_sens_ord,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
+
+subplot(2,3,4);
+imagesc(nanmean(plt_mue.corr_sens_ord,3),[-0.03 0.03])
+colormap(cmap); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
 
 pooled = cat(3,plt_hh.corr_sens_ord,plt_gla.corr_sens_ord);
 

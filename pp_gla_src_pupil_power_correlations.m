@@ -5,12 +5,19 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 4
+% VERSION 1: no pupil lag
 % -------------------------
-v = 3;
+v = 1;
 % include 28 subjects, as in pfeffer et al. (2018) plos biology
 SUBJLIST  = 1:24;
 freqoi    = 2.^(1:(1/4):7);
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+% v = 3;
+% % include 28 subjects, as in pfeffer et al. (2018) plos biology
+% SUBJLIST  = 1:24;
+% freqoi    = 2.^(1:(1/4):7);
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -91,8 +98,8 @@ for isubj = 1:24
     
     pupil = filtfilt(bhil, ahil, pupil(:,4));
     
-    pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
-    pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+%     pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
+%     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     
 %     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
     

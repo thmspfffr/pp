@@ -139,7 +139,7 @@ end
 cfg=[];
 cfg.layout='4D248.lay';
 lay = ft_prepare_layout(cfg);
-minmax_gla=[min(lay.pos(:,2)) max(lay.pos(:,2))];
+minmax_gla=[min(lay.pos(1:248,2)) max(lay.pos(1:248,2))];
 ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
 plt_gla.corr_sens_ord= zeros(size(ser_gla,2)-1,25,22);
 
@@ -151,7 +151,7 @@ end
 cfg=[];
 cfg.layout='CTF275.lay';
 lay = ft_prepare_layout(cfg);
-lay.pos([203 276 277],:)=[];
+% lay.pos([203 276 277],:)=[];
 minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
 ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
 plt_hh.corr_sens_ord= zeros(size(ser_hh,2)-1,25,28);

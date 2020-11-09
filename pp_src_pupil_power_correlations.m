@@ -5,11 +5,17 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 4
+% VERSION 1: no pupil lag
 % -------------------------
-v = 3;
+v = 1;
 % include 28 subjects, as in pfeffer et al. (2018) plos biology
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+% v = 3;
+% % include 28 subjects, as in pfeffer et al. (2018) plos biology
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -48,6 +54,15 @@ for isubj = SUBJLIST
       continue
     end
     
+%     load(sprintf('~/pconn/proc/preproc/pconn_preproc_data_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,2))
+%     label = data.label(36:303);
+%     save([outdir fn '_label.mat'],'label')
+    load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,3))
+    cfg=[];
+    cfg.layout='CTF275.lay';
+    lay = ft_prepare_layout(cfg);
+    [~, outp.chanidx] = ismember(lay.label(1:275),label);
+
     % bp-filter and resample pupil
     % ------
     k = 2; f_sample = 1000;
@@ -84,8 +99,8 @@ for isubj = SUBJLIST
     % ------
         
     % pupil shift: 930 ms from hoeks & levelt (1992)
-    pup_shift = round(400*0.93);   
-    pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+%     pup_shift = round(400*0.93);   
+%     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     
     pupil_df = diff(pupil);
       
@@ -108,7 +123,8 @@ for isubj = SUBJLIST
       para.overlap  = 0.5;
       [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
             
-      outp.tp_sens_pow(:,ifreq) = diag(abs(csd));
+      tmp = diag(abs(csd));
+      outp.tp_sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
 
       % -------------------------------
       % prepare pupil signal
@@ -132,14 +148,17 @@ for isubj = SUBJLIST
       idx_valid = intersect(idx_valid,idx_valid_df);
       
       env = abs(dataf(:,idx_valid).^2);
-      f_sample = 400/opt.n_shift;
-      env_filt = lowpass(env,hil_lo,f_sample);
+%       f_sample = 400/opt.n_shift;
+%       env_filt = lowpass(env,hil_lo,f_sample);
 
+      outp.sens_r = nan(275,25);
+      outp.sens_r_df = nan(275,25);
       % correlate pupil with sensor level signal
-      outp.sens_r(:,ifreq) = corr(pup(idx_valid),env','type','Spearman');
-      outp.sens_r_df(:,ifreq) = corr(pup_df(idx_valid),env','type','Spearman');
-      outp.sens_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
-      outp.sens_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
+
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx_valid),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
+      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx_valid),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
+%       outp.sens_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
+%       outp.sens_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
       % beamforming (ignore name of leadfield)
       % --------------
       para          = [];

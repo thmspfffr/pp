@@ -5,12 +5,15 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 4
+% VERSION 1: no pupil lag
 % -------------------------
-v = 3;
-% include 28 subjects, as in pfeffer et al. (2018) plos biology
-SUBJLIST  = 1:24;
+v = 1;
 freqoi    = 2.^(1:(1/4):7);
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+% v = 3;
+% freqoi    = 2.^(1:(1/4):7);
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
