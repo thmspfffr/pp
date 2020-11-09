@@ -10,12 +10,14 @@ restoredefaultpath
 v = 1;
 % include 28 subjects, as in pfeffer et al. (2018) plos biology
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+win_len = 1600;
 % -------------------------
 % VERSION 4: with pupil lag
 % -------------------------
 % v = 4;
 % % include 28 subjects, as in pfeffer et al. (2018) plos biology
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% win_len = 1600;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -130,8 +132,8 @@ for isubj = SUBJLIST
         pupil(idx1 | idx2) = nan;
         pupil_df = diff(pupil);
         
-        opt.n_win = 1600; % 10s segment length, i.e., 0.1:0.1:100
-        opt.n_shift = 1600; % no overlap
+        opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
+        opt.n_shift = win_len; % no overlap
         
         nseg=floor((size(dat_src,1)-opt.n_win)/opt.n_shift+1);
         clear pxx fxx pup pup_df
@@ -151,7 +153,11 @@ for isubj = SUBJLIST
         
             [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
             pup(iseg)  = nanmean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-            pup_df(iseg) = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+            if iseg~=nseg
+                pup_df(iseg) = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+            else
+                pup_df(iseg) = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));                
+            end
         end
   
         save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')

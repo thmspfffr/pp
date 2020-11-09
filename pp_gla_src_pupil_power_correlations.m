@@ -77,7 +77,7 @@ for isubj = 1:24
 %       
       [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
             
-      outp.tp_sens_pow = nan(248,25);
+      outp.sens_pow = nan(248,25);
       outp.sens_r      = nan(248,25);
       outp.sens_r_sp   = nan(248,25);
     catch me
@@ -98,6 +98,7 @@ for isubj = 1:24
     
     pupil = filtfilt(bhil, ahil, pupil(:,4));
     
+    pupil_df = diff(pupil);
 %     pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
 %     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     
@@ -197,17 +198,19 @@ for isubj = 1:24
       % compute power from csd
       % -------------------------------
       tmp = diag(abs(tp_csd)); 
-      outp.tp_sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
-      outp.ck_sens_pow(:,ifreq) = diag(abs(csd));
+      outp.sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
 
       % -------------------------------
       % prepare pupil signal
       % -------------------------------
       nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
       pup = nan(nseg,1);
+      pup_df = nan(nseg,1);
       for j=1:nseg
         tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
+        tmp2 = pupil_df((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
         pup(j) = mean(tmp.*gausswin(opt.n_win,3));
+        pup_df(j) = mean(tmp2.*gausswin(opt.n_win,3));
       end
 
       % -------------------------------
@@ -241,18 +244,13 @@ for isubj = 1:24
       % compute source-level power
       % -------------------------------
       tp_src = abs(tp_filt'*dataf).^2;
-      ck_src = abs(ck_filt'*ck_dataf).^2;
 %       % -------------------------------
       % correlate power with pupil
       % -------------------------------
-      outp.tp_src_r(:,ifreq) = corr(pup(tp_idx_valid),tp_src(:,tp_idx_valid)','type','spearman');
-      outp.ck_src_r(:,ifreq) = corr(ck_pup(idx),ck_src(:,idx)','type','spearman');
+      outp.src_r(:,ifreq) = corr(pup(tp_idx_valid),tp_src(:,tp_idx_valid)','type','spearman');
+      outp.src_r_df(:,ifreq) = corr(pup_df(tp_idx_valid),tp_src(:,tp_idx_valid)','type','spearman');
       % -------------------------------
-      % compare ck and tp source signals
-      % -------------------------------
-      outp.corr_meth_src(:,ifreq) = diag(corr(tp_src(:,idx)',ck_src(:,idx)'));
-      % -------------------------------
-      
+
       clear src pup csd tp_csd dataf 
       
     end

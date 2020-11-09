@@ -5,21 +5,19 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 3
+% VERSION 1: no pupil lag
 % -------------------------
-% v = 3;
-% % include 28 subjects, as in pfeffer et al. (2018) plos biology
-% SUBJLIST  = 1:24;
-% freqoi    = 2.^(1:(1/4):7);
-% win_len = 800;
-% -------------------------
-% VERSION 4
-% -------------------------
-v = 4;
-% include 28 subjects, as in pfeffer et al. (2018) plos biology
+v = 1;
 SUBJLIST  = 1:24;
 freqoi    = 2.^(1:(1/4):7);
 win_len = 1600;
+% -------------------------
+% VERSION 4: with pupil lag
+% -------------------------
+% v = 4;
+% SUBJLIST  = 1:24;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 1600;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -100,8 +98,8 @@ for isubj = 1:24
     
     pupil = filtfilt(bhil, ahil, pupil(:,4));
     
-    pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
-    pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+%     pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
+%     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     
 %     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
     
@@ -176,15 +174,14 @@ for isubj = 1:24
         end
         
         [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
-        seg_pup = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-        pup(iseg) = seg_pup;
-        seg_pup = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-        pup_df(iseg) = seg_pup;
+        pup(iseg)  = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+        if iseg ~= nseg
+            pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+        else
+            pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));            
+        end
     end
-    
-    
-%     dat
-
+ 
     save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     tp_parallel(fn,outdir,0)
     

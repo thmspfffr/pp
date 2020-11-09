@@ -114,6 +114,10 @@ for isubj = SUBJLIST
     
     [outp.pxx,outp.fxx]=pwelch(dat(:,~isnan(dat(1,:)))',hanning(400),0,1:1:200,400);
     
+    outp.sens_pow   = nan(275,25);
+    outp.sens_r     = nan(275,25);
+    outp.sens_r_df  = nan(275,25);
+      
     for ifreq=1:length(freqoi)
       ifreq
 
@@ -124,7 +128,7 @@ for isubj = SUBJLIST
       [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
             
       tmp = diag(abs(csd));
-      outp.tp_sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
+      outp.sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
 
       % -------------------------------
       % prepare pupil signal
@@ -148,13 +152,8 @@ for isubj = SUBJLIST
       idx_valid = intersect(idx_valid,idx_valid_df);
       
       env = abs(dataf(:,idx_valid).^2);
-%       f_sample = 400/opt.n_shift;
-%       env_filt = lowpass(env,hil_lo,f_sample);
-
-      outp.sens_r = nan(275,25);
-      outp.sens_r_df = nan(275,25);
+ 
       % correlate pupil with sensor level signal
-
       outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx_valid),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
       outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx_valid),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
 %       outp.sens_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
@@ -180,8 +179,8 @@ for isubj = SUBJLIST
       % correlate with pupila
       outp.src_r(:,ifreq) = corr(pup(idx_valid),env','type','Spearman');
       outp.src_r_df(:,ifreq) = corr(pup_df(idx_valid),env','type','Spearman');
-      outp.src_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
-      outp.src_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
+%       outp.src_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
+%       outp.src_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
       clear src pup
 
     end
