@@ -16,22 +16,19 @@ SUBJ = 1:24; SUBJ([5 9])=[];
 
 for n_subj = 1: length(SUBJ)
   isubj = SUBJ(n_subj);
-  for iblock = 1 : 1
-    clear src_r
+  fprintf('Glasgow: Subj%d\n',isubj)
     try
-      load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      
-      plt_gla.pow_sens(:,:,n_subj)      = outp.sens_pow;
+      load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b1_v%d.mat'],isubj,v));   
+      plt_gla.pow_sens(:,:,n_subj)      = outp.tp_sens_pow;
       plt_gla.corr_sens(:,:,n_subj)     = outp.sens_r;
       plt_gla.corr_src(:,:,n_subj)      = outp.src_r(trans,:);
       plt_gla.corr_src_df(:,:,n_subj)   = outp.src_r_df(trans,:);
     catch me
+      warning('!!!')
       plt_gla.pow_sens(:,:,n_subj)      = nan(248,25);
       plt_gla.corr_sens(:,:,n_subj)     = nan(248,25);
       plt_gla.corr_src(:,:,n_subj)      = nan(8799,25);
-      plt_gla.corr_src_df(:,:,n_subj)   = nan(8799,25);
-      
-    end
+      plt_gla.corr_src_df(:,:,n_subj)   = nan(8799,25);  
   end
 end
 % 
@@ -42,12 +39,10 @@ end
 
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 for isubj = SUBJLIST
-  isubj
+  fprintf('Hamburg: Subj%d\n',isubj)
   for iblock = 1 : 2
-    clear src_r
     try
       load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-      isubj
       plt_hh.pow_sens(:,:,isubj,iblock)     = outp.sens_pow;
       plt_hh.corr_sens(:,:,isubj,iblock)    = outp.sens_r;
       plt_hh.corr_src(:,:,isubj,iblock)     = outp.src_r;
@@ -76,26 +71,23 @@ end
 % LOAD MUENSTER DATA
 % ----------------------------
 for isubj = 1:37
-  isubj
-  for iblock = 1 : 1
-    clear src_r
+  fprintf('Muenster: Subj%d\n',isubj)
     try
-      load(sprintf([outdir 'pp_mue_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-%       idx=logical(idx);
-      isubj
-      plt_mue.pow_sens(:,:,isubj,iblock) = outp.tp_sens_pow;
-      plt_mue.corr_sens(:,:,isubj,iblock) = outp.sens_r;
-      plt_mue.corr_src(:,:,isubj,iblock) = outp.src_r;
-      plt_mue.corr_src_df(:,:,isubj,iblock) = outp.src_r_df;
+      load(sprintf([outdir 'pp_mue_src_pupil_power_correlations_s%d_b1_v%d.mat'],isubj,v));
+      
+      plt_mue.pow_sens(:,:,isubj)    = outp.sens_pow;
+      plt_mue.corr_sens(:,:,isubj)   = outp.sens_r;
+      plt_mue.corr_src(:,:,isubj)    = outp.src_r;
+      plt_mue.corr_src_df(:,:,isubj) = outp.src_r_df;
 
     catch me
       warning('!!!')
-      plt_mue.pow_sens(:,:,isubj,iblock)    = nan(275,25,1,1);
-      plt_mue.corr_sens(:,:,isubj,iblock)   = nan(275,25,1,1);
-      plt_mue.corr_src(:,:,isubj,iblock)    = nan(8799,25);
-      plt_mue.corr_src_df(:,:,isubj)        = nan(8799,25);
+      plt_mue.pow_sens(:,:,isubj)    = nan(275,25,1);
+      plt_mue.corr_sens(:,:,isubj)   = nan(275,25,1);
+      plt_mue.corr_src(:,:,isubj)    = nan(8799,25);
+      plt_mue.corr_src_df(:,:,isubj) = nan(8799,25);
       continue
-    end
+    
   end
 end
 

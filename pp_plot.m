@@ -17,6 +17,8 @@ v = 1;
 
 [plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results(v);
 
+colors = cbrewer('qual', 'Set3', 10,'pchip'); 
+colors = cmap(4:6,:);
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
 freqoi=2.^(1:(1/4):7); 
 
@@ -48,49 +50,110 @@ colormap(cmap); tp_editplots; axis square;
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
+[~,p]=ttest(pooled,zeros(size(pooled)),'dim',3);
+h = p<fdr1(p(:),0.05,0);
+
+subplot(2,3,5);
+imagesc(nanmean(pooled(3:end,:,:),3).*h(3:end,:),[-0.03 0.03])
+colormap(cmap); tp_editplots; axis square;
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_anterior_post_v%d.pdf',v))
+
+%% LOW AND HIGH FREQS
+
+
+lf = nanmean(squeeze(mean(plt_gla.corr_sens_ord(3:end,1:5,:),2)),2);
+hf = nanmean(squeeze(mean(plt_gla.corr_sens_ord(3:end,21:25,:),2)),2);
+
+[r_gla, p_gla] = corr(nanmean(lf,2),nanmean(hf,2));
+
+figure_w;
+
+subplot(2,3,1)
+scatter(zscore(nanmean(lf,2)),zscore(nanmean(hf,2)),30,'markeredgecolor','w','markerfacecolor',colors(1,:)); axis square
+lsline; xlabel('Correlation (2-4 Hz)'); ylabel('Correlation (64-128 Hz)')
+axis([-3 3 -3 3]); tp_editplots
+set(gca,'xtick',[-3 0 3],'xticklabel',[-3 0 3])
+set(gca,'ytick',[-3 0 3],'yticklabel',[-3 0 3])
+text(-1.5,-2.5,sprintf('r = %.3f | p < 0.01',r_gla),'fontsize',7)
+
+lf = nanmean(squeeze(mean(plt_hh.corr_sens_ord(3:end,1:5,:),2)),2);
+hf = nanmean(squeeze(mean(plt_hh.corr_sens_ord(3:end,21:25,:),2)),2);
+
+[r_hh, p_hh] = corr(nanmean(lf,2),nanmean(hf,2));
+
+subplot(2,3,2)
+scatter(zscore(nanmean(lf,2)),zscore(nanmean(hf,2)),30,'markeredgecolor','w','markerfacecolor',colors(2,:)); axis square
+lsline; xlabel('Correlation (2-4 Hz)')
+axis([-3 3 -3 3]); tp_editplots
+set(gca,'xtick',[-3 0 3],'xticklabel',[-3 0 3])
+set(gca,'ytick',[-3 0 3],'yticklabel',[-3 0 3])
+text(-1.5,-2.5,sprintf('r = %.3f | p < 0.001',r_hh),'fontsize',7)
+
+lf = nanmean(squeeze(mean(plt_mue.corr_sens_ord(3:end,1:5,:),2)),2);
+hf = nanmean(squeeze(mean(plt_mue.corr_sens_ord(3:end,21:25,:),2)),2);
+
+[r_mue, p_mue] = corr(nanmean(lf,2),nanmean(hf,2));
+
+subplot(2,3,3)
+scatter(zscore(nanmean(lf,2)),zscore(nanmean(hf,2)),30,'markeredgecolor','w','markerfacecolor',colors(3,:)); axis square
+lsline; xlabel('Correlation (2-4 Hz)')
+axis([-3 3 -3 3]); tp_editplots
+set(gca,'xtick',[-3 0 3],'xticklabel',[-3 0 3])
+set(gca,'ytick',[-3 0 3],'yticklabel',[-3 0 3])
+text(-1.5,-2.5,sprintf('r = %.3f | p < 0.001',r_mue),'fontsize',7)
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_anterior_post_v%d.pdf',v))
+
 
 %% PLOT AVERAGES ACROSS SPACE, HAMBURG, GLASGOW, ALL
 
 % -----------------
 % SENSOR SPACE - POWER
 % -----------------
-% freqoi=2.^(1:(1/4):7); 
-% 
-% 
-% par_gla = mean(log10(nanmean(plt_gla.pow_sens,1)),3);
-% par_hh = mean(log10(plt_hh.pow_sens),2);
-% par_mue = mean(log10(plt_mue.pow_sens),2);
-% 
-% std_gla = std(log10(nanmean(plt_gla.pow_sens,1)),[],3)/sqrt(size(plt_gla.pow_sens,3));
-% std_hh = std(log10(plt_hh.pow_sens),[],2)/sqrt(size(plt_hh.pow_sens,2));
-% std_mue = std(log10(nanmean(plt_mue.pow_sens,1)),[],3)/sqrt(size(plt_mue.pow_sens,3));
-% 
-% par_all = mean(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),log10(plt_hh.pow_sens)),2);
-% std_all = std(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),log10(plt_hh.pow_sens)),[],2)/sqrt(size(plt_hh.pow_sens,2));
-% 
-% figure_w
-% subplot(4,3,1)
-% shadedErrorBar(log10(freqoi),par_gla,std_gla,'b')
-% axis([.3 2.11 -24 -21])
-% % line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-% 
-% subplot(4,3,2)
-% shadedErrorBar(log10(freqoi),par_hh,std_hh,'r')
-% axis([.3 2.11 -24 -21])
-% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-% 
-% subplot(4,3,3)
-% shadedErrorBar(log10(freqoi),par_all,std_all,'k')
-% axis([.3 2.11 -24 -21])
-% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-% 
+freqoi=2.^(1:(1/4):7); 
+
+par_gla = mean(log10(nanmean(plt_gla.pow_sens,1)),3);
+par_hh  = mean(log10(nanmean(plt_hh.pow_sens,1)),3);
+par_mue = nanmean(log10(nanmean(plt_mue.pow_sens,1)),3);
+
+std_gla = std(log10(nanmean(plt_gla.pow_sens,1)),[],3)/sqrt(size(plt_gla.pow_sens,3));
+std_hh  = std(log10(nanmean(plt_hh.pow_sens,1)),[],3)/sqrt(size(plt_hh.pow_sens,3));
+std_mue = nanstd(log10(nanmean(plt_mue.pow_sens,1)),[],3)/sqrt(size(plt_mue.pow_sens,3));
+
+par_all = mean(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),squeeze(nanmean(plt_hh.pow_sens,1)),squeeze(nanmean(plt_mue.pow_sens,1))),2);
+std_all = std(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),log10(squeeze(nanmean(plt_hh.pow_sens,1))),log10(squeeze(nanmean(plt_mue.pow_sens,1)))),[],2)/sqrt(tot_size);
+
+figure_w
+subplot(4,3,1)
+shadedErrorBar(log10(freqoi),par_gla,std_gla,{'color',colors(1,:)})
+axis([.3 2.11 -24 -21])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,2)
+shadedErrorBar(log10(freqoi),par_hh,std_hh,{'color',colors(2,:)})
+axis([.3 2.11 -24 -21])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,3)
+shadedErrorBar(log10(freqoi),par_mue,std_mue,{'color',colors(3,:)})
+axis([.3 2.11 -24 -21])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,4)
+shadedErrorBar(log10(freqoi),par_all,std_all,'k')
+axis([.3 2.11 -24 -21])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 figure_w
 
@@ -110,24 +173,22 @@ tot_size = size(plt_mue.corr_sens,3)+size(plt_gla.corr_sens,3)+size(plt_hh.corr_
 par_all = mean(cat(2,squeeze(nanmean(plt_gla.corr_sens,1)),squeeze(nanmean(plt_hh.corr_sens)),squeeze(nanmean(plt_mue.corr_sens))),2);
 std_all = std(cat(2,squeeze(nanmean(plt_gla.corr_sens,1)),squeeze(nanmean(plt_hh.corr_sens)),squeeze(nanmean(plt_mue.corr_sens))),[],2)/sqrt(50);
 
-
-
 subplot(4,3,1)
-shadedErrorBar(log10(freqoi),par_gla,std_gla,'b')
+shadedErrorBar(log10(freqoi),par_gla,std_gla,{'color',colors(1,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 subplot(4,3,2)
-shadedErrorBar(log10(freqoi),par_hh,std_hh,'r')
+shadedErrorBar(log10(freqoi),par_hh,std_hh,{'color',colors(2,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 subplot(4,3,3)
-shadedErrorBar(log10(freqoi),par_mue,std_mue,'r')
+shadedErrorBar(log10(freqoi),par_mue,std_mue,{'color',colors(3,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
@@ -159,28 +220,28 @@ std_mue = std(nanmean(plt_mue.corr_src,1),[],3)/sqrt(size(plt_mue.corr_src,3));
 par_all = nanmean(mean(cat(3,plt_gla.corr_src,plt_hh.corr_src,plt_mue.corr_src),1),3);
 std_all = std(nanmean(cat(3,plt_gla.corr_src,plt_hh.corr_src,plt_mue.corr_src),1),[],3)/sqrt(tot_size);
 
-subplot(4,3,8)
-shadedErrorBar(log10(freqoi),par_gla,std_gla,'b')
+subplot(4,3,1)
+shadedErrorBar(log10(freqoi),par_gla,std_gla,{'color',colors(1,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
-subplot(4,3,9)
-shadedErrorBar(log10(freqoi),par_hh,std_hh,'r')
+subplot(4,3,2)
+shadedErrorBar(log10(freqoi),par_hh,std_hh,{'color',colors(2,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
-subplot(4,3,10)
-shadedErrorBar(log10(freqoi),par_mue,std_mue,'k')
+subplot(4,3,3)
+shadedErrorBar(log10(freqoi),par_mue,std_mue,{'color',colors(3,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
-subplot(4,3,11)
+subplot(4,3,4)
 shadedErrorBar(log10(freqoi),par_all,std_all,'k')
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
@@ -205,31 +266,31 @@ par_all = nanmean(mean(cat(3,plt_gla.corr_src_df,plt_hh.corr_src_df,plt_mue.corr
 std_all = std(nanmean(cat(3,plt_gla.corr_src_df,plt_hh.corr_src_df,plt_mue.corr_src_df),1),[],3)/sqrt(tot_size);
 
 figure_w;
-subplot(4,3,7)
-shadedErrorBar(log10(freqoi),par_gla,std_gla,'b')
+subplot(4,3,1)
+shadedErrorBar(log10(freqoi),par_gla,std_gla,{'color',colors(1,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 % title('Derivative: GLA')
 
-subplot(4,3,8)
-shadedErrorBar(log10(freqoi),par_hh,std_hh,'r')
+subplot(4,3,2)
+shadedErrorBar(log10(freqoi),par_hh,std_hh,{'color',colors(2,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 % title('Derivative: HH')
 
-subplot(4,3,9)
-shadedErrorBar(log10(freqoi),par_mue,std_mue,'r')
+subplot(4,3,3)
+shadedErrorBar(log10(freqoi),par_mue,std_mue,{'color',colors(3,:)})
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 % title('Derivative: MUE')
 
-subplot(4,3,10)
+subplot(4,3,4)
 shadedErrorBar(log10(freqoi),par_all,std_all,'k')
 axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')

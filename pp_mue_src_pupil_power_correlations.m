@@ -7,13 +7,15 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-freqoi    = 2.^(1:(1/4):7);
+% v = 1;
+% freqoi    = 2.^(1:(1/4):7);
+% lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-% v = 3;
-% freqoi    = 2.^(1:(1/4):7);
+v = 2;
+freqoi    = 2.^(1:(1/4):7);
+lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -80,11 +82,13 @@ for isubj = 1:size(SUBJLIST,1)
     
     pupil = filtfilt(bhil, ahil, pupil);
     
-%     pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
-%     pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    if lag
+        pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
+        pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    end
     pupil_df = diff(pupil);
     
-%     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
+    data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
     
 %     tmp = data;
     data.avg = data.trial{1}'; %data.trial{1} = [];
@@ -120,9 +124,14 @@ for isubj = 1:size(SUBJLIST,1)
       pup_df = nan(nseg,1);
       for j=1:nseg
         tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
-        tmp2 = pupil_df((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
         pup(j) = mean(tmp.*gausswin(opt.n_win,3));
-        pup_df(j) = mean(tmp2.*gausswin(opt.n_win,3));
+        if j==nseg
+            tmp2 = pupil_df((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win-1);
+            pup_df(j) = mean(tmp2.*gausswin(opt.n_win-1,3));
+        else
+            tmp2 = pupil_df((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
+            pup_df(j) = mean(tmp2.*gausswin(opt.n_win,3));
+        end
       end
 
       % -------------------------------
