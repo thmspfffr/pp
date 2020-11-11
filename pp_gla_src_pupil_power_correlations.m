@@ -85,9 +85,6 @@ for isubj = 1:24
       save([outdir fn '.mat'],'src_r')
       continue
     end
-%     len = min([size(data.trial{1},2) size(pupil,1)]);
-%     data.trial{1} = data.trial{1}(:,1:len);
-%     pupil = pupil(1:len,:);
     
     k = 2;
     fnq = f_sample/2;
@@ -119,73 +116,10 @@ for isubj = 1:24
     for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
-    
-      % -------------------------------
-      % START CK TF-ANALYSIS
-      % -------------------------------
-%       srate = 400;
-%       % freq analysis, pass 1, yields TF Fourier rep ##########################
-%       % - this is for multiplication with the ortho-normalised spatial filter
-%       tfcfg=[]; % this will be carried along ...
-%       tfcfg.method='wavelet';
-%       tfcfg.output='fourier';
-%       tfcfg.channel={'MEG'};
-%       tfcfg.foi=freqoi(ifreq);
-%       tfcfg.width=5.83; % again, as per Hipp et al. (2012) Nat Neurosci
-%       tempSD=1./(2*pi*(tfcfg.foi./tfcfg.width)); % temporal SD in sec
-%       tempWd=round(3*tempSD*srate)/srate; % set to 3 std dev, comp with 1000 Hz sampl rate
-%       tfcfg.toi=tempWd.*(1:floor(data.time{1}(end)./tempWd));
-%       % keep in mind that fieldtrip uses a proprietary setting of the gwidth
-%       % parameter (default = 3 cycles) internally that is independent of the
-%       % here requested time axis
-%       tfcfg.pad='nextpow2';
-%       tf=ft_freqanalysis(tfcfg,data);
-%       % reset freq to requested freq
-%       tf.freq=freqoi(ifreq);      
-      
-%       artifPnts=data.cfg.artfctdef.visual.artifact;
-      
+
       for iart = 1 : size(artifPnts,1)
         data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
       end
-      
-%       tfPnts   =tf.time*srate;
-% 
-%       % only discard those bins that "center" on an artifact
-%       critDist=diff(tfPnts([1,2]),[],2); % set critical dist to central 100%
-%       keepBins=logical([]);
-%       % discard TF bins that overlap with artifacts (set zero in keepBins)
-%       for ibin=1:numel(tfPnts)
-%           keepBins(ibin)=~any(abs(tfPnts(ibin)-ceil(mean(artifPnts,2)))<critDist);   
-%       end
-
-      % additionally omit edge datapoints to excl artif
-%       timeAx=tf.time; % original time axis
-%       timeKp=dsearchn(timeAx.',[3;timeAx(end)-3]); % excl ~ 1st & last 3 sec
-%       keepBins(1:timeKp(1)-1)=false;
-%       keepBins(timeKp(2)+1:end)=false;
-
-      % compute cross-specral density by time bin, then average csd's
-%       csd=zeros(numel(tf.label)*[1,1]);
-%       % csd calc excludes artifact bins
-%       csdTime=tf.time(keepBins);
-%       csdData=tf.fourierspctrm(:,:,:,keepBins);
-%       for itbin=1:numel(csdTime)
-%           fspec=squeeze(csdData(:,:,:,itbin)).';
-%           for ichan=1:numel(tf.label);
-%               csd(:,ichan)=csd(:,ichan)+fspec(ichan)*conj(fspec);
-%           end
-%       end
-%       csd=csd./numel(tf.time(keepBins)); % avg cross-spectral dens matrix
-%       csdData=[]; csdTime=[];
-      % -------------------------------
-      % END CK TF-ANALYSIS
-      % -------------------------------
-      
-      % -------------------------------
-      % pupil ck
-      % -------------------------------
-%       ck_pup = pupil(round(tfPnts));
       
       % -------------------------------
       % compute csd
@@ -227,7 +161,6 @@ for isubj = 1:24
       para.iscs = 1;
       para.reg  = 0.05;
       [filt,pow]      = tp_beamformer(real(csd),lf,para);
-%       [ck_filt,ck_pow]      = tp_beamformer(real(csd),lf,para);
       % -------------------------------
       % Project noise
       % -------------------------------
@@ -235,12 +168,7 @@ for isubj = 1:24
       [~,noise]      = tp_beamformer(real(csd_noise),lf,para);
       outp.src_nai(:,ifreq) = pow./noise;
       % -------------------------------
-
-%       ck_dataf = squeeze(tf.fourierspctrm);
-%       
       idx = find(~isnan(dataf(1,:))'&~isnan(pup));
-%       ck_idx_valid = find(~isnan(ck_dataf(1,:))'&~isnan(ck_pup)&keepBins');
-%       idx=intersect(ck_idx_valid,tp_idx_valid);
       % -------------------------------
       % sensor-level pupil power correlation
       % -------------------------------

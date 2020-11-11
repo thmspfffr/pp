@@ -54,10 +54,10 @@ for isubj = SUBJLIST
       continue
     end
     
-%     load(sprintf('~/pconn/proc/preproc/pconn_preproc_data_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,2))
-%     label = data.label(36:303);
-%     save([outdir fn '_label.mat'],'label')
-    load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,3))
+    load(sprintf('~/pconn/proc/preproc/pconn_preproc_data_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v))
+    label = data.label(36:303);
+    save([outdir fn '_label.mat'],'label')
+    load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,v))
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);

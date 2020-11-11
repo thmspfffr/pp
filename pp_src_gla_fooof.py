@@ -3,8 +3,7 @@ import numpy as np
 import scipy.io
 import os
 
-# isubj = 3
-v=4
+v=1
 
 for isubj in range (0, 24):
 
