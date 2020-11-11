@@ -32,7 +32,7 @@ ord    = pconn_randomization;
 addpath /home/gnolte/meth/highlevel/
 %%
 % -------------------------
-for isubj = 1:24
+for isubj = SUBJLIST
   
   clear data dat pupil pup dataf src_r
   
@@ -111,15 +111,14 @@ for isubj = 1:24
     else
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub%d_gla_lf_BNA5mm.mat',isubj))
     end
-   
+    
+    for iart = 1 : size(artifPnts,1)
+        data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
+    end
                 
-    for ifreq=1:numel(freqoi)
+    for ifreq=1:size(freqoi,2)
       
       fprintf('Freq: %d\n',ifreq)
-
-      for iart = 1 : size(artifPnts,1)
-        data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
-      end
       
       % -------------------------------
       % compute csd

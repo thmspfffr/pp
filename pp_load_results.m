@@ -19,10 +19,11 @@ for n_subj = 1: length(SUBJ)
   fprintf('Glasgow: Subj%d\n',isubj)
     try
       load(sprintf([outdir 'pp_gla_src_pupil_power_correlations_s%d_b1_v%d.mat'],isubj,v));   
-      plt_gla.pow_sens(:,:,n_subj)      = outp.tp_sens_pow;
+      plt_gla.pow_sens(:,:,n_subj)      = outp.sens_pow;
       plt_gla.corr_sens(:,:,n_subj)     = outp.sens_r;
       plt_gla.corr_src(:,:,n_subj)      = outp.src_r(trans,:);
       plt_gla.corr_src_df(:,:,n_subj)   = outp.src_r_df(trans,:);
+      clear outp
     catch me
       warning('!!!')
       plt_gla.pow_sens(:,:,n_subj)      = nan(248,25);
@@ -47,6 +48,7 @@ for isubj = SUBJLIST
       plt_hh.corr_sens(:,:,isubj,iblock)    = outp.sens_r;
       plt_hh.corr_src(:,:,isubj,iblock)     = outp.src_r;
       plt_hh.corr_src_df(:,:,isubj,iblock)  = outp.src_r_df;
+      clear outp
     catch me
       warning('!!!')
       plt_hh.pow_sens(:,:,isubj,iblock)     = nan(275,25,1,1);
@@ -70,22 +72,24 @@ end
 
 % LOAD MUENSTER DATA
 % ----------------------------
-for isubj = 1:37
-  fprintf('Muenster: Subj%d\n',isubj)
+SUBJLIST=1:41; SUBJLIST([12,38,39])=[];
+for n_subj = 1:length(SUBJLIST)
+    isubj = SUBJLIST(n_subj);
+    fprintf('Muenster: Subj%d\n',isubj)
     try
       load(sprintf([outdir 'pp_mue_src_pupil_power_correlations_s%d_b1_v%d.mat'],isubj,v));
-      
-      plt_mue.pow_sens(:,:,isubj)    = outp.sens_pow;
-      plt_mue.corr_sens(:,:,isubj)   = outp.sens_r;
-      plt_mue.corr_src(:,:,isubj)    = outp.src_r;
-      plt_mue.corr_src_df(:,:,isubj) = outp.src_r_df;
-
+ 
+      plt_mue.pow_sens(:,:,n_subj)    = outp.sens_pow;
+      plt_mue.corr_sens(:,:,n_subj)   = outp.sens_r;
+      plt_mue.corr_src(:,:,n_subj)    = outp.src_r;
+      plt_mue.corr_src_df(:,:,n_subj) = outp.src_r_df;
+      clear outp
     catch me
       warning('!!!')
-      plt_mue.pow_sens(:,:,isubj)    = nan(275,25,1);
-      plt_mue.corr_sens(:,:,isubj)   = nan(275,25,1);
-      plt_mue.corr_src(:,:,isubj)    = nan(8799,25);
-      plt_mue.corr_src_df(:,:,isubj) = nan(8799,25);
+      plt_mue.pow_sens(:,:,n_subj)    = nan(275,25,1);
+      plt_mue.corr_sens(:,:,n_subj)   = nan(275,25,1);
+      plt_mue.corr_src(:,:,n_subj)    = nan(8799,25);
+      plt_mue.corr_src_df(:,:,n_subj) = nan(8799,25);
       continue
     
   end
@@ -132,7 +136,7 @@ end
 % COLLAPSE ACROSS DATASETS
 plt_all.corr_src = cat(3,plt_hh.corr_src,plt_gla.corr_src,plt_mue.corr_src);
 plt_all.corr_src_BNA = cat(3,plt_hh.corr_src_BNA,plt_gla.corr_src_BNA,plt_mue.corr_src_BNA);
-plt_all.corr_src_df = cat(3,plt_hh.corr_src_df,plt_gla.corr_src_df);
-plt_all.corr_src_df_BNA = cat(3,plt_hh.corr_src_df_BNA,plt_gla.corr_src_df_BNA);
+plt_all.corr_src_df = cat(3,plt_hh.corr_src_df,plt_gla.corr_src_df,plt_mue.corr_src_df);
+plt_all.corr_src_df_BNA = cat(3,plt_hh.corr_src_df_BNA,plt_gla.corr_src_df_BNA,plt_mue.corr_src_df_BNA);
 
 
