@@ -6,19 +6,17 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-SUBJLIST  = 1:24;
+%v = 1;
+%freqoi    = 2.^(1:(1/4):7);
+%win_len = 1600;
+%lag = 0;
+% -------------------------
+% VERSION 2: with pupil lag
+% -------------------------
+v = 2;
 freqoi    = 2.^(1:(1/4):7);
 win_len = 1600;
-lag = 0;
-% -------------------------
-% VERSION 4: with pupil lag
-% -------------------------
-% v = 2;
-% SUBJLIST  = 1:24;
-% freqoi    = 2.^(1:(1/4):7);
-% win_len = 1600;
-% lag = 1;
+lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -41,16 +39,18 @@ end
 
 %%
 % -------------------------
-for isubj = 12
+for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
+
+  size(SUBJLIST,1)
   
   clear pxx fxx pup pup_df
   
   for iblock = 1:1
     %
     fn = sprintf('pp_mue_src_fooof_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+	if tp_parallel(fn,outdir,1,0)
+       continue
+     end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     

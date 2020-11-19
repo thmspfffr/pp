@@ -3,9 +3,9 @@ import numpy as np
 import scipy.io
 import os
 
-v=1
+v=2
 
-for isubj in range (0, 40):
+for isubj in range (0, 41):
 
     if os.path.exists('/home/tpfeffer/pp/proc/src/pp_mue_src_fooof_exp_s%d_v%d_proc.txt' % (isubj+1,v)) == True:
         continue

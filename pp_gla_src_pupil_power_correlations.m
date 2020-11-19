@@ -167,7 +167,7 @@ for isubj = SUBJLIST
       [~,noise]      = tp_beamformer(real(csd_noise),lf,para);
       outp.src_nai(:,ifreq) = pow./noise;
       % -------------------------------
-      idx = find(~isnan(dataf(1,:))'&~isnan(pup));
+      idx = find(~isnan(dataf(1,:))'&~isnan(pup)&~isnan(pup_df));
       % -------------------------------
       % sensor-level pupil power correlation
       % -------------------------------

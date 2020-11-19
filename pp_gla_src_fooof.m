@@ -13,13 +13,13 @@ freqoi    = 2.^(1:(1/4):7);
 win_len = 1600;
 lag = 0;
 % -------------------------
-% VERSION 4: with pupil lag
+% VERSION 2: with pupil lag
 % -------------------------
-% v = 2;
-% SUBJLIST  = 1:24;
-% freqoi    = 2.^(1:(1/4):7);
-% win_len = 1600;
-% lag = 1;
+v = 2;
+SUBJLIST  = 1:24;
+freqoi    = 2.^(1:(1/4):7);
+win_len = 1600;
+lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')

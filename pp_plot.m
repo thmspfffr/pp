@@ -5,6 +5,7 @@ restoredefaultpath
 
 addpath ~/pconn/matlab/
 load /home/gnolte/meth/templates/mri.mat
+load /home/gnolte/meth/templates/sa_template.mat
 addpath ~/Documents/MATLAB/fieldtrip-20190224/
 ft_defaults
 
@@ -19,6 +20,7 @@ v = 2;
 
 colors = cbrewer('qual', 'Set3', 10,'pchip'); 
 colors = colors(4:6,:);
+
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
 freqoi=2.^(1:(1/4):7); 
 
@@ -106,7 +108,7 @@ set(gca,'xtick',[-3 0 3],'xticklabel',[-3 0 3])
 set(gca,'ytick',[-3 0 3],'yticklabel',[-3 0 3])
 text(-1.5,-2.5,sprintf('r = %.2f | p < %.2f',r_mue,p_mue),'fontsize',7)
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_anterior_post_v%d.pdf',v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_correlation_lowhigh_v%d.pdf',v))
 
 
 %% PLOT AVERAGES ACROSS SPACE, HAMBURG, GLASGOW, ALL
@@ -126,7 +128,7 @@ std_gla = std(log10(nanmean(plt_gla.pow_sens,1)),[],3)/sqrt(size(plt_gla.pow_sen
 std_hh  = std(log10(nanmean(plt_hh.pow_sens,1)),[],3)/sqrt(size(plt_hh.pow_sens,3));
 std_mue = nanstd(log10(nanmean(plt_mue.pow_sens,1)),[],3)/sqrt(size(plt_mue.pow_sens,3));
 
-par_all = mean(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),squeeze(nanmean(plt_hh.pow_sens,1)),squeeze(nanmean(plt_mue.pow_sens,1))),2);
+par_all = mean(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),log10(squeeze(nanmean(plt_hh.pow_sens,1))),log10(squeeze(nanmean(plt_mue.pow_sens,1)))),2);
 std_all = std(cat(2,log10(squeeze(nanmean(plt_gla.pow_sens,1))),log10(squeeze(nanmean(plt_hh.pow_sens,1))),log10(squeeze(nanmean(plt_mue.pow_sens,1)))),[],2)/sqrt(tot_size);
 
 figure_w
@@ -157,6 +159,9 @@ axis([.3 2.11 -24 -21])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_pow_lineplots_v%d.pdf',v))
+
 
 figure_w
 
@@ -202,7 +207,7 @@ line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_lineplots_v%d.pdf',v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_corr_lineplots_v%d.pdf',v))
 
 % -----------------
 % SOURCE SPACE: NORMAL PUPIL 
@@ -466,12 +471,14 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
-for ifoi = 3
+for ifoi = 1:25
 % ifoi = 14;
 
 [h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
 h=p<(fdr1(p(:),0.05,0));
 par=nanmean(plt_all.corr_src(:,ifoi,:),3).*h;
+% project onto fine grid
+par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
 
 clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
 para = [];
@@ -479,10 +486,24 @@ para.colorlimits = clim
 para.colormaps{1} = cmap;
 para.orientation = 'axial';
 
-para.dslice_shown = 0.75;
+para.dslice_shown = 0.95;
 para.colorbar= 0;
 
-tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
+tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
+
+move_x = [0:0.08:0.32];
+move_y = [0.08:-0.02:0];
+
+for i=4:-1:1
+    for j = 0:3
+        if j ~= 4
+            f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+        end
+        f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
+    end
+end
+
+
 set(gcf,'renderer','painters')
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
 
@@ -495,12 +516,14 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
-for ifoi = 3
+for ifoi = 1:25
 % ifoi = 14;
 
 [h,p] = ttest(plt_all.corr_src_df(:,ifoi,:),zeros(size(plt_all.corr_src_df(:,ifoi,:))),'dim',3);
 h=p<(fdr1(p(:),0.05,0));
 par=nanmean(plt_all.corr_src_df(:,ifoi,:),3).*h;
+% project onto fine grid
+par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
 
 clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
 para = [];
@@ -508,15 +531,30 @@ para.colorlimits = clim
 para.colormaps{1} = cmap;
 para.orientation = 'axial';
 
-para.dslice_shown = 0.75;
+para.dslice_shown = 0.95;
 para.colorbar= 0;
 
-tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par])
+
+tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
+
+move_x = [0:0.08:0.32];
+move_y = [0.08:-0.02:0];
+
+for i=4:-1:1
+    for j = 0:3
+        if j ~= 4
+            f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+        end
+        f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
+    end
+end
+
 set(gcf,'renderer','painters')
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_df_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
 
 end
 
+error('!')
 %% PLOT COUNTING/TASK RESULTS 
 
 figure_w
