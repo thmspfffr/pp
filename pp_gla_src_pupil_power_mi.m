@@ -38,7 +38,7 @@ for isubj = SUBJLIST
   
   for iblock = 1:1
     %
-    fn = sprintf('pp_gla_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
+    fn = sprintf('pp_gla_src_pupil_power_mi_s%d_b%d_v%d',isubj,iblock,v);
     if tp_parallel(fn,outdir,1,0)
       continue
     end
@@ -77,11 +77,9 @@ for isubj = SUBJLIST
 %       
       [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
             
-      outp.sens_pow    = nan(248,25);
+      outp.sens_pow = nan(248,25);
       outp.sens_r      = nan(248,25);
       outp.sens_r_sp   = nan(248,25);
-      outp.sens_mi     = nan(248,25);
-      outp.sens_mi_df  = nan(248,25);
     catch me
       src_r = nan(246,25);
       save([outdir fn '.mat'],'src_r')
@@ -171,42 +169,23 @@ for isubj = SUBJLIST
       % -------------------------------
       idx = find(~isnan(dataf(1,:))'&~isnan(pup)&~isnan(pup_df));
       % -------------------------------
-      % sensor-level pupil power correlation
+      % sensor-level pupil power mutual information
       % -------------------------------
-      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
-      outp.sens_r_sp(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
-      % -------------------------------
-      % sensor-level mutual information
-      % -------------------------------
-      cnpup     = copnorm(pup(idx));
-      cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)');
-      tmp = [];
-      for isens = 1 : size(dataf,1)
-        tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
-        tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
-      end
-      outp.sens_mi(outp.chanidx>0,ifreq) = tmp;
-      outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
       
+%       outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
+%       outp.sens_r_sp(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
+      % -------------------------------
       % compute source-level power
       % -------------------------------
-      src_pow = abs(filt'*dataf).^2;
+      tp_src = abs(filt'*dataf).^2;
 %       % -------------------------------
-      % correlate power with pupil
+      % mutual information power with pupil n source space
       % -------------------------------
-      outp.src_r(:,ifreq) = corr(pup(idx),src_pow(:,idx)','type','spearman');
-      outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow(:,idx)','type','spearman');
-      cnpup     = copnorm(pup(idx));
-      cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(src_pow(:,idx))';
-      for isrc = 1 : size(src_pow,1)
-        outp.src_mi(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
-        outp.src_mi_df(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
-      end
+%       outp.src_r(:,ifreq) = corr(pup(idx),tp_src(:,idx)','type','spearman');
+%       outp.src_r_df(:,ifreq) = corr(pup_df(idx),tp_src(:,idx)','type','spearman');
       % -------------------------------
 
-      clear src_pow pup pup_df csd dataf 
+      clear src pup csd tp_csd dataf 
       
     end
 

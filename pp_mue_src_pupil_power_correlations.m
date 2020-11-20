@@ -97,6 +97,8 @@ for isubj = 1:size(SUBJLIST,1)
     outp.sens_pow   = nan(275,25);
     outp.sens_r     = nan(275,25);
     outp.sens_r_df  = nan(275,25);
+    outp.sens_mi    = nan(275,25);
+    outp.sens_mi_df = nan(275,25);
     
     for ifreq=1:numel(freqoi)
       
@@ -150,12 +152,36 @@ for isubj = 1:size(SUBJLIST,1)
       outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
       outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
       % -------------------------------
+      % sensor-level mutual information
+      % -------------------------------
+      cnpup     = copnorm(pup(idx));
+      cnpup_df  = copnorm(pup_df(idx));
+      cnpow     = copnorm(abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)');
+      tmp = [];
+      for isens = 1 : size(dataf,1)
+        tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
+        tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
+      end
+      outp.sens_mi(outp.chanidx>0,ifreq) = tmp;
+      outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
+      % -------------------------------
       % correlate power with pupil
       % -------------------------------
-      src = abs(tp_filt'*dataf).^2; % source level power fluct
-      outp.src_r(:,ifreq) = corr(pup(idx),src(:,idx)','type','spearman');
-      outp.src_r_df(:,ifreq) = corr(pup_df(idx),src(:,idx)','type','spearman');
- 
+      src_pow = abs(tp_filt'*dataf).^2; % source level power fluct
+      outp.src_r(:,ifreq) = corr(pup(idx),src_pow(:,idx)','type','spearman');
+      outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow(:,idx)','type','spearman');
+      % -------------------------------
+      % source level mutual information
+      % -------------------------------
+      cnpup     = copnorm(pup(idx));
+      cnpup_df  = copnorm(pup_df(idx));
+      cnpow     = copnorm(src_pow(:,idx))';
+      for isrc = 1 : size(src_pow,1)
+        outp.src_mi(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+      end
+      % -------------------------------
+
       clear src pup csd tp_csd dataf 
       
     end

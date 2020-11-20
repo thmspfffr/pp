@@ -119,7 +119,9 @@ for isubj = SUBJLIST
     outp.sens_pow   = nan(275,25);
     outp.sens_r     = nan(275,25);
     outp.sens_r_df  = nan(275,25);
-      
+    outp.sens_mi_df = nan(275,25);
+    outp.sens_mi    = nan(275,25);
+    
     for ifreq=1:length(freqoi)
       ifreq
 
@@ -151,15 +153,28 @@ for isubj = SUBJLIST
       % find indices of non-NAN segments
       idx_valid = find(~isnan(dataf(1,:)));
       idx_valid_df = find(~isnan(pup_df)');
-      idx_valid = intersect(idx_valid,idx_valid_df);
+      idx = intersect(idx_valid,idx_valid_df);
       
-      env = abs(dataf(:,idx_valid).^2);
+      env = abs(dataf(:,idx).^2);
  
       % correlate pupil with sensor level signal
-      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx_valid),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
-      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx_valid),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
-%       outp.sens_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
-%       outp.sens_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
+      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
+      
+      % -------------------------------
+      % sensor-level mutual information
+      % -------------------------------
+      cnpup     = copnorm(pup(idx));
+      cnpup_df  = copnorm(pup_df(idx));
+      cnpow     = copnorm(env(outp.chanidx(outp.chanidx>0),:))';
+      tmp = [];
+      for isens = 1 : size(dataf,1)
+        tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
+        tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
+      end
+      outp.sens_mi(outp.chanidx>0,ifreq)    = tmp;
+      outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
+      
       % beamforming (ignore name of leadfield)
       % --------------
       para          = [];
@@ -174,15 +189,21 @@ for isubj = SUBJLIST
       % -------------------------------
       
       % compute power & lowpass filter
-      env = abs(filt'*dataf(:,idx_valid)).^2;
-      f_sample = 400/opt.n_shift;
-      env_filt=lowpass(env,hil_lo,f_sample);
+      env = abs(filt'*dataf(:,idx)).^2;
       
-      % correlate with pupila
-      outp.src_r(:,ifreq) = corr(pup(idx_valid),env','type','Spearman');
-      outp.src_r_df(:,ifreq) = corr(pup_df(idx_valid),env','type','Spearman');
-%       outp.src_r_filt(:,ifreq) = corr(pup(idx_valid),env_filt','type','Spearman');
-%       outp.src_r_df_filt(:,ifreq) = corr(pup_df(idx_valid),env_filt','type','Spearman');
+      % correlate with pupil
+      outp.src_r(:,ifreq) = corr(pup(idx),env','type','Spearman');
+      outp.src_r_df(:,ifreq) = corr(pup_df(idx),env','type','Spearman');
+      
+      % mutual information 
+      cnpup     = copnorm(pup(idx));
+      cnpup_df  = copnorm(pup_df(idx));
+      cnpow     = copnorm(env)';
+      for isrc = 1 : size(env,1)
+        outp.src_mi(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+      end
+      
       clear src pup
 
     end
