@@ -19,8 +19,8 @@ chmod g=wx $PBS_JOBNAME
 
 sleep "$var"
 
-#source activate pp_fooof
-python pp_src_mue_fooof.py 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
+source activate pp_fooof
+python pp_src_hh_fooof.py 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
 #matlab -nodisplay -nodesktop -r "pp_hh_src_fooof; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
