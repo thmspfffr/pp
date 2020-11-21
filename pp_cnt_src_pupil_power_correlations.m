@@ -5,11 +5,19 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 4
+% VERSION 1: without pupil lag
 % -------------------------
-v = 3;
+v = 1;
 % include 28 subjects, as in pfeffer et al. (2018) plos biology
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 0;
+% -------------------------
+% VERSION 2: with pupil lag (930 ms)
+% -------------------------
+% v = 2;
+% % include 28 subjects, as in pfeffer et al. (2018) plos biology
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 1;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -33,9 +41,9 @@ for isubj = SUBJLIST
   for iblock = 1:2
 %     
     fn = sprintf('pp_cnt_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-    if tp_parallel(fn,outdir,1,0)
-      continue
-    end
+%     if tp_parallel(fn,outdir,1,0)
+%       continue
+%     end
 % %     
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -47,6 +55,15 @@ for isubj = SUBJLIST
     catch me
       continue
     end
+    
+    load(sprintf('~/pconn_cnt/proc/preproc/pconn_cnt_preproc_data_count_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
+    label = data.label(36:303);
+    save([outdir fn '_label.mat'],'label')
+    load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,v))
+    cfg=[];
+    cfg.layout='CTF275.lay';
+    lay = ft_prepare_layout(cfg);
+    [~, outp.chanidx] = ismember(lay.label(1:275),label);
     
     % bp-filter and resample pupil
     % ------
@@ -84,9 +101,13 @@ for isubj = SUBJLIST
     % ------
         
     % pupil shift: 930 ms from hoeks & levelt (1992)
-    pup_shift = round(400*0.93);   
-    pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
-      
+    if lag 
+        pup_shift = round(400*0.93);   
+        pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    end
+    
+    pupil_df = diff(pupil);
+    
     dat(:,isnan(pupil))=nan(size(dat,1),sum(isnan(pupil)));
     
     load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');  
@@ -97,31 +118,57 @@ for isubj = SUBJLIST
     
     [outp.pxx,outp.fxx]=pwelch(dat(:,~isnan(dat(1,:)))',hanning(400),0,1:1:200,400);
     
+    outp.sens_r     = nan(275,25);
+    outp.sens_r_df  = nan(275,25);
+    outp.sens_mi_df = nan(275,25);
+    outp.sens_mi    = nan(275,25);
+    
     for ifreq=1:numel(freqoi)
       ifreq
 
       para          = [];
       para.freq     = freqoi(ifreq);
       para.fsample  = 400;  
+      para.overlap  = 0.5;
       [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
             
-      outp.tp_sens_pow(:,ifreq) = diag(abs(csd));
+      tmp = diag(abs(csd));
+      outp.sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
 
       % -------------------------------
       % prepare pupil signal
       % -------------------------------
       nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
-      pup = nan(nseg,1);
+      pup    = nan(nseg,1);
+      pup_df = nan(nseg,1);
       for j=1:nseg
-        tmp = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
-        pup(j) = mean(tmp.*gausswin(opt.n_win,3));
+        tmp     = pupil((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
+        tmp_df  = pupil_df((j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win);
+        pup(j)      = mean(tmp.*gausswin(opt.n_win,3));
+        pup_df(j)   = mean(tmp.*gausswin(opt.n_win,3));
       end
       
       % find indices of non-NAN segments
-      idx_valid = find(~isnan(dataf(1,:)));
+      idx = find(~isnan(dataf(1,:)));
+      
+      env = abs(dataf(:,idx)).^2;
  
       % correlate pupil with sensor level signal
-      outp.sens_r(:,ifreq) = corr(pup(idx_valid),abs(dataf(:,idx_valid).^2)');
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
+      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman'); 
+      % -------------------------------
+      % sensor-level mutual information
+      % -------------------------------
+      cnpup     = copnorm(pup(idx));
+      cnpup_df  = copnorm(pup_df(idx));
+      cnpow     = copnorm(env(outp.chanidx(outp.chanidx>0),:))';
+      tmp = []; tmp_df = [];
+      for isens = 1 : size(dataf,1)
+        tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
+        tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
+      end
+      outp.sens_mi(outp.chanidx>0,ifreq)    = tmp;
+      outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
       
       % beamforming (ignore name of leadfield)
       % --------------
@@ -136,10 +183,20 @@ for isubj = SUBJLIST
       outp.src_nai(:,ifreq) = pow./noise;
       % -------------------------------
       % compute power
-      src = abs(filt'*dataf).^2;
+      src_pow = abs(filt'*dataf).^2;
       
-      % correlate with pupila
-      outp.src_r(:,ifreq) = corr(pup(idx_valid),src(:,idx_valid)');
+      outp.src_r(:,ifreq) = corr(pup(idx),src_pow(:,idx)','type','spearman');
+      outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow(:,idx)','type','spearman');
+      % -------------------------------
+      % source level mutual information
+      % -------------------------------
+      cnpup     = copnorm(pup(idx));
+      cnpup_df  = copnorm(pup_df(idx));
+      cnpow     = copnorm(src_pow(:,idx))';
+      for isrc = 1 : size(src_pow,1)
+        outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+      end
       
       clear src pup
 

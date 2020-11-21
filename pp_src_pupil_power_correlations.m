@@ -7,15 +7,15 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
+v = 1;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-v = 2;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 1;
+% v = 2;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 1;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -54,10 +54,7 @@ for isubj = SUBJLIST
       continue
     end
     
-    load(sprintf('~/pconn/proc/preproc/pconn_preproc_data_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v))
-    label = data.label(36:303);
-    save([outdir fn '_label.mat'],'label')
-    load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,v))
+    load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,1))
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
@@ -155,7 +152,7 @@ for isubj = SUBJLIST
       idx_valid_df = find(~isnan(pup_df)');
       idx = intersect(idx_valid,idx_valid_df);
       
-      env = abs(dataf(:,idx).^2);
+      env = abs(dataf(:,idx)).^2;
  
       % correlate pupil with sensor level signal
       outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
@@ -167,16 +164,25 @@ for isubj = SUBJLIST
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
       cnpow     = copnorm(env(outp.chanidx(outp.chanidx>0),:))';
-      tmp = [];
+      tmp = []; tmp_df = [];
       for isens = 1 : size(dataf,1)
         tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
         tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
       end
       outp.sens_mi(outp.chanidx>0,ifreq)    = tmp;
       outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
-      
+      % -------------------------------
+      % sensor-level cross correlation
+      % -------------------------------
+      nlags=floor(10/(opt.n_shift/400)); % roughly 10s
+      for isens = 1 : size(env,2)
+        [outp.xcorr{ifreq}(:,isens),lags]=xcorr(pup(idx),env(:,isens),nlags,'normalized');
+      end
+      lags=lags*(opt.n_shift/f_sample);
+      outp.xcorr_lags{ifreq} = lags;
+      % -------------------------------
       % beamforming (ignore name of leadfield)
-      % --------------
+      % -------------------------------
       para          = [];
       para.reg      = 0.05;
       [filt,pow] = tp_beamformer(real(csd),sa.L_genemaps_aal,para);
@@ -200,8 +206,8 @@ for isubj = SUBJLIST
       cnpup_df  = copnorm(pup_df(idx));
       cnpow     = copnorm(env)';
       for isrc = 1 : size(env,1)
-        outp.src_mi(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
-        outp.src_mi_df(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+        outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
       end
       
       clear src pup

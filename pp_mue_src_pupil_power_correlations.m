@@ -149,21 +149,31 @@ for isubj = 1:size(SUBJLIST,1)
       % -------------------------------
       % sensor-level pupil power correlation
       % -------------------------------
-      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
-      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
+      env = (abs(dataf(outp.chanidx(outp.chanidx>0),idx)).^2)';
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env,'type','spearman');
+      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),env,'type','spearman');
       % -------------------------------
       % sensor-level mutual information
       % -------------------------------
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)');
-      tmp = [];
+      cnpow     = copnorm(env);
+      tmp = []; tmp_df = [];
       for isens = 1 : size(dataf,1)
         tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
         tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
       end
       outp.sens_mi(outp.chanidx>0,ifreq) = tmp;
       outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
+      % -------------------------------
+      % sensor-level cross correlation
+      % -------------------------------
+      nlags=floor(10/(opt.n_shift/400)); % roughly 10s
+      for isens = 1 : size(env,2)
+        [outp.xcorr{ifreq}(:,isens),lags]=xcorr(pup(idx),env(:,isens),nlags,'normalized');
+      end
+      lags=lags*(opt.n_shift/f_sample);
+      outp.xcorr_lags{ifreq} = lags;
       % -------------------------------
       % correlate power with pupil
       % -------------------------------
@@ -177,8 +187,8 @@ for isubj = 1:size(SUBJLIST,1)
       cnpup_df  = copnorm(pup_df(idx));
       cnpow     = copnorm(src_pow(:,idx))';
       for isrc = 1 : size(src_pow,1)
-        outp.src_mi(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
-        outp.src_mi_df(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+        outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
       end
       % -------------------------------
 

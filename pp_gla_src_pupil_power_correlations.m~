@@ -7,17 +7,17 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% SUBJLIST  = 1:24;
-% freqoi    = 2.^(1:(1/4):7);
-% lag = 0;
+v = 1;
+SUBJLIST  = 1:24;
+freqoi    = 2.^(1:(1/4):7);
+lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-v = 2;
-SUBJLIST  = 1:24;
-freqoi    = 2.^(1:(1/4):7);
-lag = 1;
+% v = 2;
+% SUBJLIST  = 1:24;
+% freqoi    = 2.^(1:(1/4):7);
+% lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -117,7 +117,7 @@ for isubj = SUBJLIST
     for iart = 1 : size(artifPnts,1)
         data.avg(artifPnts(iart,1):artifPnts(iart,2),:)=NaN;
     end
-                
+      
     for ifreq=1:size(freqoi,2)
       
       fprintf('Freq: %d\n',ifreq)
@@ -173,21 +173,29 @@ for isubj = SUBJLIST
       % -------------------------------
       % sensor-level pupil power correlation
       % -------------------------------
-      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
-      outp.sens_r_sp(outp.chanidx>0,ifreq) = corr(pup(idx),abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)','type','spearman');
+      env = (abs(dataf(outp.chanidx(outp.chanidx>0),idx)).^2)';
+      
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env,'type','spearman');
+      outp.sens_r_sp(outp.chanidx>0,ifreq) = corr(pup(idx),env,'type','spearman');
       % -------------------------------
       % sensor-level mutual information
       % -------------------------------
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(abs(dataf(outp.chanidx(outp.chanidx>0),idx).^2)');
-      tmp = [];
+      cnpow     = copnorm(env);
+      tmp = []; tmp_df = [];
       for isens = 1 : size(dataf,1)
         tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
         tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
       end
       outp.sens_mi(outp.chanidx>0,ifreq) = tmp;
       outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
+      % -------------------------------
+      % sensor-level cross correlation
+      % -------------------------------
+      for isens = 1 : size(env,1)
+      [r,lags]=xcorr(pup(idx),env(:,1));
+      lags=lags*opt.n_shift/f_sample;
       
       % compute source-level power
       % -------------------------------
@@ -200,9 +208,9 @@ for isubj = SUBJLIST
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
       cnpow     = copnorm(src_pow(:,idx))';
-      for isrc = 1 : size(dataf,1)
-        outp.src_mi(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
-        outp.src_mi_df(isrc) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+      for isrc = 1 : size(src_pow,1)
+        outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
       end
       % -------------------------------
 
