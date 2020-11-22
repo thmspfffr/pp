@@ -32,18 +32,18 @@ for isubj in SUBJLIST:
         freqs = np.squeeze(dat['fxx'])
         slp = np.zeros([ np.shape(dat['pxx'])[1] , np.shape(dat['pxx'])[2] ])
 
-        for iseg in range(0,np.shape(dat['pxx'])[2]):
-            print('Processing segment %d / %d' % (iseg,np.shape(dat['pxx'])[2]))
-            power_spectrum = np.squeeze(dat['pxx'][:,:,iseg])
-            fm.fit(freqs, np.transpose(power_spectrum), freq_range)
-            tmp=fm.get_results()
-            for isens in range(0,np.shape(dat['pxx'])[1]):
-                slp[isens][iseg] = tmp[isens][0][1]
-
+        #for iseg in range(0,np.shape(dat['pxx'])[2]):
+        #    print('Processing segment %d / %d' % (iseg,np.shape(dat['pxx'])[2]))
+        #    power_spectrum = np.squeeze(dat['pxx'][:,:,iseg])
+        #    fm.fit(freqs, np.transpose(power_spectrum), freq_range)
+        #   tmp=fm.get_results()
+        #    for isens in range(0,np.shape(dat['pxx'])[1]):
+        #        slp[isens][iseg] = tmp[isens][0][1]
+        
         scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_slp_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'slp': slp})
 
         r = np.zeros([np.shape(dat['pxx'])[1],1])
-        for iseg in range(0,np.shape(dat['pxx'])[1]):
-            r[iseg] = np.corrcoef(slp[iseg,:],dat['pup'],rowvar=True)[0][1]
+        #for iseg in range(0,np.shape(dat['pxx'])[1]):
+        #    r[iseg] = np.corrcoef(slp[iseg,:],dat['pup'],rowvar=True)[0][1]
 
-        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d_v%d.mat' % (isubj,v), {'r': r})
+        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'r': r})

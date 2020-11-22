@@ -54,7 +54,6 @@ for isubj = SUBJLIST
       end
       
       pupil = data.trial{1}';
-      f_sample = data.fsample;
       
       % load meg data
       if isubj < 10
@@ -63,8 +62,8 @@ for isubj = SUBJLIST
         load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/meg/sub%d_gla_meg.mat',isubj));
       end
       
-      
       artifPnts=data.cfg.artfctdef.visual.artifact;
+      f_sample = data.fsample;
       
       cfg=[];
       cfg.layout='4D248.lay';
@@ -75,7 +74,7 @@ for isubj = SUBJLIST
       save(sprintf('~/pp/proc/src/chanidx_s%d.mat',isubj),'chanidx')
       
 %       
-      [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
+      [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(f_sample),0,1:1:200,400);
             
       outp.sens_pow    = nan(248,25);
       outp.sens_r      = nan(248,25);
@@ -125,11 +124,11 @@ for isubj = SUBJLIST
       % -------------------------------
       % compute csd
       % -------------------------------
-      para          = [];
-      para.freq     = freqoi(ifreq);
-      para.fsample  = 400;  
-      para.overlap = 0.5;
-      [csd, dataf,opt]=tp_compute_csd_wavelets(data.avg',para);
+      para              = [];
+      para.freq         = freqoi(ifreq);
+      para.fsample      = 400;  
+      para.overlap      = 0.5;
+      [csd, dataf,opt]  = tp_compute_csd_wavelets(data.avg',para);
       
       % -------------------------------
       % compute power from csd
@@ -158,15 +157,15 @@ for isubj = SUBJLIST
       % -------------------------------
       % beamforming
       % -------------------------------
-      para      = [];
-      para.iscs = 1;
-      para.reg  = 0.05;
-      [filt,pow]      = tp_beamformer(real(csd),lf,para);
+      para       = [];
+      para.iscs  = 1;
+      para.reg   = 0.05;
+      [filt,pow] = tp_beamformer(real(csd),lf,para);
       % -------------------------------
       % Project noise
       % -------------------------------
       Lr = reshape(lf,[size(lf,1) 8799*3]); csd_noise = Lr*Lr';
-      [~,noise]      = tp_beamformer(real(csd_noise),lf,para);
+      [~,noise]             = tp_beamformer(real(csd_noise),lf,para);
       outp.src_nai(:,ifreq) = pow./noise;
       % -------------------------------
       idx = find(~isnan(dataf(1,:))'&~isnan(pup)&~isnan(pup_df));
@@ -175,8 +174,8 @@ for isubj = SUBJLIST
       % -------------------------------
       env = (abs(dataf(outp.chanidx(outp.chanidx>0),idx)).^2)';
       
-      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env,'type','spearman');
-      outp.sens_r_sp(outp.chanidx>0,ifreq) = corr(pup(idx),env,'type','spearman');
+      outp.sens_r(outp.chanidx>0,ifreq)     = corr(pup(idx),env,'type','spearman');
+      outp.sens_r_sp(outp.chanidx>0,ifreq)  = corr(pup(idx),env,'type','spearman');
       % -------------------------------
       % sensor-level mutual information
       % -------------------------------
@@ -188,16 +187,16 @@ for isubj = SUBJLIST
         tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
         tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
       end
-      outp.sens_mi(outp.chanidx>0,ifreq) = tmp;
+      outp.sens_mi(outp.chanidx>0,ifreq)    = tmp;
       outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
       % -------------------------------
       % sensor-level cross correlation
       % -------------------------------
-      nlags=floor(10/(opt.n_shift/400)); % roughly 10s
+      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
       for isens = 1 : size(env,2)
-        [outp.xcorr{ifreq}(:,isens),lags]=xcorr(pup(idx),env(:,isens),nlags,'normalized');
+        [outp.xcorr{ifreq}(:,isens),lags] = xcorr(pup(idx),env(:,isens),nlags,'normalized');
       end
-      lags=lags*(opt.n_shift/f_sample);
+      lags = lags*(opt.n_shift/f_sample);
       outp.xcorr_lags{ifreq} = lags;
       
       % compute source-level power
@@ -212,8 +211,8 @@ for isubj = SUBJLIST
       cnpup_df  = copnorm(pup_df(idx));
       cnpow     = copnorm(src_pow(:,idx))';
       for isrc = 1 : size(src_pow,1)
-        outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
-        outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+        outp.src_mi(isrc,ifreq)     = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc,ifreq)  = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
       end
       % -------------------------------
 
@@ -229,5 +228,5 @@ for isubj = SUBJLIST
   end
 end
 
-error('!')
-%%
+% exit
+

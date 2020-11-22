@@ -171,5 +171,4 @@ for isubj = SUBJLIST
 end
 
 
-error('!')
-
+exit

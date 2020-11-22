@@ -73,6 +73,11 @@ for isubj = 1:size(SUBJLIST,1)
       continue
     end
     
+    cfg = [];
+    cfg.resamplefs = 400;
+    data = ft_resampledata(cfg,data);
+    f_sample = data.fsample;
+    
     k = 2;
     fnq = f_sample/2;
     hil_hi = 0.005;
@@ -81,6 +86,7 @@ for isubj = 1:size(SUBJLIST,1)
     [bhil, ahil] = butter(k, hil_Wn);
     
     pupil = filtfilt(bhil, ahil, pupil);
+    pupil = resample(pupil,400,600);
     
     if lag
         pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
@@ -168,7 +174,7 @@ for isubj = 1:size(SUBJLIST,1)
       % -------------------------------
       % sensor-level cross correlation
       % -------------------------------
-      nlags=floor(10/(opt.n_shift/400)); % roughly 10s
+      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
       for isens = 1 : size(env,2)
         [outp.xcorr{ifreq}(:,isens),lags]=xcorr(pup(idx),env(:,isens),nlags,'normalized');
       end
@@ -204,17 +210,4 @@ for isubj = 1:size(SUBJLIST,1)
   end
 end
 
-error('!')
-%%
-
-for isubj = 1 : 37
-
-load(sprintf('/home/tpfeffer/pp/proc/src/pp_mue_src_pupil_power_correlations_s%d_b1_v3.mat',isubj))
-
-all(:,:,isubj) =outp.tp_src_r;
-
-end
-
-for igrid = 1 : max(BNA.tissue_5mm(:))
-  all_BNA(igrid,:,:) = tanh(mean(atanh(all(BNA.tissue_5mm == igrid,:,:))));
-end
+exit

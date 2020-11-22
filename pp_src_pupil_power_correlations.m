@@ -42,7 +42,7 @@ for isubj = SUBJLIST
     if tp_parallel(fn,outdir,1,0)
       continue
     end
-% %     
+%     
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
@@ -54,7 +54,10 @@ for isubj = SUBJLIST
       continue
     end
     
-    load(sprintf([outdir 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,1))
+    load(sprintf('~/pconn/proc/preproc/pconn_preproc_data_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,2))
+    label = data.label(startsWith(data.label,'M'));
+    save(['~/pp/proc/' fn '_label.mat'],'label')
+    load(sprintf(['~/pp/proc/' 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,v))
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
@@ -152,20 +155,20 @@ for isubj = SUBJLIST
       idx_valid_df = find(~isnan(pup_df)');
       idx = intersect(idx_valid,idx_valid_df);
       
-      env = abs(dataf(:,idx)).^2;
+      env = abs(dataf).^2;
  
       % correlate pupil with sensor level signal
-      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
-      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),env(outp.chanidx(outp.chanidx>0),:)','type','Spearman');
+      outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env(outp.chanidx(outp.chanidx>0),idx)','type','Spearman');
+      outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),env(outp.chanidx(outp.chanidx>0),idx)','type','Spearman');
       
       % -------------------------------
       % sensor-level mutual information
       % -------------------------------
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(env(outp.chanidx(outp.chanidx>0),:))';
+      cnpow     = copnorm(env(outp.chanidx(outp.chanidx>0),idx))';
       tmp = []; tmp_df = [];
-      for isens = 1 : size(dataf,1)
+      for isens = 1 : size(cnpow,2)
         tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
         tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
       end
@@ -175,11 +178,25 @@ for isubj = SUBJLIST
       % sensor-level cross correlation
       % -------------------------------
       nlags=floor(10/(opt.n_shift/400)); % roughly 10s
-      for isens = 1 : size(env,2)
-        [outp.xcorr{ifreq}(:,isens),lags]=xcorr(pup(idx),env(:,isens),nlags,'normalized');
+      nseg=floor((size(env,2)-nlags*2)/nlags);
+      
+      tmp_xcorr = [];
+      for iseg = 1 : nseg
+          tmp_pup = pup((iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
+          tmp_env = env(:,(iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
+          
+          if any(isnan(tmp_pup)) || any(isnan(tmp_env(1,:)))
+              [~,lags]=xcorr(rand(2*nlags,1),rand(2*nlags,1),nlags,'normalized');
+              tmp_xcorr(:,isens,iseg)=nan(nlags*2+1,1);
+              continue
+          end
+          
+          for isens = 1 : size(env,1)
+            [tmp_xcorr(:,isens,iseg),lags]=xcorr(tmp_pup,tmp_env(isens,:)',nlags,'normalized');
+          end
       end
-      lags=lags*(opt.n_shift/f_sample);
-      outp.xcorr_lags{ifreq} = lags;
+      outp.xcorr{ifreq} = nanmean(tmp_xcorr,3);
+      outp.xcorr_lags{ifreq} = lags*(opt.n_shift/f_sample);
       % -------------------------------
       % beamforming (ignore name of leadfield)
       % -------------------------------
@@ -222,5 +239,4 @@ for isubj = SUBJLIST
   end
 end
 
-error('!')
-
+exit
