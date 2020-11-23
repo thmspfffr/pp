@@ -998,3 +998,176 @@ end
 set(gcf,'Position',[50 50  800 1200])
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_receptors_derivative_abs%d_dd%s_nr2_v%d.pdf',isabs,num2str(dd),v))
 close
+
+%% PLOT CROSS CORRELATION
+addpath ~/Documents/MATLAB/cbrewer/cbrewer/
+cols = cbrewer('seq', 'Greens', 35,'pchip');
+cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
+% cfg=[];
+% cfg.layout='CTF275.lay';
+% lay = ft_prepare_layout(cfg);
+% minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
+% ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
+
+v=1
+SUBJLIST = [1:36 41];
+i = 0;
+for isubj = SUBJLIST
+    i = i + 1; i
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_mue_src_pupil_power_correlations_s%d_b1_v%d.mat',isubj,v));
+    
+    for ifreq = 1 : 25
+        mue.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+    end
+
+end
+
+
+% plt_mue.corr_sens_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
+% for i = 1 : size(ser_hh,2)-1
+%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
+%   for ifreq = 1 : 25
+%   mue.xcorr_ord{ifreq}(i,:) = (mue.xcorr{ifreq}(idx,:),1);
+%   end
+% end
+
+figure; set(gcf,'color','w') ;
+
+subplot(2,2,1); hold on; title('Muenster')
+
+for ifreq = 1 : 25
+plot(outp.xcorr_lags{ifreq},nanmean(mue.xcorr{ifreq},2),'color',cols(ifreq,:))
+
+end
+
+axis([-5 5 -0.04 0.05])
+xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
+tp_editplots
+h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+
+%%
+
+v=1
+SUBJLIST = 1:24; SUBJLIST([5,9])=[];
+i = 0;
+for isubj = SUBJLIST
+    i = i + 1;
+    load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_pupil_power_correlations_s%d_b1_v%d.mat',isubj,v));
+    
+    for ifreq = 1 : 25
+        gla.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+    end
+
+end
+
+% figure; set(gcf,'color','w') ;
+
+subplot(2,2,2); hold on; title('Glasgow')
+
+for ifreq = 1 : 25
+plot(outp.xcorr_lags{ifreq},nanmean(gla.xcorr{ifreq},2),'color',cols(ifreq,:))
+
+end
+
+axis([-5 5 -0.04 0.05])
+xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
+tp_editplots
+h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+
+
+%%
+
+v=1
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+i = 0;
+for isubj = SUBJLIST
+    i = i + 1;
+    j = 0;
+    d = dir(sprintf('/home/tpfeffer/pp/proc/src/pp_src_pupil_power_correlations_s%d_b*_v%d.mat',isubj,v));
+    
+    if length(d)==1
+        load([d(1).folder '/' d(1).name])
+       
+        for ifreq = 1 : 25
+            
+            hh.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+        end
+    else
+        load([d(1).folder '/' d(1).name])
+        for ifreq = 1 : 25
+            hh.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2)./2;
+        end
+        load([d(2).folder '/' d(2).name])
+        for ifreq = 1 : 25
+            hh.xcorr{ifreq}(:,i) = hh.xcorr{ifreq}(:,i)+nanmean(outp.xcorr{ifreq},2)./2;
+        end
+    end
+    
+end
+
+% figure; set(gcf,'color','w') ;
+
+subplot(2,2,3); hold on; title('Hamburg')
+
+for ifreq = 1 : 25
+plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr{ifreq},2),'color',cols(ifreq,:))
+
+end
+
+axis([-5 5 -0.04 0.02])
+xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
+tp_editplots
+h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+
+
+% cfg=[];
+% cfg.layout='4D248.lay';
+% lay = ft_prepare_layout(cfg);
+% minmax_gla=[min(lay.pos(1:248,2)) max(lay.pos(1:248,2))];
+% ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
+% plt_gla.corr_sens_ord= zeros(size(ser_gla,2)-1,25,22);
+% 
+% for i = 1 : size(ser_gla,2)-1
+%   idx = lay.pos(:,2)<ser_gla(i+1) & lay.pos(:,2)>ser_gla(i);
+%   plt_gla.corr_sens_ord(i,:,:) = nanmean(plt_gla.corr_sens(idx,:,:),1);
+% end
+% 
+% cfg=[];
+% cfg.layout='CTF275.lay';
+% lay = ft_prepare_layout(cfg);
+% % lay.pos([203 276 277],:)=[];
+% minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
+% ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
+% 
+% plt_mue.corr_sens_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
+% for i = 1 : size(ser_hh,2)-1
+%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
+%   plt_mue.corr_sens_ord(i,:,:) = nanmean(plt_mue.corr_sens(idx,:,:),1);
+% end
+% plt_hh.corr_sens_ord= zeros(size(ser_hh,2)-1,25,28);
+% for i = 1 : size(ser_hh,2)-1
+%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
+%   plt_hh.corr_sens_ord(i,:,:) = nanmean(plt_hh.corr_sens(idx,:,:),1);
+% end
+% 
+
+%% 
+
+for ifreq = 1 : 25
+    
+    all.xcorr{ifreq}=cat(2,gla.xcorr{ifreq},mue.xcorr{ifreq},hh.xcorr{ifreq});
+    
+end
+
+
+subplot(2,2,4); hold on; title('Pooled')
+
+for ifreq = 1 : 25
+plot(outp.xcorr_lags{ifreq},nanmean(all.xcorr{ifreq},2),'color',cols(ifreq,:))
+
+end
+
+axis([-5 5 -0.025 0.025])
+xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
+tp_editplots
+h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];

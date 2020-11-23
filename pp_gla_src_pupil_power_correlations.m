@@ -127,7 +127,7 @@ for isubj = SUBJLIST
       para              = [];
       para.freq         = freqoi(ifreq);
       para.fsample      = 400;  
-      para.overlap      = 0.5;
+      para.overlap      = 0.8;
       [csd, dataf,opt]  = tp_compute_csd_wavelets(data.avg',para);
       
       % -------------------------------
@@ -194,8 +194,14 @@ for isubj = SUBJLIST
       % -------------------------------
       nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
       for isens = 1 : size(env,2)
-        [outp.xcorr{ifreq}(:,isens),lags] = xcorr(pup(idx),env(:,isens),nlags,'normalized');
+        [outp.xcorr{ifreq}(:,isens),lags] = xcorr(pup(idx),env(:,isens),nlags,'coeff');
+        [outp.xcorr_df{ifreq}(:,isens),lags] = xcorr(pup_df(idx),env(:,isens),nlags,'coeff');
       end
+      outp.xcorr{ifreq}(:,outp.chanidx>0) = outp.xcorr{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr{ifreq}(:,outp.chanidx==0)= nan;
+      outp.xcorr_df{ifreq}(:,outp.chanidx>0) = outp.xcorr_df{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr_df{ifreq}(:,outp.chanidx==0)= nan;
+      
       lags = lags*(opt.n_shift/f_sample);
       outp.xcorr_lags{ifreq} = lags;
       

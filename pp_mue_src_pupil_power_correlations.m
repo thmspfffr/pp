@@ -45,9 +45,9 @@ for isubj = 1:size(SUBJLIST,1)
   for iblock = 1:1
     %
     fn = sprintf('pp_mue_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-    if tp_parallel(fn,outdir,1,0)
-      continue
-    end
+%     if tp_parallel(fn,outdir,1,0)
+%       continue
+%     end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -116,13 +116,13 @@ for isubj = 1:size(SUBJLIST,1)
       para          = [];
       para.freq     = freqoi(ifreq);
       para.fsample  = f_sample;  
-      para.overlap = 0.5;
-      [tp_csd, dataf,opt]=tp_compute_csd_wavelets(data.avg',para);
+      para.overlap = 0.8;
+      [csd, dataf,opt]=tp_compute_csd_wavelets(data.avg',para);
       
       % -------------------------------
       % compute power from csd
       % -------------------------------
-      tmp = diag(abs(tp_csd)); 
+      tmp = diag(abs(csd)); 
       outp.sens_pow(outp.chanidx>0,ifreq) = tmp(outp.chanidx(outp.chanidx>0));
       % -------------------------------
       % prepare pupil signal
@@ -148,7 +148,7 @@ for isubj = 1:size(SUBJLIST,1)
       para      = [];
       para.iscs = 1;
       para.reg  = 0.05;
-      tp_filt   = tp_beamformer(real(tp_csd),lf,para);
+      tp_filt   = tp_beamformer(real(csd),lf,para);
       % -------------------------------
       % identify artifactual segments
       idx = find(~isnan(dataf(1,:))'&~isnan(pup)&~isnan(pup_df));
@@ -176,8 +176,14 @@ for isubj = 1:size(SUBJLIST,1)
       % -------------------------------
       nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
       for isens = 1 : size(env,2)
-        [outp.xcorr{ifreq}(:,isens),lags]=xcorr(pup(idx),env(:,isens),nlags,'normalized');
+        [outp.xcorr{ifreq}(:,isens),lags]=xcorr(pup(idx),env(:,isens),nlags,'coeff');
+        [outp.xcorr_df{ifreq}(:,isens),lags]=xcorr(pup_df(idx),env(:,isens),nlags,'coeff');
       end
+      outp.xcorr{ifreq}(:,outp.chanidx>0) = outp.xcorr{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr{ifreq}(:,outp.chanidx==0)= nan;
+      outp.xcorr_df{ifreq}(:,outp.chanidx>0) = outp.xcorr_df{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr_df{ifreq}(:,outp.chanidx==0)= nan;
+      
       lags=lags*(opt.n_shift/f_sample);
       outp.xcorr_lags{ifreq} = lags;
       % -------------------------------

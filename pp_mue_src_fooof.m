@@ -108,11 +108,11 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
       para.freq     = freqoi(ifreq);
       para.fsample  = 400;  
       para.overlap = 0.5;
-      tp_csd(:,:,ifreq)=tp_compute_csd_wavelets(data.avg',para);
+      csd(:,:,ifreq)=tp_compute_csd_wavelets(data.avg',para);
       
     end
     
-    tp_csd = nanmean(tp_csd,3);
+    csd = nanmean(csd,3);
       
     % -------------------------------
     % beamforming
@@ -120,7 +120,7 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
     para      = [];
     para.iscs = 1;
     para.reg  = 0.05;
-    tp_filt   = tp_beamformer(real(tp_csd),lf,para);
+    tp_filt   = tp_beamformer(real(csd),lf,para);
     % -------------------------------
     
     data_src = data.avg*tp_filt; 

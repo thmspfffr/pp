@@ -55,7 +55,7 @@ for isubj = SUBJLIST
     end
     
     load(sprintf('~/pconn/proc/preproc/pconn_preproc_data_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,2))
-    label = data.label(startsWith(data.label,'M'));
+    label = data.label(startsWith(data.label,'M')); clear data
     save(['~/pp/proc/' fn '_label.mat'],'label')
     load(sprintf(['~/pp/proc/' 'pp_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,v))
     cfg=[];
@@ -74,7 +74,7 @@ for isubj = SUBJLIST
     pupil = filtfilt(bhil, ahil, pupil(:,4));
     pupil = resample(pupil,400,1000);
     % ------
-    
+    f_sample = 400;
     % align pupil and meg (at signal offset)
     % ------
     if size(pupil,2)>3
@@ -127,8 +127,8 @@ for isubj = SUBJLIST
 
       para          = [];
       para.freq     = freqoi(ifreq);
-      para.fsample  = 400;  
-      para.overlap  = 0.5;
+      para.fsample  = f_sample;  
+      para.overlap  = 0.8;
       [csd, dataf,opt]=tp_compute_csd_wavelets(dat,para);
             
       tmp = diag(abs(csd));
@@ -177,26 +177,45 @@ for isubj = SUBJLIST
       % -------------------------------
       % sensor-level cross correlation
       % -------------------------------
-      nlags=floor(10/(opt.n_shift/400)); % roughly 10s
+      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
       nseg=floor((size(env,2)-nlags*2)/nlags);
       
-      tmp_xcorr = [];
-      for iseg = 1 : nseg
-          tmp_pup = pup((iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
-          tmp_env = env(:,(iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
+%       tmp_xcorr = [];
+%       for iseg = 1 : nseg
+%           tmp_pup = pup((iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
+%           tmp_env = env(:,(iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
           
-          if any(isnan(tmp_pup)) || any(isnan(tmp_env(1,:)))
-              [~,lags]=xcorr(rand(2*nlags,1),rand(2*nlags,1),nlags,'normalized');
-              tmp_xcorr(:,isens,iseg)=nan(nlags*2+1,1);
-              continue
-          end
-          
-          for isens = 1 : size(env,1)
-            [tmp_xcorr(:,isens,iseg),lags]=xcorr(tmp_pup,tmp_env(isens,:)',nlags,'normalized');
-          end
+%           if any(isnan(tmp_pup)) || any(isnan(tmp_env(1,:)))
+%               [~,lags]=xcorr(rand(2*nlags,1),rand(2*nlags,1),nlags,'normalized');
+%               tmp_xcorr(:,isens,iseg)=nan(nlags*2+1,1);
+%               continue
+%           end%           
+%           for isens = 1 : size(env,1)
+%             [tmp_xcorr(:,isens,iseg),lags]=xcorr(tmp_pup,tmp_env(isens,:)',nlags,'normalized');
+%           end
+%       end
+%       outp.xcorr{ifreq} = nanmean(tmp_xcorr,3);
+      
+%       outp.xcorr_lags{ifreq} = lags*(opt.n_shift/f_sample);
+
+        
+
+      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
+      for isens = 1 : size(env,1)
+          tmp_pup = pup(idx);
+          tmp_pup_df = pup_df(idx);
+          tmp_env = env(isens,idx);
+%           prod_std(isens) = std(tmp_pup)*std(tmp_env);
+        [outp.xcorr{ifreq}(:,isens),lags] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
+        [outp.xcorr_df{ifreq}(:,isens),lags] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
       end
-      outp.xcorr{ifreq} = nanmean(tmp_xcorr,3);
-      outp.xcorr_lags{ifreq} = lags*(opt.n_shift/f_sample);
+      outp.xcorr{ifreq}(:,outp.chanidx>0) = outp.xcorr{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr{ifreq}(:,outp.chanidx==0)= nan;
+      outp.xcorr_df{ifreq}(:,outp.chanidx>0) = outp.xcorr_df{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr_df{ifreq}(:,outp.chanidx==0)= nan;
+      
+      lags = lags*(opt.n_shift/f_sample);
+      outp.xcorr_lags{ifreq} = lags;
       % -------------------------------
       % beamforming (ignore name of leadfield)
       % -------------------------------
