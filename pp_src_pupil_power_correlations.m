@@ -202,9 +202,9 @@ for isubj = SUBJLIST
 
       nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
       for isens = 1 : size(env,1)
-          tmp_pup = pup(idx);
-          tmp_pup_df = pup_df(idx);
-          tmp_env = env(isens,idx);
+          tmp_pup = pup(idx)-mean(pup(idx));
+          tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
+          tmp_env = env(isens,idx)-nanmean(env(isens,idx),2);
 %           prod_std(isens) = std(tmp_pup)*std(tmp_env);
         [outp.xcorr{ifreq}(:,isens),lags] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
         [outp.xcorr_df{ifreq}(:,isens),lags] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');

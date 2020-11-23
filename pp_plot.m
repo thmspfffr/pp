@@ -1040,7 +1040,7 @@ plot(outp.xcorr_lags{ifreq},nanmean(mue.xcorr{ifreq},2),'color',cols(ifreq,:))
 
 end
 
-axis([-5 5 -0.04 0.05])
+axis([-5 5 -0.04 0.04])
 xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
 h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
@@ -1069,7 +1069,7 @@ plot(outp.xcorr_lags{ifreq},nanmean(gla.xcorr{ifreq},2),'color',cols(ifreq,:))
 
 end
 
-axis([-5 5 -0.04 0.05])
+axis([-5 5 -0.04 0.04])
 xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
 h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
@@ -1114,7 +1114,7 @@ plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr{ifreq},2),'color',cols(ifreq,:))
 
 end
 
-axis([-5 5 -0.04 0.02])
+axis([-5 5 -0.04 0.04])
 xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
 h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
