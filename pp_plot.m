@@ -14,12 +14,15 @@ ft_defaults
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 2;
+v = 1;
 
 [plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results(v);
 
 colors = cbrewer('qual', 'Set3', 10,'pchip'); 
 colors = colors(4:6,:);
+
+%% PLOT MUTUAL INFORMATION
+
 
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
 freqoi=2.^(1:(1/4):7); 
@@ -1001,8 +1004,8 @@ close
 
 %% PLOT CROSS CORRELATION
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
-cols = cbrewer('seq', 'Greens', 35,'pchip');
-cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
+cols = cbrewer('seq', 'Oranges', 45,'pchip');
+cols = cols(1:end-15,:); cols=cols(end:-1:1,:);
 % cfg=[];
 % cfg.layout='CTF275.lay';
 % lay = ft_prepare_layout(cfg);
@@ -1018,6 +1021,8 @@ for isubj = SUBJLIST
     
     for ifreq = 1 : 25
         mue.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+        mue.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
+
     end
 
 end
@@ -1033,20 +1038,21 @@ end
 
 figure; set(gcf,'color','w') ;
 
-subplot(2,2,1); hold on; title('Muenster')
+subplot(2,2,3); hold on; title('Muenster')
 
 for ifreq = 1 : 25
-plot(outp.xcorr_lags{ifreq},nanmean(mue.xcorr{ifreq},2),'color',cols(ifreq,:))
+plot(outp.xcorr_lags{ifreq},nanmean(mue.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 
 end
 
-axis([-5 5 -0.04 0.04])
+axis([-5 5 -0.06 0.04])
 xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
-h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 
-%%
-
+%
+cols = cbrewer('seq', 'Reds', 35,'pchip');
+cols = cols(1:end-5,:); cols=cols(end:-1:1,:);
 v=1
 SUBJLIST = 1:24; SUBJLIST([5,9])=[];
 i = 0;
@@ -1056,27 +1062,29 @@ for isubj = SUBJLIST
     
     for ifreq = 1 : 25
         gla.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+        gla.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
     end
 
 end
 
 % figure; set(gcf,'color','w') ;
 
-subplot(2,2,2); hold on; title('Glasgow')
+subplot(2,2,1); hold on; title('Glasgow')
 
 for ifreq = 1 : 25
-plot(outp.xcorr_lags{ifreq},nanmean(gla.xcorr{ifreq},2),'color',cols(ifreq,:))
+plot(outp.xcorr_lags{ifreq},nanmean(gla.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 
 end
 
-axis([-5 5 -0.04 0.04])
+axis([-5 5 -0.06 0.04])
 xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
-h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 
 
-%%
 
+cols = cbrewer('seq', 'Blues', 35,'pchip');
+cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 v=1
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 i = 0;
@@ -1091,15 +1099,19 @@ for isubj = SUBJLIST
         for ifreq = 1 : 25
             
             hh.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+            hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
+
         end
     else
         load([d(1).folder '/' d(1).name])
         for ifreq = 1 : 25
             hh.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2)./2;
+            hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2)./2;
         end
         load([d(2).folder '/' d(2).name])
         for ifreq = 1 : 25
             hh.xcorr{ifreq}(:,i) = hh.xcorr{ifreq}(:,i)+nanmean(outp.xcorr{ifreq},2)./2;
+            hh.xcorr_df{ifreq}(:,i) = hh.xcorr_df{ifreq}(:,i)+nanmean(outp.xcorr_df{ifreq},2)./2;
         end
     end
     
@@ -1107,18 +1119,37 @@ end
 
 % figure; set(gcf,'color','w') ;
 
-subplot(2,2,3); hold on; title('Hamburg')
+subplot(2,2,2); hold on; title('Hamburg')
 
 for ifreq = 1 : 25
-plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr{ifreq},2),'color',cols(ifreq,:))
+plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 
 end
 
-axis([-5 5 -0.04 0.04])
+axis([-5 5 -0.06 0.04])
 xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
-h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 
+% cfg=[];
+% cfg.layout='CTF275.lay';
+% lay = ft_prepare_layout(cfg);
+% % lay.pos([203 276 277],:)=[];
+% minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
+% ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
+% 
+% % for ifreq = 1 : 25
+% %     hh.xcorr_ord{ifreq} = nan(size(hh.xcorr{ifreq},1),size(hh.xcorr{ifreq},2));
+% for i = 3 : size(ser_hh,2)-1
+%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
+%   for ifreq = 1 : 25
+%        xcorr_ord{ifreq}(i,:,:) = squeeze(nanmean(hh.xcorr{ifreq}(:,idx,:),2));
+%         [~,j]=max(nanmean(nanmean(squeeze(xcorr_ord{ifreq}(i,:,:)),2),3));
+%         lag_max(i,ifreq)=outp.xcorr_lags{ifreq}(j);
+%         [~,j]=min(nanmean(nanmean(squeeze(xcorr_ord{ifreq}(i,:,:)),2),3));
+%         lag_min(i,ifreq)=outp.xcorr_lags{ifreq}(j);
+%   end
+% end
 
 % cfg=[];
 % cfg.layout='4D248.lay';
@@ -1151,8 +1182,9 @@ h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;1
 % end
 % 
 
-%% 
 
+cols = cbrewer('seq', 'Greys', 35,'pchip');
+cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 for ifreq = 1 : 25
     
     all.xcorr{ifreq}=cat(2,gla.xcorr{ifreq},mue.xcorr{ifreq},hh.xcorr{ifreq});
@@ -1167,7 +1199,7 @@ plot(outp.xcorr_lags{ifreq},nanmean(all.xcorr{ifreq},2),'color',cols(ifreq,:))
 
 end
 
-axis([-5 5 -0.025 0.025])
+axis([-5 5 -0.06 0.04])
 xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
-h=colorbar; colormap(cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
