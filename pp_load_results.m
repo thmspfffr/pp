@@ -51,6 +51,10 @@ for isubj = SUBJLIST
       plt_hh.corr_src(:,:,isubj,iblock)     = outp.src_r;
       plt_hh.corr_src_df(:,:,isubj,iblock)  = outp.src_r_df;
       plt_hh.sens_mi(:,:,isubj,iblock)      = outp.sens_mi;
+%       for ifreq = 1 : 25
+%         plt_hh.xcorr{ifreq}(:,:,isubj,iblock)          = outp.xcorr{ifreq};
+%         plt_hh.xcorr_df{ifreq}(:,:,,isubj,iblock)       = outp.xcorr_df{ifreq};
+%       end
       clear outp
     catch me
       warning('!!!')
@@ -66,7 +70,7 @@ end
 
 plt_hh.pow_sens = nanmean(plt_hh.pow_sens(:,:,SUBJLIST,:),4);
 plt_hh.sens_mi = nanmean(plt_hh.sens_mi(:,:,SUBJLIST,:),4);
-% plt_hh.pow_sens = nanmean(plt_hh.pow_sens(:,:,SUBJLIST,:),4);
+plt_hh.corr_sens = nanmean(plt_hh.corr_sens(:,:,SUBJLIST,:),4);
 plt_hh.corr_src = nanmean(plt_hh.corr_src(:,:,SUBJLIST,:),4);
 plt_hh.corr_src_df = nanmean(plt_hh.corr_src_df(:,:,SUBJLIST,:),4);
 % 
@@ -86,12 +90,15 @@ for n_subj = 1:length(SUBJLIST)
     try
       load(sprintf([outdir 'pp_mue_src_pupil_power_correlations_s%d_b1_v%d.mat'],isubj,v));
  
-      plt_mue.pow_sens(:,:,n_subj)    = outp.sens_pow;
-      plt_mue.corr_sens(:,:,n_subj)   = outp.sens_r;
-      plt_mue.corr_src(:,:,n_subj)    = outp.src_r;
-      plt_mue.corr_src_df(:,:,n_subj) = outp.src_r_df;
-      plt_mue.sens_mi(:,:,n_subj)     = outp.sens_mi;
-
+      plt_mue.pow_sens(:,:,n_subj)     = outp.sens_pow;
+      plt_mue.corr_sens(:,:,n_subj)    = outp.sens_r;
+      plt_mue.corr_src(:,:,n_subj)     = outp.src_r;
+      plt_mue.corr_src_df(:,:,n_subj)  = outp.src_r_df;
+      plt_mue.sens_mi(:,:,n_subj)      = outp.sens_mi;
+%       for ifreq = 1 : 25
+%         plt_mue.xcorr{ifreq}(:,:,i)    = outp.xcorr{ifreq};
+%         plt_mue.xcorr_df{ifreq}(:,:,i) = outp.xcorr_df{ifreq};
+%       end
       clear outp
     catch me
       warning('!!!')
@@ -113,49 +120,50 @@ end
 
 % SENSOR LEVEL: SORTED BY SENSOR POSITION 
 % ----------------------------
-% cfg=[];
-% cfg.layout='4D248.lay';
-% lay = ft_prepare_layout(cfg);
-% minmax_gla=[min(lay.pos(1:248,2)) max(lay.pos(1:248,2))];
-% ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
-% plt_gla.corr_sens_ord= zeros(size(ser_gla,2)-1,25,22);
-% plt_gla.sens_mi_ord= zeros(size(ser_gla,2)-1,25,22);
-% 
-% for i = 1 : size(ser_gla,2)-1
-%   idx = lay.pos(:,2)<ser_gla(i+1) & lay.pos(:,2)>ser_gla(i);
-%   plt_gla.corr_sens_ord(i,:,:) = nanmean(plt_gla.corr_sens(idx,:,:),1);
-%   plt_gla.sens_mi_ord(i,:,:) = nanmean(plt_gla.sens_mi(idx,:,:),1);
-% end
-% 
-% cfg=[];
-% cfg.layout='CTF275.lay';
-% lay = ft_prepare_layout(cfg);
-% % lay.pos([203 276 277],:)=[];
-% minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
-% ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
-% 
-% plt_hh.corr_sens_ord= zeros(size(ser_hh,2)-1,25,28);
-% plt_hh.sens_mi_ord= zeros(size(ser_hh,2)-1,25,28);
-% 
-% for i = 1 : size(ser_hh,2)-1
-%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
-%   plt_hh.corr_sens_ord(i,:,:)   = nanmean(plt_hh.corr_sens(idx,:,:),1);
-%   plt_hh.sens_mi_ord(i,:,:)     = nanmean(plt_hh.sens_mi(idx,:,:),1);
-% end
+cfg=[];
+cfg.layout='4D248.lay';
+lay = ft_prepare_layout(cfg);
+minmax_gla=[min(lay.pos(1:248,2)) max(lay.pos(1:248,2))];
+ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
+plt_gla.corr_sens_ord= zeros(size(ser_gla,2)-1,25,22);
+plt_gla.sens_mi_ord= zeros(size(ser_gla,2)-1,25,22);
 
-% plt_mue.corr_sens_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
-% plt_mue.sens_mi_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
+for i = 1 : size(ser_gla,2)-1
+  idx = lay.pos(:,2)<ser_gla(i+1) & lay.pos(:,2)>ser_gla(i);
+  plt_gla.corr_sens_ord(i,:,:) = nanmean(plt_gla.corr_sens(idx,:,:),1);
+  plt_gla.sens_mi_ord(i,:,:) = nanmean(plt_gla.sens_mi(idx,:,:),1);
+end
 % 
-% for i = 1 : size(ser_hh,2)-1
-%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
-%   plt_mue.corr_sens_ord(i,:,:) = nanmean(plt_mue.corr_sens(idx,:,:),1);
-%   plt_mue.sens_mi_ord(i,:,:)     = nanmean(plt_mue.sens_mi(idx,:,:),1);
-% end
+cfg=[];
+cfg.layout='CTF275.lay';
+lay = ft_prepare_layout(cfg);
+% lay.pos([203 276 277],:)=[];
+minmax_hh=[min(lay.pos(1:275,2)) max(lay.pos(1:275,2))];
+ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
+
+plt_hh.corr_sens_ord= zeros(size(ser_hh,2)-1,25,28);
+plt_hh.sens_mi_ord= zeros(size(ser_hh,2)-1,25,28);
+
+for i = 1 : size(ser_hh,2)-1
+  idx = lay.pos(:,2)>=ser_hh(i) & lay.pos(:,2)<=ser_hh(i+1);
+  plt_hh.corr_sens_ord(i,:,:)   = nanmean(plt_hh.corr_sens(idx,:,:),1);
+  plt_hh.sens_mi_ord(i,:,:)     = nanmean(plt_hh.sens_mi(idx,:,:),1);
+end
+
+plt_mue.corr_sens_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
+plt_mue.sens_mi_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
+
+for i = 1 : size(ser_hh,2)-1
+  idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
+  plt_mue.corr_sens_ord(i,:,:) = nanmean(plt_mue.corr_sens(idx,:,:),1);
+  plt_mue.sens_mi_ord(i,:,:)     = nanmean(plt_mue.sens_mi(idx,:,:),1);
+end
 
 % COLLAPSE ACROSS DATASETS
 plt_all.corr_src = cat(3,plt_hh.corr_src,plt_gla.corr_src,plt_mue.corr_src);
 plt_all.corr_src_BNA = cat(3,plt_hh.corr_src_BNA,plt_gla.corr_src_BNA,plt_mue.corr_src_BNA);
 plt_all.corr_src_df = cat(3,plt_hh.corr_src_df,plt_gla.corr_src_df,plt_mue.corr_src_df);
 plt_all.corr_src_df_BNA = cat(3,plt_hh.corr_src_df_BNA,plt_gla.corr_src_df_BNA,plt_mue.corr_src_df_BNA);
+
 
 
