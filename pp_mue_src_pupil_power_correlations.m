@@ -38,24 +38,23 @@ end
 
 %%
 % -------------------------
-for isubj = 3
+for isubj = 1:size(SUBJLIST,1)
   
   clear data dat pupil pup dataf src_r
   
   for iblock = 1:1
     %
     fn = sprintf('pp_mue_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
       % load pupil data
-      load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/rawpupil_%s.mat',SUBJLIST(isubj,:)))
-  
-      pupil = puptc(:);
+      load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/%s_pupil_preproc_lp4.mat',SUBJLIST(isubj,:)))
+      pupil = reshape(data.trial{1}(4,:),[size(data.trial{1}(4,:),2) 1]);
       
       % load meg data
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/cleanmeg_%s.mat',SUBJLIST(isubj,:)))
