@@ -7,7 +7,7 @@ ord    = pconn_randomization;
 load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
 load ~/standard_sourcemodel_BNA_5mm.mat
 
-addpath('~/Documents/MATLAB/fieldtrip-20181231/')
+addpath ~/Documents/MATLAB/fieldtrip-20190224/
 ft_defaults
 
 trans = pp_transfer_gla2hh;
@@ -66,7 +66,7 @@ end
 
 plt_hh.pow_sens = nanmean(plt_hh.pow_sens(:,:,SUBJLIST,:),4);
 plt_hh.sens_mi = nanmean(plt_hh.sens_mi(:,:,SUBJLIST,:),4);
-plt_hh.pow_sens = nanmean(plt_hh.pow_sens(:,:,SUBJLIST,:),4);
+% plt_hh.pow_sens = nanmean(plt_hh.pow_sens(:,:,SUBJLIST,:),4);
 plt_hh.corr_src = nanmean(plt_hh.corr_src(:,:,SUBJLIST,:),4);
 plt_hh.corr_src_df = nanmean(plt_hh.corr_src_df(:,:,SUBJLIST,:),4);
 % 
@@ -77,7 +77,9 @@ end
 
 % LOAD MUENSTER DATA
 % ----------------------------
-SUBJLIST=1:41; SUBJLIST([12,38,39])=[];
+% list = [10 17 19 22 27 35  40]
+
+SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
 for n_subj = 1:length(SUBJLIST)
     isubj = SUBJLIST(n_subj);
     fprintf('Muenster: Subj%d\n',isubj)
@@ -111,44 +113,44 @@ end
 
 % SENSOR LEVEL: SORTED BY SENSOR POSITION 
 % ----------------------------
-cfg=[];
-cfg.layout='4D248.lay';
-lay = ft_prepare_layout(cfg);
-minmax_gla=[min(lay.pos(1:248,2)) max(lay.pos(1:248,2))];
-ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
-plt_gla.corr_sens_ord= zeros(size(ser_gla,2)-1,25,22);
-plt_gla.sens_mi_ord= zeros(size(ser_gla,2)-1,25,22);
+% cfg=[];
+% cfg.layout='4D248.lay';
+% lay = ft_prepare_layout(cfg);
+% minmax_gla=[min(lay.pos(1:248,2)) max(lay.pos(1:248,2))];
+% ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
+% plt_gla.corr_sens_ord= zeros(size(ser_gla,2)-1,25,22);
+% plt_gla.sens_mi_ord= zeros(size(ser_gla,2)-1,25,22);
+% 
+% for i = 1 : size(ser_gla,2)-1
+%   idx = lay.pos(:,2)<ser_gla(i+1) & lay.pos(:,2)>ser_gla(i);
+%   plt_gla.corr_sens_ord(i,:,:) = nanmean(plt_gla.corr_sens(idx,:,:),1);
+%   plt_gla.sens_mi_ord(i,:,:) = nanmean(plt_gla.sens_mi(idx,:,:),1);
+% end
+% 
+% cfg=[];
+% cfg.layout='CTF275.lay';
+% lay = ft_prepare_layout(cfg);
+% % lay.pos([203 276 277],:)=[];
+% minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
+% ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
+% 
+% plt_hh.corr_sens_ord= zeros(size(ser_hh,2)-1,25,28);
+% plt_hh.sens_mi_ord= zeros(size(ser_hh,2)-1,25,28);
+% 
+% for i = 1 : size(ser_hh,2)-1
+%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
+%   plt_hh.corr_sens_ord(i,:,:)   = nanmean(plt_hh.corr_sens(idx,:,:),1);
+%   plt_hh.sens_mi_ord(i,:,:)     = nanmean(plt_hh.sens_mi(idx,:,:),1);
+% end
 
-for i = 1 : size(ser_gla,2)-1
-  idx = lay.pos(:,2)<ser_gla(i+1) & lay.pos(:,2)>ser_gla(i);
-  plt_gla.corr_sens_ord(i,:,:) = nanmean(plt_gla.corr_sens(idx,:,:),1);
-  plt_gla.sens_mi_ord(i,:,:) = nanmean(plt_gla.sens_mi(idx,:,:),1);
-end
-
-cfg=[];
-cfg.layout='CTF275.lay';
-lay = ft_prepare_layout(cfg);
-% lay.pos([203 276 277],:)=[];
-minmax_hh=[min(lay.pos(:,2)) max(lay.pos(:,2))];
-ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
-
-plt_hh.corr_sens_ord= zeros(size(ser_hh,2)-1,25,28);
-plt_hh.sens_mi_ord= zeros(size(ser_hh,2)-1,25,28);
-
-for i = 1 : size(ser_hh,2)-1
-  idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
-  plt_hh.corr_sens_ord(i,:,:)   = nanmean(plt_hh.corr_sens(idx,:,:),1);
-  plt_hh.sens_mi_ord(i,:,:)     = nanmean(plt_hh.sens_mi(idx,:,:),1);
-end
-
-plt_mue.corr_sens_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
-plt_mue.sens_mi_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
-
-for i = 1 : size(ser_hh,2)-1
-  idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
-  plt_mue.corr_sens_ord(i,:,:) = nanmean(plt_mue.corr_sens(idx,:,:),1);
-  plt_mue.sens_mi_ord(i,:,:)     = nanmean(plt_mue.sens_mi(idx,:,:),1);
-end
+% plt_mue.corr_sens_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
+% plt_mue.sens_mi_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
+% 
+% for i = 1 : size(ser_hh,2)-1
+%   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
+%   plt_mue.corr_sens_ord(i,:,:) = nanmean(plt_mue.corr_sens(idx,:,:),1);
+%   plt_mue.sens_mi_ord(i,:,:)     = nanmean(plt_mue.sens_mi(idx,:,:),1);
+% end
 
 % COLLAPSE ACROSS DATASETS
 plt_all.corr_src = cat(3,plt_hh.corr_src,plt_gla.corr_src,plt_mue.corr_src);

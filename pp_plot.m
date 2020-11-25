@@ -22,6 +22,20 @@ colors = cbrewer('qual', 'Set3', 10,'pchip');
 colors = colors(4:6,:);
 
 %% PLOT MUTUAL INFORMATION
+freqoi=2.^(1:(1/4):7); 
+
+figure_w
+
+subplot(2,3,1);
+% plot(nanmean(plt_gla.corr_sens_ord(3:end,:,:),3)
+colormap(cmap); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
+subplot(2,3,2);
+
+
+subplot(2,3,3);
 
 
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
@@ -1013,6 +1027,9 @@ cols = cols(1:end-15,:); cols=cols(end:-1:1,:);
 % ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
 
 v=1
+% list = [10 17 19 22 27 35  40]
+SUBJLIST=1:41; %SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
+
 SUBJLIST = [1:36 41];
 i = 0;
 for isubj = SUBJLIST
@@ -1020,14 +1037,15 @@ for isubj = SUBJLIST
     load(sprintf('/home/tpfeffer/pp/proc/src/pp_mue_src_pupil_power_correlations_s%d_b1_v%d.mat',isubj,v));
     
     for ifreq = 1 : 25
-        mue.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
-        mue.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
+        mue.xcorr{ifreq}(:,:,i) = outp.xcorr{ifreq};
+        mue.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
 
     end
 
 end
 
 
+%%
 % plt_mue.corr_sens_ord= zeros(size(ser_hh,2)-1,25,size(plt_mue.corr_sens,3));
 % for i = 1 : size(ser_hh,2)-1
 %   idx = lay.pos(:,2)>ser_hh(i) & lay.pos(:,2)<ser_hh(i+1);
@@ -1050,7 +1068,7 @@ xlabel('Lags [s]'); ylabel('Correlation coeff. (norm.)');
 tp_editplots
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 
-%
+%%
 cols = cbrewer('seq', 'Reds', 35,'pchip');
 cols = cols(1:end-5,:); cols=cols(end:-1:1,:);
 v=1
@@ -1061,11 +1079,60 @@ for isubj = SUBJLIST
     load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_pupil_power_correlations_s%d_b1_v%d.mat',isubj,v));
     
     for ifreq = 1 : 25
-        gla.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+        gla.xcorr{ifreq}(:,:,i) = outp.xcorr{ifreq};
         gla.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
     end
 
 end
+
+%%
+
+i = 0;
+figure; set(gcf,'color','w');
+    ifreq=14;
+
+for isubj = [1 : 20]
+    i = i + 1;
+    subplot(5,4,i); title(sprintf('SUBJ: %d',isubj))
+%     isubj = 13;
+    imagesc(mue.xcorr{ifreq}(:,:,isubj)',[-0.10 0.10])
+    set(gca,'xtick',1:(size(outp.xcorr_lags{ifreq},2)-1)/2:size(outp.xcorr_lags{ifreq},2),'xticklabel',sprintfc('%d',round(outp.xcorr_lags{ifreq}(1:(size(outp.xcorr_lags{ifreq},2)-1)/2:size(outp.xcorr_lags{ifreq},2)))))
+    set(gca,'yticklabel',[])
+end
+print(gcf,'-dpdf',sprintf('~/pp/plots/mue_xcorr_imagesc_v%d.pdf',v))
+
+i = 0;
+figure; set(gcf,'color','w');
+% ifreq=5;
+
+for isubj = [1 : 20]
+    i = i + 1;
+    subplot(5,4,i); title(sprintf('SUBJ: %d',isubj))
+%     isubj = 13;
+    imagesc(gla.xcorr{ifreq}(:,:,isubj)',[-0.10 0.10])
+    set(gca,'xtick',1:(size(outp.xcorr_lags{ifreq},2)-1)/2:size(outp.xcorr_lags{ifreq},2),'xticklabel',sprintfc('%d',round(outp.xcorr_lags{ifreq}(1:(size(outp.xcorr_lags{ifreq},2)-1)/2:size(outp.xcorr_lags{ifreq},2)))))
+    set(gca,'yticklabel',[])
+end
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/gla_xcorr_imagesc_v%d.pdf',v))
+
+
+i = 0;
+figure; set(gcf,'color','w');
+% ifreq=5;
+
+for isubj = [1 : 20]
+    i = i + 1;
+    subplot(5,4,i); title(sprintf('SUBJ: %d',isubj))
+%     isubj = 13;
+    imagesc(hh.xcorr{ifreq}(:,:,isubj)',[-0.10 0.10])
+    set(gca,'xtick',1:(size(outp.xcorr_lags{ifreq},2)-1)/2:size(outp.xcorr_lags{ifreq},2),'xticklabel',sprintfc('%d',round(outp.xcorr_lags{ifreq}(1:(size(outp.xcorr_lags{ifreq},2)-1)/2:size(outp.xcorr_lags{ifreq},2)))))
+    set(gca,'yticklabel',[])
+end
+print(gcf,'-dpdf',sprintf('~/pp/plots/ham_xcorr_imagesc_v%d.pdf',v))
+
+
+%%
 
 % figure; set(gcf,'color','w') ;
 
@@ -1082,7 +1149,7 @@ tp_editplots
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 
 
-
+%%
 cols = cbrewer('seq', 'Blues', 35,'pchip');
 cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 v=1
@@ -1098,25 +1165,25 @@ for isubj = SUBJLIST
        
         for ifreq = 1 : 25
             
-            hh.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+            hh.xcorr{ifreq}(:,:,i) = outp.xcorr{ifreq};
             hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
 
         end
     else
         load([d(1).folder '/' d(1).name])
         for ifreq = 1 : 25
-            hh.xcorr{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2)./2;
+            hh.xcorr{ifreq}(:,:,i) = outp.xcorr{ifreq}./2;
             hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2)./2;
         end
         load([d(2).folder '/' d(2).name])
         for ifreq = 1 : 25
-            hh.xcorr{ifreq}(:,i) = hh.xcorr{ifreq}(:,i)+nanmean(outp.xcorr{ifreq},2)./2;
+            hh.xcorr{ifreq}(:,:,i) = hh.xcorr{ifreq}(:,:,i)+outp.xcorr{ifreq}./2;
             hh.xcorr_df{ifreq}(:,i) = hh.xcorr_df{ifreq}(:,i)+nanmean(outp.xcorr_df{ifreq},2)./2;
         end
     end
     
 end
-
+%%
 % figure; set(gcf,'color','w') ;
 
 subplot(2,2,2); hold on; title('Hamburg')

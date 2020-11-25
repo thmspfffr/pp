@@ -38,16 +38,16 @@ end
 
 %%
 % -------------------------
-for isubj = 1:size(SUBJLIST,1)
+for isubj = 3
   
   clear data dat pupil pup dataf src_r
   
   for iblock = 1:1
     %
     fn = sprintf('pp_mue_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-    if tp_parallel(fn,outdir,1,0)
-      continue
-    end
+%     if tp_parallel(fn,outdir,1,0)
+%       continue
+%     end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
