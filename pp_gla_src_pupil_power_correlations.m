@@ -7,17 +7,17 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-SUBJLIST  = 1:24;
-freqoi    = 2.^(1:(1/4):7);
-lag = 0;
+% v = 1;
+% SUBJLIST  = 1:24;
+% freqoi    = 2.^(1:(1/4):7);
+% lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-% v = 2;
-% SUBJLIST  = 1:24;
-% freqoi    = 2.^(1:(1/4):7);
-% lag = 1;
+v = 2;
+SUBJLIST  = 1:24;
+freqoi    = 2.^(1:(1/4):7);
+lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -226,14 +226,14 @@ for isubj = SUBJLIST
       % -------------------------------
       % source-level cross correlation
       % -------------------------------
-      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s      
-      for isrc = 1 : size(src_pow,1)
-        tmp_pup = pup(idx)-mean(pup(idx));
-        tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
-        tmp_env = src_pow(isrc,:)-nanmean(src_pow(isrc,:),2);
-        [outp.src_xcorr{ifreq}(:,isrc)] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
-        [outp.src_xcorr_df{ifreq}(:,isrc)] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
-      end
+%       nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s      
+%       for isrc = 1 : size(src_pow,1)
+%         tmp_pup = pup(idx)-mean(pup(idx));
+%         tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
+%         tmp_env = src_pow(isrc,:)-nanmean(src_pow(isrc,:),2);
+%         [outp.src_xcorr{ifreq}(:,isrc)] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
+%         [outp.src_xcorr_df{ifreq}(:,isrc)] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
+%       end
 
       clear src_pow pup pup_df csd dataf 
       

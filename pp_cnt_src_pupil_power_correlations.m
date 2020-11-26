@@ -226,14 +226,14 @@ for isubj = SUBJLIST
       % -------------------------------
       % source-level cross correlation
       % -------------------------------
-      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s      
-      for isrc = 1 : size(src_pow,1)
-        tmp_pup = pup(idx)-mean(pup(idx));
-        tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
-        tmp_env = src_pow(isrc,:)-nanmean(src_pow(isrc,:),2);
-        [outp.src_xcorr{ifreq}(:,isrc)] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
-        [outp.src_xcorr_df{ifreq}(:,isrc)] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
-      end
+%       nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s      
+%       for isrc = 1 : size(src_pow,1)
+%         tmp_pup = pup(idx)-mean(pup(idx));
+%         tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
+%         tmp_env = src_pow(isrc,:)-nanmean(src_pow(isrc,:),2);
+%         [outp.src_xcorr{ifreq}(:,isrc)] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
+%         [outp.src_xcorr_df{ifreq}(:,isrc)] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
+%       end
       
       clear src pup pup_df
 

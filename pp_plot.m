@@ -27,17 +27,77 @@ freqoi=2.^(1:(1/4):7);
 figure_w
 
 subplot(2,3,1);
-imagesc(nanmean(plt_gla.sens_mi_ord,3),[0 .02])
+imagesc(nanmean(plt_gla.sens_mi_ord,3),[0 .005])
 colormap(plasma); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
 subplot(2,3,2);
-
+imagesc(nanmean(plt_hh.sens_mi_ord,3),[0 .005])
+colormap(plasma); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
 
 subplot(2,3,3);
+imagesc(nanmean(plt_mue.sens_mi_ord,3),[0 .005])
+colormap(plasma); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
 
+subplot(2,3,4);
+par = cat(3,plt_gla.sens_mi_ord,plt_hh.sens_mi_ord,plt_mue.sens_mi_ord);
+imagesc(nanmean(plt_mue.sens_mi_ord,3),[0 .005])
+colormap(plasma); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
 
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_MI_v%d.pdf',v))
+
+freqoi=2.^(1:(1/4):7); 
+
+tot_size = size(plt_mue.sens_mi,3)+size(plt_gla.sens_mi,3)+size(plt_hh.sens_mi,3);
+
+par_gla = mean(nanmean(plt_gla.sens_mi,1),3);
+par_hh  = mean(nanmean(plt_hh.sens_mi,1),3);
+par_mue = nanmean(nanmean(plt_mue.sens_mi,1),3);
+
+std_gla = std(nanmean(plt_gla.sens_mi,1),[],3)/sqrt(size(plt_gla.sens_mi,3));
+std_hh  = std(nanmean(plt_hh.sens_mi,1),[],3)/sqrt(size(plt_hh.sens_mi,3));
+std_mue = nanstd(nanmean(plt_mue.sens_mi,1),[],3)/sqrt(size(plt_mue.sens_mi,3));
+
+par_all = mean(cat(2,squeeze(nanmean(plt_gla.sens_mi,1)),squeeze(nanmean(plt_hh.sens_mi,1)),squeeze(nanmean(plt_mue.sens_mi,1))),2);
+std_all = std(cat(2,squeeze(nanmean(plt_gla.sens_mi,1)),squeeze(nanmean(plt_hh.sens_mi,1)),squeeze(nanmean(plt_mue.sens_mi,1))),[],2)/sqrt(tot_size);
+
+figure_w
+subplot(4,3,1)
+shadedErrorBar(log10(freqoi),par_gla,std_gla,{'color',colors(1,:)})
+axis([.3 2.11 0 0.007])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,2)
+shadedErrorBar(log10(freqoi),par_hh,std_hh,{'color',colors(2,:)})
+axis([.3 2.11 0 0.0030])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,3)
+shadedErrorBar(log10(freqoi),par_mue,std_mue,{'color',colors(3,:)})
+axis([.3 2.11 0 0.0060])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+subplot(4,3,4)
+shadedErrorBar(log10(freqoi),par_all,std_all,{'color','k'})
+axis([.3 2.11 0 0.0050])
+line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_MI_lineplot_v%d.pdf',v))
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
 freqoi=2.^(1:(1/4):7); 
 

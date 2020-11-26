@@ -24,6 +24,7 @@ for n_subj = 1: length(SUBJ)
       plt_gla.corr_src(:,:,n_subj)      = outp.src_r(trans,:);
       plt_gla.corr_src_df(:,:,n_subj)   = outp.src_r_df(trans,:);
       plt_gla.sens_mi(:,:,n_subj)       = outp.sens_mi;
+      plt_gla.src_mi(:,:,n_subj)         = outp.src_mi;
       clear outp
     catch me
       warning('!!!')
@@ -32,12 +33,15 @@ for n_subj = 1: length(SUBJ)
       plt_gla.corr_src(:,:,n_subj)      = nan(8799,25);
       plt_gla.corr_src_df(:,:,n_subj)   = nan(8799,25); 
       plt_gla.sens_mi(:,:,n_subj)       = nan(248,25);
+      plt_gla.src_mi(:,:,n_subj)        = nan(8799,25);
   end
 end
 % 
 for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_gla.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src(BNA.tissue_5mm == igrid,:,:))));
   plt_gla.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
+  plt_gla.src_mi_BNA(igrid,:,:)    = mean(plt_gla.src_mi(BNA.tissue_5mm == igrid,:,:));
+
 end
 
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
@@ -51,6 +55,7 @@ for isubj = SUBJLIST
       plt_hh.corr_src(:,:,isubj,iblock)     = outp.src_r;
       plt_hh.corr_src_df(:,:,isubj,iblock)  = outp.src_r_df;
       plt_hh.sens_mi(:,:,isubj,iblock)      = outp.sens_mi;
+      plt_hh.src_mi(:,:,isubj,iblock)       = outp.src_mi;
 %       for ifreq = 1 : 25
 %         plt_hh.xcorr{ifreq}(:,:,isubj,iblock)          = outp.xcorr{ifreq};
 %         plt_hh.xcorr_df{ifreq}(:,:,,isubj,iblock)       = outp.xcorr_df{ifreq};
@@ -63,6 +68,7 @@ for isubj = SUBJLIST
       plt_hh.corr_src(:,:,isubj,iblock)     = nan(8799,25);
       plt_hh.corr_src_df(:,:,isubj)         = nan(8799,25);
       plt_hh.sens_mi(:,:,isubj,iblock)      = nan(275,25,1,1);
+      plt_hh.src_mi(:,:,isubj,iblock)       = nan(8799,25);
       continue
     end
   end
@@ -73,10 +79,13 @@ plt_hh.sens_mi = nanmean(plt_hh.sens_mi(:,:,SUBJLIST,:),4);
 plt_hh.corr_sens = nanmean(plt_hh.corr_sens(:,:,SUBJLIST,:),4);
 plt_hh.corr_src = nanmean(plt_hh.corr_src(:,:,SUBJLIST,:),4);
 plt_hh.corr_src_df = nanmean(plt_hh.corr_src_df(:,:,SUBJLIST,:),4);
-% 
+plt_hh.src_mi = nanmean(plt_hh.src_mi(:,:,SUBJLIST,:),4);
+
+
 for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_hh.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_hh.corr_src(BNA.tissue_5mm == igrid,:,:))));
   plt_hh.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_hh.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
+  plt_hh.src_mi_BNA(igrid,:,:)    = mean(plt_hh.src_mi(BNA.tissue_5mm == igrid,:,:));
 end
 
 % LOAD MUENSTER DATA
@@ -95,6 +104,7 @@ for n_subj = 1:length(SUBJLIST)
       plt_mue.corr_src(:,:,n_subj)     = outp.src_r;
       plt_mue.corr_src_df(:,:,n_subj)  = outp.src_r_df;
       plt_mue.sens_mi(:,:,n_subj)      = outp.sens_mi;
+      plt_mue.src_mi(:,:,n_subj)       = outp.src_mi;
 %       for ifreq = 1 : 25
 %         plt_mue.xcorr{ifreq}(:,:,i)    = outp.xcorr{ifreq};
 %         plt_mue.xcorr_df{ifreq}(:,:,i) = outp.xcorr_df{ifreq};
@@ -107,6 +117,7 @@ for n_subj = 1:length(SUBJLIST)
       plt_mue.corr_src(:,:,n_subj)    = nan(8799,25);
       plt_mue.corr_src_df(:,:,n_subj) = nan(8799,25);
       plt_mue.sens_mi(:,:,n_subj)     = nan(275,25,1);
+      plt_mue.src_mi(:,:,n_subj)      = nan(8799,25);
 
       continue
     
@@ -116,6 +127,7 @@ end
 for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_mue.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src(BNA.tissue_5mm == igrid,:,:))));
   plt_mue.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
+  plt_mue.src_mi_BNA(igrid,:,:)    = mean(plt_mue.src_mi(BNA.tissue_5mm == igrid,:,:));
 end
 
 % SENSOR LEVEL: SORTED BY SENSOR POSITION 
