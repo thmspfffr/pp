@@ -235,7 +235,7 @@ for isubj = SUBJLIST
         [outp.src_xcorr_df{ifreq}(:,isrc)] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
       end
  
-      clear src pup
+      clear src pup pup_df
 
     end
 

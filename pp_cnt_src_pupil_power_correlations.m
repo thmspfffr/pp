@@ -7,15 +7,15 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
+v = 1;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-v = 2;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 1;
+% v = 2;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 1;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -177,30 +177,7 @@ for isubj = SUBJLIST
       % -------------------------------
       % sensor-level cross correlation
       % -------------------------------
-      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
-      nseg=floor((size(env,2)-nlags*2)/nlags);
-      
-%       tmp_xcorr = [];
-%       for iseg = 1 : nseg
-%           tmp_pup = pup((iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
-%           tmp_env = env(:,(iseg-1)*nlags+1:(iseg-1)*nlags+nlags*2);
-          
-%           if any(isnan(tmp_pup)) || any(isnan(tmp_env(1,:)))
-%               [~,lags]=xcorr(rand(2*nlags,1),rand(2*nlags,1),nlags,'normalized');
-%               tmp_xcorr(:,isens,iseg)=nan(nlags*2+1,1);
-%               continue
-%           end%           
-%           for isens = 1 : size(env,1)
-%             [tmp_xcorr(:,isens,iseg),lags]=xcorr(tmp_pup,tmp_env(isens,:)',nlags,'normalized');
-%           end
-%       end
-%       outp.xcorr{ifreq} = nanmean(tmp_xcorr,3);
-      
-%       outp.xcorr_lags{ifreq} = lags*(opt.n_shift/f_sample);
-
-        
-
-      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s
+      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s       
       for isens = 1 : size(env,1)
           tmp_pup = pup(idx)-mean(pup(idx));
           tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
@@ -231,22 +208,34 @@ for isubj = SUBJLIST
       % -------------------------------
       
       % compute power & lowpass filter
-      env = abs(filt'*dataf(:,idx)).^2;
+      src_pow = abs(filt'*dataf(:,idx)).^2;
       
       % correlate with pupil
-      outp.src_r(:,ifreq) = corr(pup(idx),env','type','Spearman');
-      outp.src_r_df(:,ifreq) = corr(pup_df(idx),env','type','Spearman');
+      outp.src_r(:,ifreq) = corr(pup(idx),src_pow','type','Spearman');
+      outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Spearman');
       
       % mutual information 
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(env)';
-      for isrc = 1 : size(env,1)
+      cnpow     = copnorm(src_pow)';
+      for isrc = 1 : size(src_pow,1)
         outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
         outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
       end
       
-      clear src pup
+      % -------------------------------
+      % source-level cross correlation
+      % -------------------------------
+      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s      
+      for isrc = 1 : size(src_pow,1)
+        tmp_pup = pup(idx)-mean(pup(idx));
+        tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
+        tmp_env = src_pow(isrc,:)-nanmean(src_pow(isrc,:),2);
+        [outp.src_xcorr{ifreq}(:,isrc)] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
+        [outp.src_xcorr_df{ifreq}(:,isrc)] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
+      end
+      
+      clear src pup pup_df
 
     end
 
