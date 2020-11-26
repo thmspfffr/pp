@@ -7,15 +7,15 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% freqoi    = 2.^(1:(1/4):7);
-% lag = 0;
+v = 1;
+freqoi    = 2.^(1:(1/4):7);
+lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-v = 2;
-freqoi    = 2.^(1:(1/4):7);
-lag = 1;
+% v = 2;
+% freqoi    = 2.^(1:(1/4):7);
+% lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -191,21 +191,32 @@ for isubj = 1:size(SUBJLIST,1)
       % -------------------------------
       % correlate power with pupil
       % -------------------------------
-      src_pow = abs(tp_filt'*dataf).^2; % source level power fluct
-      outp.src_r(:,ifreq) = corr(pup(idx),src_pow(:,idx)','type','spearman');
-      outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow(:,idx)','type','spearman');
+      src_pow = abs(tp_filt'*dataf(:,idx)).^2; % source level power fluct
+      outp.src_r(:,ifreq) = corr(pup(idx),src_pow','type','spearman');
+      outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','spearman');
       % -------------------------------
       % source level mutual information
       % -------------------------------
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(src_pow(:,idx))';
+      cnpow     = copnorm(src_pow)';
       for isrc = 1 : size(src_pow,1)
         outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
         outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
       end
       % -------------------------------
-
+      % source-level cross correlation
+      % -------------------------------
+      
+      nlags=floor(10/(opt.n_shift/f_sample)); % roughly 10s      
+      for isrc = 1 : size(src_pow,1)
+        tmp_pup = pup(idx)-mean(pup(idx));
+        tmp_pup_df = pup_df(idx)-nanmean(pup_df(idx));
+        tmp_env = src_pow(isrc,:)-nanmean(src_pow(isrc,:),2);
+        [outp.src_xcorr{ifreq}(:,isrc)] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
+        [outp.src_xcorr_df{ifreq}(:,isrc)] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
+      end
+      
       clear src pup csd tp_csd dataf 
       
     end

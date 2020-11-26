@@ -22,6 +22,6 @@ sleep "$var"
 #source activate pp_fooof
 #python pp_src_hh_fooof.py 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
-matlab -nodisplay -nodesktop -r "pp_cnt_src_pupil_power_correlations; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
+matlab -nodisplay -nodesktop -r "pp_src_pupil_power_correlations; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
 #java -XshowSettings  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err

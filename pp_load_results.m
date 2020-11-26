@@ -31,7 +31,7 @@ for n_subj = 1: length(SUBJ)
       plt_gla.corr_sens(:,:,n_subj)     = nan(248,25);
       plt_gla.corr_src(:,:,n_subj)      = nan(8799,25);
       plt_gla.corr_src_df(:,:,n_subj)   = nan(8799,25); 
-      plt_gla.sens_mi(:,:,n_subj)       = nan(248,25);;
+      plt_gla.sens_mi(:,:,n_subj)       = nan(248,25);
   end
 end
 % 

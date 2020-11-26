@@ -1173,10 +1173,8 @@ line([0.52 0.52],[-0.06 0.04],'color','k')
 cols = cbrewer('seq', 'Greys', 35,'pchip');
 cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 for ifreq = 1 : 25
-    
     all.xcorr{ifreq}=cat(2,gla.xcorr{ifreq},mue.xcorr{ifreq},hh.xcorr{ifreq});
-     all.xcorr_df{ifreq}=cat(2,gla.xcorr_df{ifreq},mue.xcorr_df{ifreq},hh.xcorr_df{ifreq});
-   
+    all.xcorr_df{ifreq}=cat(2,gla.xcorr_df{ifreq},mue.xcorr_df{ifreq},hh.xcorr_df{ifreq});
 end
 
 
@@ -1290,6 +1288,46 @@ line([-5 5],[0 0],'color',[0.8 .8 .8],'linestyle',':')
 colorbar
     
     
+%%
+
+cols = cbrewer('seq', 'Blues', 35,'pchip');
+cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
+v=1
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+i = 0;
+for isubj = SUBJLIST
+    i = i + 1;
+    d = dir(sprintf('/home/tpfeffer/pp/proc/src/pp_cnt_src_pupil_power_correlations_s%d_b*_v%d.mat',isubj,v));
+    if length(d)==1
+        load([d(1).folder '/' d(1).name])   
+        for ifreq = 1 : 25       
+            hh.xcorr{ifreq}(:,i)    =  nanmean(outp.xcorr{ifreq},2);
+            hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
+        end
+    else
+        load([d(1).folder '/' d(1).name])
+        for ifreq = 1 : 25
+            hh.xcorr{ifreq}(:,i)    =  nanmean(outp.xcorr{ifreq},2)./2;
+            hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2)./2;
+        end
+        load([d(2).folder '/' d(2).name])
+        for ifreq = 1 : 25
+            hh.xcorr{ifreq}(:,i)    = hh.xcorr{ifreq}(:,i)+ nanmean(outp.xcorr{ifreq},2)./2;
+            hh.xcorr_df{ifreq}(:,i) = hh.xcorr_df{ifreq}(:,i)+nanmean(outp.xcorr_df{ifreq},2)./2;
+        end
+    end
+end
+% figure; set(gcf,'color','w') ;
+
+subplot(2,2,1); hold on; title('Hamburg')
+
+for ifreq = 1 : 25
+    plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+end
+axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
+tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+line([0.93 0.93],[-0.06 0.04],'color','k')
+line([0.52 0.52],[-0.06 0.04],'color','k')
 
 
 
