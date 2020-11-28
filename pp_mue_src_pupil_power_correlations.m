@@ -7,15 +7,15 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-freqoi    = 2.^(1:(1/4):7);
-lag = 0;
+% v = 1;
+% freqoi    = 2.^(1:(1/4):7);
+% lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-% v = 2;
-% freqoi    = 2.^(1:(1/4):7);
-% lag = 1;
+v = 2;
+freqoi    = 2.^(1:(1/4):7);
+lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -99,11 +99,14 @@ for isubj = 1:size(SUBJLIST,1)
     data.avg = data.trial{1}'; %data.trial{1} = [];
 
     load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/leadfields/lf_%s.mat',SUBJLIST(isubj,:)))
-    outp.sens_pow   = nan(275,25);
-    outp.sens_r     = nan(275,25);
-    outp.sens_r_df  = nan(275,25);
-    outp.sens_mi    = nan(275,25);
-    outp.sens_mi_df = nan(275,25);
+    
+    outp.sens_pow    = nan(275,25);
+    outp.sens_r      = nan(275,25);
+    outp.sens_r_df   = nan(275,25);
+    outp.sens_mi_df  = nan(275,25);
+    outp.sens_mi     = nan(275,25);
+    outp.sens_mi0    = nan(275,25);
+    outp.sens_mi_df0 = nan(275,25);
     
     for ifreq=1:numel(freqoi)
       
@@ -161,15 +164,21 @@ for isubj = 1:size(SUBJLIST,1)
       % sensor-level mutual information
       % -------------------------------
       cnpup     = copnorm(pup(idx));
+      cnpup0    = cnpup(end:-1:1);
       cnpup_df  = copnorm(pup_df(idx));
+      cnpup_df0 = cnpup_df(end:-1:1);
       cnpow     = copnorm(env);
-      tmp = []; tmp_df = [];
-      for isens = 1 : size(dataf,1)
+      tmp = []; tmp_df = []; tmp0 = []; tmp_df0 = [];
+      for isens = 1 : size(cnpow,2)
         tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
+        tmp0(isens)   = mi_gg_dfi_ak(cnpow(:,isens),cnpup0,[]);
         tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
+        tmp_df0(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df0,[]);
       end
-      outp.sens_mi(outp.chanidx>0,ifreq) = tmp;
+      outp.sens_mi(outp.chanidx>0,ifreq)    = tmp;
+      outp.sens_mi0(outp.chanidx>0,ifreq)   = tmp0;
       outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
+      outp.sens_mi_df0(outp.chanidx>0,ifreq) = tmp_df0;
       % -------------------------------
       % sensor-level cross correlation
       % -------------------------------

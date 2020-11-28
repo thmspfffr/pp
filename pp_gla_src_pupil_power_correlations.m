@@ -81,6 +81,9 @@ for isubj = SUBJLIST
       outp.sens_r_sp   = nan(248,25);
       outp.sens_mi     = nan(248,25);
       outp.sens_mi_df  = nan(248,25);
+      outp.sens_mi0    = nan(248,25);
+      outp.sens_mi_df0 = nan(248,25);
+      
     catch me
       src_r = nan(246,25);
       save([outdir fn '.mat'],'src_r')
@@ -180,15 +183,21 @@ for isubj = SUBJLIST
       % sensor-level mutual information
       % -------------------------------
       cnpup     = copnorm(pup(idx));
+      cnpup0    = cnpup(end:-1:1);
       cnpup_df  = copnorm(pup_df(idx));
+      cnpup_df0 = cnpup_df(end:-1:1);
       cnpow     = copnorm(env);
-      tmp = []; tmp_df = [];
-      for isens = 1 : size(dataf,1)
+      tmp = []; tmp_df = []; tmp0 = []; tmp_df0 = [];
+      for isens = 1 : size(cnpow,2)
         tmp(isens)    = mi_gg_dfi_ak(cnpow(:,isens),cnpup,[]);
+        tmp0(isens)   = mi_gg_dfi_ak(cnpow(:,isens),cnpup0,[]);
         tmp_df(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df,[]);
+        tmp_df0(isens) = mi_gg_dfi_ak(cnpow(:,isens),cnpup_df0,[]);
       end
       outp.sens_mi(outp.chanidx>0,ifreq)    = tmp;
+      outp.sens_mi0(outp.chanidx>0,ifreq)   = tmp0;
       outp.sens_mi_df(outp.chanidx>0,ifreq) = tmp_df;
+      outp.sens_mi_df0(outp.chanidx>0,ifreq) = tmp_df0;
       % -------------------------------
       % sensor-level cross correlation
       % -------------------------------

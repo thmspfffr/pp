@@ -16,7 +16,7 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 v = 1;
 
-[plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results(v);
+[plt_gla,plt_hh,plt_mue,plt_hh_cnt,plt_all]=pp_load_results(v);
 
 colors = cbrewer('qual', 'Set3', 10,'pchip'); 
 colors = colors(4:6,:);
@@ -51,6 +51,12 @@ colormap(plasma); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
+subplot(2,3,5);
+imagesc(nanmean(plt_hh_cnt.sens_mi_ord,3),[0 .005])
+colormap(plasma); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_MI_v%d.pdf',v))
 
 freqoi=2.^(1:(1/4):7); 
@@ -60,10 +66,12 @@ tot_size = size(plt_mue.sens_mi,3)+size(plt_gla.sens_mi,3)+size(plt_hh.sens_mi,3
 par_gla = mean(nanmean(plt_gla.sens_mi,1),3);
 par_hh  = mean(nanmean(plt_hh.sens_mi,1),3);
 par_mue = nanmean(nanmean(plt_mue.sens_mi,1),3);
+par_hh_cnt  = mean(nanmean(plt_hh_cnt.sens_mi,1),3);
 
 std_gla = std(nanmean(plt_gla.sens_mi,1),[],3)/sqrt(size(plt_gla.sens_mi,3));
 std_hh  = std(nanmean(plt_hh.sens_mi,1),[],3)/sqrt(size(plt_hh.sens_mi,3));
 std_mue = nanstd(nanmean(plt_mue.sens_mi,1),[],3)/sqrt(size(plt_mue.sens_mi,3));
+std_hh_cnt  = std(nanmean(plt_hh_cnt.sens_mi,1),[],3)/sqrt(size(plt_hh_cnt.sens_mi,3));
 
 par_all = mean(cat(2,squeeze(nanmean(plt_gla.sens_mi,1)),squeeze(nanmean(plt_hh.sens_mi,1)),squeeze(nanmean(plt_mue.sens_mi,1))),2);
 std_all = std(cat(2,squeeze(nanmean(plt_gla.sens_mi,1)),squeeze(nanmean(plt_hh.sens_mi,1)),squeeze(nanmean(plt_mue.sens_mi,1))),[],2)/sqrt(tot_size);
@@ -72,30 +80,37 @@ figure_w
 subplot(4,3,1)
 shadedErrorBar(log10(freqoi),par_gla,std_gla,{'color',colors(1,:)})
 axis([.3 2.11 0 0.007])
-line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
-subplot(4,3,2)
+subplot(4,3,2); hold on 
 shadedErrorBar(log10(freqoi),par_hh,std_hh,{'color',colors(2,:)})
 axis([.3 2.11 0 0.0030])
-line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+shadedErrorBar(log10(freqoi),par_hh_cnt,std_hh_cnt,{'color',colors(2,:),'linestyle',':'})
+axis([.3 2.11 0 0.0030])
+tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+% stats task vs. rest
+[~,p]=ttest(nanmean(plt_hh.sens_mi,1),nanmean(plt_hh_cnt.sens_mi,1),'dim',3); h = p< fdr1(p(:),0.05,0);
+plot(log10(freqoi(h)),0.0025*ones(sum(h),1),'r*','markersize',2)
+plot(log10(freqoi(p<0.05)),0.003*ones(sum(p<0.05),1),'k*','markersize',2)
 
 subplot(4,3,3)
 shadedErrorBar(log10(freqoi),par_mue,std_mue,{'color',colors(3,:)})
 axis([.3 2.11 0 0.0060])
-line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 subplot(4,3,4)
 shadedErrorBar(log10(freqoi),par_all,std_all,{'color','k'})
 axis([.3 2.11 0 0.0050])
-line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_MI_lineplot_v%d.pdf',v))
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
@@ -121,9 +136,15 @@ colormap(cmap); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
+subplot(2,3,4);
+imagesc(nanmean(plt_hh_cnt.corr_sens_ord(3:end,:,:),3),[-0.03 0.03])
+colormap(cmap); tp_editplots; axis square
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
 pooled = cat(3,plt_hh.corr_sens_ord,plt_gla.corr_sens_ord,plt_mue.corr_sens_ord);
 
-subplot(2,3,4);
+subplot(2,3,5);
 imagesc(nanmean(pooled(3:end,:,:),3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square;
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
@@ -132,7 +153,7 @@ xlabel('Frequency [Hz]')
 [~,p]=ttest(pooled,zeros(size(pooled)),'dim',3);
 h = p<fdr1(p(:),0.05,0);
 
-subplot(2,3,5);
+subplot(2,3,6);
 imagesc(nanmean(pooled(3:end,:,:),3).*h(3:end,:),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square;
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
@@ -1090,7 +1111,7 @@ for isubj = SUBJLIST
     
     for ifreq = 1 : 25
         mue.xcorr{ifreq}(:,i) =  nanmean(outp.xcorr{ifreq},2);
-        mue.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr{ifreq},2);
+        mue.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
         
     end
 end
@@ -1107,7 +1128,7 @@ figure; set(gcf,'color','w') ;
 subplot(2,2,3); hold on; title('Muenster')
 
 for ifreq = 1 : 25
-    plot(outp.xcorr_lags{ifreq},nanmean(mue.xcorr{ifreq},2),'color',cols(ifreq,:))
+    plot(outp.xcorr_lags{ifreq},nanmean(mue.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
 
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
@@ -1131,7 +1152,7 @@ end
 subplot(2,2,1); hold on; title('Glasgow')
 
 for ifreq = 1 : 25
-    plot(outp.xcorr_lags{ifreq},nanmean(gla.xcorr{ifreq},2),'color',cols(ifreq,:))
+    plot(outp.xcorr_lags{ifreq},nanmean(gla.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
 
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
@@ -1171,7 +1192,7 @@ end
 subplot(2,2,2); hold on; title('Hamburg')
 
 for ifreq = 1 : 25
-    plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr{ifreq},2),'color',cols(ifreq,:))
+    plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
 tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
@@ -1241,7 +1262,7 @@ end
 subplot(2,2,4); hold on; title('Pooled')
 
 for ifreq = 1 : 25
-plot(outp.xcorr_lags{ifreq},nanmean(all.xcorr{ifreq},2),'color',cols(ifreq,:))
+plot(outp.xcorr_lags{ifreq},nanmean(all.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 
 end
 
@@ -1251,6 +1272,8 @@ tp_editplots
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 line([0.93 0.93],[-0.06 0.04],'color','k')
 line([0.52 0.52],[-0.06 0.04],'color','k')
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_df_allfreqs_v%d.pdf',v))
 
 %% XCORR FOR SELECTED FREQUENCIES
 i = 0;  clear sig
@@ -1347,7 +1370,8 @@ line([-5 5],[0 0],'color',[0.8 .8 .8],'linestyle',':')
 % cfg=[];
 colorbar
     
-    
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_pooledfreqs_v%d.pdf',v))
+
 %%
 
 cols = cbrewer('seq', 'Blues', 35,'pchip');
@@ -1377,10 +1401,9 @@ for isubj = SUBJLIST
         end
     end
 end
-% figure; set(gcf,'color','w') ;
 
+figure; set(gcf,'color','w') ;
 subplot(2,2,1); hold on; title('Hamburg')
-
 for ifreq = 1 : 25
     plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
@@ -1389,5 +1412,5 @@ tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]';
 line([0.93 0.93],[-0.06 0.04],'color','k')
 line([0.52 0.52],[-0.06 0.04],'color','k')
 
-
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_df_allfreqs_v%d.pdf',v))
 
