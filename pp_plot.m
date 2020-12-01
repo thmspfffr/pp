@@ -1484,3 +1484,6 @@ line([0.52 0.52],[-0.06 0.04],'color','k')
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_df_allfreqs_v%d.pdf',v))
 
+%% PLOT SCALING EXPONENTS
+
+

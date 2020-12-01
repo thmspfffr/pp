@@ -39,25 +39,23 @@ for isubj = SUBJLIST
   for iblock = 1:2
 %     
     fn = sprintf('pp_cnt_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-    if tp_parallel(fn,outdir,1,0)
-      continue
-    end
+%     if tp_parallel(fn,outdir,1,0)
+%       continue
+%     end
 % %     
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
       % load cleaned meg data
-      load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
+      load(sprintf('~/pp/data/ham/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
+      
       % load cleanted pupil data
       load(sprintf('~/pp/proc/pup/pp_pupil_diameter_cleaned_counting_s%d_m%d_b%d.mat',isubj,im,iblock))
+      
     catch me
       continue
     end
-    
-    load(sprintf('~/pconn_cnt/proc/preproc/pconn_cnt_preproc_data_count_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
-    label = data.label(startsWith(data.label,'M')); clear data
-    save(['~/pp/proc/' fn '_label.mat'],'label')
-    load(sprintf(['~/pp/proc/' 'pp_cnt_src_pupil_power_correlations_s%d_b%d_v%d_label.mat'],isubj,iblock,v))
+   
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
@@ -76,14 +74,7 @@ for isubj = SUBJLIST
     % ------
     f_sample = 400;
     % align pupil and meg (at signal offset)
-    % ------
-    if size(pupil,2)>3
-      pupil = pupil(end:-1:1,4);
-    else
-      pupil = pupil(end:-1:1);
-    end
-    
-%     data.trial = data.trial(:,1:data.end_of_recording);
+    % ----- 
     dat = dat(:,end:-1:1);
     
     len = min([size(pupil,1) size(dat,2)]);
