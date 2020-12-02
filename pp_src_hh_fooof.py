@@ -13,11 +13,11 @@ for isubj in SUBJLIST:
             continue
 
         os.system('touch /home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
-        try:
-            dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v))
-        except:
-            print("Error: File not found!")
-            continue
+      try:
+          dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v))
+      except:
+          print("Error: File not found!")
+          continue
     
         not_nan_idx  = np.isnan(dat['pxx'][1,1,:])==False
 
@@ -25,21 +25,28 @@ for isubj in SUBJLIST:
         dat['pup'] = dat['pup'][:,not_nan_idx]
         dat['pup_df'] = dat['pup_df'][:,not_nan_idx]
 
+        sorted = np.argsort(dat['pup'])[0]
+
+        first_half  = np.mean(dat['pxx'][:,:,0:int(np.floor(sorted.size/2))],axis=2)
+        second_half = np.mean(dat['pxx'][:,:,int(np.ceil(sorted.size/2)):],axis=2)
+
         fm = FOOOFGroup(peak_width_limits=[1, 8], min_peak_height=0.05, max_n_peaks=6)                
 
         freq_range = [3, 40]
 
         freqs = np.squeeze(dat['fxx'])
-        slp = np.zeros([ np.shape(dat['pxx'])[1] , np.shape(dat['pxx'])[2] ])
+        aperiodic = np.zeros([2,np.shape(dat['pxx'])[1],2])
 
-        #for iseg in range(0,np.shape(dat['pxx'])[2]):
-        #    print('Processing segment %d / %d' % (iseg,np.shape(dat['pxx'])[2]))
-        #    power_spectrum = np.squeeze(dat['pxx'][:,:,iseg])
-        #    fm.fit(freqs, np.transpose(power_spectrum), freq_range)
-        #   tmp=fm.get_results()
-        #    for isens in range(0,np.shape(dat['pxx'])[1]):
-        #        slp[isens][iseg] = tmp[isens][0][1]
-        
+        fm.fit(freqs, np.transpose(first_half[:,1:10]), freq_range)
+        tmp=fm.get_results()
+        for isens in range(0,np.shape(dat['pxx'])[1]):
+          aperiodic[0][isens] = tmp[isens].aperiodic_params
+
+        fm.fit(freqs, np.transpose(second_half), freq_range)
+        tmp=fm.get_results()
+        for isens in range(0,np.shape(dat['pxx'])[1]):
+          aperiodic[1][isens] = tmp[isens].aperiodic_params
+
         scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_slp_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'slp': slp})
 
         r = np.zeros([np.shape(dat['pxx'])[1],1])

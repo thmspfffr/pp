@@ -7,11 +7,11 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-SUBJLIST  = 1:24;
-freqoi    = 2.^(1:(1/4):7);
-win_len = 1600;
-lag = 0;
+% v = 1;
+% SUBJLIST  = 1:24;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 1600;
+% lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
@@ -142,29 +142,26 @@ for isubj = 1:24
     para      = [];
     para.iscs = 1;
     para.reg  = 0.05;
-    tp_filt   = tp_beamformer(real(tp_csd),lf,para);
+    filt   = tp_beamformer(real(tp_csd),lf,para);
     % -------------------------------
-    
-    data_src = data.avg*tp_filt; 
-    clear data
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
     opt.n_shift = win_len; % no overlap
     
-    nseg=floor((size(data_src,1)-opt.n_win)/opt.n_shift+1);
+    nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
     ff = 3:1/(opt.n_win/400):50;
     
-    pupil = pupil(1:size(data_src,1));
+    pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
     pupil_df = diff(pupil);
     
-    data_src(pup_nanidx,:)=nan;
+    data.avg(pup_nanidx,:)=nan;
      
-    pxx = nan(size(ff,2),size(tp_filt,2),nseg);
+    pxx = nan(size(ff,2),size(filt,2),nseg);
     for iseg = 1 : nseg
         fprintf('%d / %d\n',iseg,nseg)
-        seg_dat = data_src((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:);
+        seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
         
         if any(isnan(seg_dat(:,1)))
 %             pxx(:,:,iseg) = nan(size(fxx,1),size(tp_filt,2));
@@ -181,11 +178,11 @@ for isubj = 1:24
             pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));            
         end
     end
- 
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
+    pxx=single(pxx);
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','-v7.3')
     tp_parallel(fn,outdir,0)
     
-    clear outp
+    clear pxx fxx pup pup_df
     
   end
 end

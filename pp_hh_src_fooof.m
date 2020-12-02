@@ -3,7 +3,7 @@
 % correlate bandpass filtered (or via wavelets) pupil and MEG signals
 
 clear
-restoredefaultpath
+% restoredefaultpath
 
 % -------------------------
 % VERSION 1: no pupil lag
@@ -125,7 +125,7 @@ for isubj = SUBJLIST
     pupil_df(idx) = nan;
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len/2; % 50% overlap
+    opt.n_shift = win_len; % 50% overlap
     
     nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
     
@@ -152,16 +152,33 @@ for isubj = SUBJLIST
         pup_df(iseg) = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));
       end
     end
-
-    save([outdir fn '.mat'],'outp')
+    
+    pxx=single(pxx);
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','v7.3')
     tp_parallel(fn,outdir,0)
     
-    clear src_r all_nai outp
+    clear pxx fxx pup pup_df 
     
   end
 end
 
-exit
+% exit
+
+
+%%
+
+load /home/tpfeffer/pp/proc/src/pp_hh_src_fooof_s12_b1_v2.mat
+
+[ii,i]=sort(pup);
+
+first = nanmean(pxx(:,:,i(1:30)),3);
+second = nanmean(pxx(:,:,i(50:80)),3);
+third = nanmean(pxx(:,:,i(120:end)),3);
+%%
+figure_w
+plot(log10(fxx(1:end-5)),log10(nanmean(first(1:end-5,:),2)),'b'); hold on
+plot(log10(fxx(1:end-5)),log10(nanmean(second(1:end-5,:),2)),'k'); hold on
+plot(log10(fxx(1:end-5)),log10(nanmean(third(1:end-5,:),2)),'r'); hold on
 
 
 
