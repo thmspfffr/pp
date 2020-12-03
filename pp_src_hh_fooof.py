@@ -13,11 +13,13 @@ for isubj in SUBJLIST:
             continue
 
         os.system('touch /home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
-      try:
-          dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v))
-      except:
-          print("Error: File not found!")
-          continue
+        try:
+            dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v))
+        except:
+            print("Error: File not found!")
+            continue
+
+        print('Processing S%d B%d ...' % (isubj,iblock))
     
         not_nan_idx  = np.isnan(dat['pxx'][1,1,:])==False
 
@@ -37,20 +39,10 @@ for isubj in SUBJLIST:
         freqs = np.squeeze(dat['fxx'])
         aperiodic = np.zeros([2,np.shape(dat['pxx'])[1],2])
 
-        fm.fit(freqs, np.transpose(first_half[:,1:10]), freq_range)
-        tmp=fm.get_results()
-        for isens in range(0,np.shape(dat['pxx'])[1]):
-          aperiodic[0][isens] = tmp[isens].aperiodic_params
+        fm.fit(freqs, np.transpose(first_half), freq_range)
+        fooof_res_lo=fm.get_results()
+        np.save('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_lo_s%d_b%d_v%d.npy' % (isubj,iblock,v),fooof_res_lo)
 
         fm.fit(freqs, np.transpose(second_half), freq_range)
-        tmp=fm.get_results()
-        for isens in range(0,np.shape(dat['pxx'])[1]):
-          aperiodic[1][isens] = tmp[isens].aperiodic_params
-
-        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_slp_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'slp': slp})
-
-        r = np.zeros([np.shape(dat['pxx'])[1],1])
-        #for iseg in range(0,np.shape(dat['pxx'])[1]):
-        #    r[iseg] = np.corrcoef(slp[iseg,:],dat['pup'],rowvar=True)[0][1]
-
-        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_exp_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'r': r})
+        fooof_res_hi=fm.get_results()
+        np.save('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_high_s%d_b%d_v%d.npy' % (isubj,iblock,v),fooof_res_hi)
