@@ -33,6 +33,7 @@ for isubj in SUBJLIST:
         second_half = np.mean(dat['pxx'][:,:,int(np.ceil(sorted.size/2)):],axis=2)
 
         fm = FOOOFGroup(peak_width_limits=[1, 8], min_peak_height=0.05, max_n_peaks=6)                
+        fm._maxfev = 30000
 
         freq_range = [3, 40]
 
@@ -40,9 +41,8 @@ for isubj in SUBJLIST:
         aperiodic = np.zeros([2,np.shape(dat['pxx'])[1],2])
 
         fm.fit(freqs, np.transpose(first_half), freq_range)
-        fooof_res_lo=fm.get_results()
-        np.save('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_lo_s%d_b%d_v%d.npy' % (isubj,iblock,v),fooof_res_lo)
-
+        
+        fm.save('pp_hh_fooof_result_lo_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
         fm.fit(freqs, np.transpose(second_half), freq_range)
-        fooof_res_hi=fm.get_results()
-        np.save('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_high_s%d_b%d_v%d.npy' % (isubj,iblock,v),fooof_res_hi)
+        fm.save('pp_hh_fooof_result_hi_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
+  
