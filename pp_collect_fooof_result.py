@@ -12,9 +12,9 @@ for isubj in all_subj:
 
         try:    
             fm = FOOOFGroup()
-            fm.load('/Users/tpfeffer/Dropbox/pp/proc/pp_hh_fooof_result_lo_s%d_b%d_v%d.json' % (isubj, iblock, v))
+            fm.load('/home/tpfeffer/pp/proc/src/pp_hh_fooof_result_lo_s%d_b%d_v%d.json' % (isubj, iblock, v))
             res_lo = fm.get_results()
-            fm.load('/Users/tpfeffer/Dropbox/pp/proc/pp_hh_fooof_result_hi_s%d_b%d_v%d.json' % (isubj, iblock, v))
+            fm.load('/home/tpfeffer/pp/proc/src/pp_hh_fooof_result_hi_s%d_b%d_v%d.json' % (isubj, iblock, v))
             res_hi = fm.get_results()
         except:
             print('Could not find data...')
@@ -54,4 +54,4 @@ for isubj in all_subj:
             e = res_hi[isrc].aperiodic_params[1]
             g_hi[isrc,:] = g_hi[isrc,:] + b - np.log10(pow(F,e)) 
 
-        scipy.io.savemat('/Users/tpfeffer/Dropbox/pp/proc/pp_hh_src_fooof_slp_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g_lo': g_lo, 'g_hi': g_hi, 'aper_lo': aper_lo, 'aper_hi': aper_hi})
+        scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g_lo': g_lo, 'g_hi': g_hi, 'aper_lo': aper_lo, 'aper_hi': aper_hi})

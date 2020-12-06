@@ -20,8 +20,8 @@ chmod g=wx $PBS_JOBNAME
 sleep "$var"
 
 source activate pp_fooof
-python pp_src_hh_fooof.py 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
+python pp_src_gla_fooof.py 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
-#matlab -nodisplay -nodesktop -r "pp_mue_src_fooof; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
+#matlab -nodisplay -nodesktop -r "pp_mue_src_powerspectra; exit"  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
 #java -XshowSettings  1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err

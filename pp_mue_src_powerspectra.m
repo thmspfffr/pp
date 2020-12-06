@@ -39,15 +39,14 @@ end
 
 %%
 % -------------------------
-for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
+for isubj =1:size(SUBJLIST,1)
+      fprintf('Processing subj%d ...\n',isubj);
 
-  size(SUBJLIST,1)
-  
   clear pxx fxx pup pup_df
   
   for iblock = 1:1
     %
-    fn = sprintf('pp_mue_src_fooof_s%d_b%d_v%d',isubj,iblock,v);
+    fn = sprintf('pp_mue_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
 	if tp_parallel(fn,outdir,1,0)
        continue
      end
@@ -63,7 +62,6 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
       % load meg data
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/cleanmeg_%s.mat',SUBJLIST(isubj,:)))
       data = cleanmeg; clear cleanmeg
-      f_sample = data.fsample;
    
       cfg=[];
       cfg.layout='CTF275.lay';
@@ -71,10 +69,15 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
       [~, outp.chanidx] = ismember(lay.label(1:275),data.label);
     
     catch me
-      src_r = nan(246,25);
-      save([outdir fn '.mat'],'src_r')
+%       src_r = nan(246,25);
+%       save([outdir fn '.mat'],'src_r')
       continue
     end
+    
+    cfg = [];
+    cfg.resamplefs = 400;
+    data = ft_resampledata(cfg,data);
+    f_sample = data.fsample;
     
     k = 2;
     fnq = f_sample/2;
@@ -84,11 +87,13 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
     [bhil, ahil] = butter(k, hil_Wn);
     
     pupil = filtfilt(bhil, ahil, pupil);
+    pupil = resample(pupil,400,600);
     
     if lag
         pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
         pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     end
+    
     pupil_df = diff(pupil);
     
     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
@@ -122,9 +127,6 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
     para.reg  = 0.05;
     filt   = tp_beamformer(real(csd),lf,para);
     % -------------------------------
-    
-%     data_src = data.avg*tp_filt; 
-    clear data
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
     opt.n_shift = win_len; % no overlap
@@ -160,7 +162,7 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
     end
     
     pxx=single(pxx);
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','-v7.3')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     
     tp_parallel(fn,outdir,0)
     

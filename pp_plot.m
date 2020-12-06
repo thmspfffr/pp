@@ -1486,4 +1486,23 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_df_allfreqs_v%d.pdf',v))
 
 %% PLOT SCALING EXPONENTS
 
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+slp = nan(149,2,34,2);
+for isubj = SUBJLIST
+  isubj
+  for iblock = 1 : 2
+%     try
+      load(sprintf('~/pp/proc/src/pp_hh_src_fooof_s%d_b%d_v%d.mat',isubj,iblock,v))
+      slp(:,1,isubj,iblock) = nanmean(g_lo,1);
+      slp(:,2,isubj,iblock) = nanmean(g_hi,1);
+%     catch me
+%       slp(:,:,isubj,iblock) = nan(8799,2);
+%       continue
+%     end
+  end
+end
+
+slp = nanmean(slp(:,:,SUBJLIST,:),4);
+
+
 

@@ -6,41 +6,53 @@ import os
 v=2
 
 for isubj in range (0, 24):
+  for iblock in range(1,3):
+        if os.path.exists('/home/tpfeffer/pp/proc/src/pp_gla_src_run_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v)) == True:
+            continue
 
-    if os.path.exists('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_v%d_proc.txt' % (isubj+1,v)) == True:
-        continue
+        os.system('touch /home/tpfeffer/pp/proc/src/pp_gla_src_run_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
+        try:
+            dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_gla_src_powerspectra_s%d_b%d_v%d.mat' % (isubj,iblock,v))
+        except:
+            print("Error: File not found!")
+            continue
 
-    os.system('touch /home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_v%d_proc.txt' % (isubj+1,v))
+        print('Processing S%d B%d ...' % (isubj,iblock))
+    
+        not_nan_idx  = np.isnan(dat['pxx'][1,1,:])==False
 
-    dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_s%s_b1_v%d.mat' % (isubj+1,v))
+        dat['pxx'] = dat['pxx'][:,:,not_nan_idx]
+        dat['pup'] = dat['pup'][:,not_nan_idx]
+        dat['pup_df'] = dat['pup_df'][:,not_nan_idx]
 
-    not_nan_idx  = np.isnan(dat['pxx'][1,1,:])==False
-    # not_nan_idx2 = np.isnan(dat['pup'])==False
-    # not_nan_idx = (not_nan_idx1) & (not_nan_idx2)
+        sorted = np.argsort(dat['pup'])[0]
 
-    dat['pxx'] = dat['pxx'][:,:,not_nan_idx]
-    dat['pup'] = dat['pup'][:,not_nan_idx]
-    dat['pup_df'] = dat['pup_df'][:,not_nan_idx]
+        pup_sorted = dat['pup'][0][sorted]
+        pup_means = np.zeros([3,1])
+        pup_means[0] = np.mean(pup_sorted[0:int(np.floor(sorted.size/3))])
+        pup_means[1] = np.mean(pup_sorted[int(np.floor(sorted.size/3))+1:sorted.size-int(np.floor(sorted.size/3))])
+        pup_means[2] = np.mean(pup_sorted[sorted.size-int(np.floor(sorted.size/3))+1:])
+        
+        np.save('/home/tpfeffer/pp/proc/src/pp_src_gla_fooof_result_pupilmeans_s%d_b%d_v%d.npy' % (isubj,iblock,v),'pup_means')
 
-    fm = FOOOFGroup(peak_width_limits=[1, 8], min_peak_height=0.05, max_n_peaks=6)                
+        first_half  = np.mean(dat['pxx'][:,:,0:int(np.floor(sorted.size/3))],axis=2)
+        second_half = np.mean(dat['pxx'][:,:,int(np.floor(sorted.size/3))+1:sorted.size-int(np.floor(sorted.size/3))],axis=2)
+        third_half  = np.mean(dat['pxx'][:,:,sorted.size-int(np.floor(sorted.size/3))+1:],axis=2)
 
-    freq_range = [3, 40]
+        fm = FOOOFGroup(peak_width_limits=[1, 8], min_peak_height=0.05, max_n_peaks=6)                
+        fm._maxfev = 30000
 
-    freqs = np.squeeze(dat['fxx'])
-    slp = np.zeros([ np.shape(dat['pxx'])[1] , np.shape(dat['pxx'])[2] ])
+        freq_range = [3, 40]
 
-    for iseg in range(0,np.shape(dat['pxx'])[2]):
-        print('Processing segment %d / %d' % (iseg,np.shape(dat['pxx'])[2]))
-        power_spectrum = np.squeeze(dat['pxx'][:,:,iseg])
-        fm.fit(freqs, np.transpose(power_spectrum), freq_range)
-        tmp=fm.get_results()
-        for isens in range(0,np.shape(dat['pxx'])[1]):
-            slp[isens][iseg] = tmp[isens][0][1]
+        freqs = np.squeeze(dat['fxx'])
+        aperiodic = np.zeros([2,np.shape(dat['pxx'])[1],2])
 
-    scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_slp_s%d_v%d.mat' % (isubj+1,v), {'slp': slp})
+        fm.fit(freqs, np.transpose(first_half), freq_range)
+        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_lo_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
 
-    r = np.zeros([np.shape(dat['pxx'])[1],1])
-    for iseg in range(0,np.shape(dat['pxx'])[1]):
-        r[iseg] = np.corrcoef(slp[iseg,:],dat['pup'],rowvar=True)[0][1]
+        fm.fit(freqs, np.transpose(second_half), freq_range)
+        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_me_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
+  
+        fm.fit(freqs, np.transpose(third_half), freq_range)
+        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_hi_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
 
-    scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_src_fooof_exp_s%d_v%d.mat' % (isubj+1,v), {'r': r})

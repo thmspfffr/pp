@@ -154,7 +154,7 @@ for isubj = SUBJLIST
     end
     
     pxx=single(pxx);
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','v7.3')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     tp_parallel(fn,outdir,0)
     
     clear pxx fxx pup pup_df 
@@ -163,34 +163,6 @@ for isubj = SUBJLIST
 end
 
 % exit
-
-
-%%
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-
-for isubj = SUBJLIST
-
-  d=dir(sprintf('/home/tpfeffer/pp/proc/src/pp_hh_src_fooof_s%d_b*_v2.mat',isubj));
-  
-  ii = 0;
-  for iblock = 1 : length(d)
-    ii = ii + 1;
-    load([d(iblock).folder])
-    
-  end
-    
-
-[ii,i]=sort(pup);
-
-first = nanmean(pxx(:,:,i(1:30)),3);
-second = nanmean(pxx(:,:,i(50:80)),3);
-third = nanmean(pxx(:,:,i(120:end)),3);
-%%
-figure_w
-plot(log10(fxx(1:end-5)),log10(nanmean(first(1:end-5,:),2)),'b'); hold on
-plot(log10(fxx(1:end-5)),log10(nanmean(second(1:end-5,:),2)),'k'); hold on
-plot(log10(fxx(1:end-5)),log10(nanmean(third(1:end-5,:),2)),'r'); hold on
-
 
 
 
