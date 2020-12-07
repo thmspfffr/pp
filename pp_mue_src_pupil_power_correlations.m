@@ -78,7 +78,7 @@ for isubj = 1:size(SUBJLIST,1)
     f_sample = data.fsample;
     
     k = 2;
-    fnq = f_sample/2;
+    fnq = 600/2;
     hil_hi = 0.005;
     hil_lo = 2;
     hil_Wn=[hil_hi/fnq hil_lo/fnq];

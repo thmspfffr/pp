@@ -19,7 +19,7 @@ win_len = 1600;
 lag = 1;
 % -------------------------
 
-addpath('~/Documents/MATLAB/fieldtrip-20181231/')
+addpath ~/Documents/MATLAB/fieldtrip-20160919/
 addpath ~/pconn/matlab/
 load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
 
@@ -73,14 +73,14 @@ for isubj =1:size(SUBJLIST,1)
 %       save([outdir fn '.mat'],'src_r')
       continue
     end
-    
-    cfg = [];
-    cfg.resamplefs = 400;
-    data = ft_resampledata(cfg,data);
-    f_sample = data.fsample;
+%     
+%     cfg = [];
+%     cfg.resamplefs = 400;
+%     data = ft_resampledata(cfg,data);
+%     f_sample = data.fsample;
     
     k = 2;
-    fnq = f_sample/2;
+    fnq = data.fsample/2;
     hil_hi = 0.005;
     hil_lo = 2;
     hil_Wn=[hil_hi/fnq hil_lo/fnq];
@@ -89,6 +89,13 @@ for isubj =1:size(SUBJLIST,1)
     pupil = filtfilt(bhil, ahil, pupil);
     pupil = resample(pupil,400,600);
     
+
+    data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil))); 
+    data.avg = data.trial{1}'; data.trial{1} = [];
+    
+    data.avg = resample(data.avg,400,600);
+    f_sample = 400;
+    
     if lag
         pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
         pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
@@ -96,9 +103,6 @@ for isubj =1:size(SUBJLIST,1)
     
     pupil_df = diff(pupil);
     
-    data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
-    
-    data.avg = data.trial{1}'; %data.trial{1} = [];
 
     load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/leadfields/lf_%s.mat',SUBJLIST(isubj,:)))
     
@@ -111,7 +115,7 @@ for isubj =1:size(SUBJLIST,1)
       % -------------------------------
       para          = [];
       para.freq     = freqoi(ifreq);
-      para.fsample  = 400;  
+      para.fsample  = f_sample;  
       para.overlap = 0.5;
       csd(:,:,ifreq)=tp_compute_csd_wavelets(data.avg',para);
       
@@ -133,7 +137,7 @@ for isubj =1:size(SUBJLIST,1)
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 3:1/(opt.n_win/400):50;
+    ff = 3:1/(opt.n_win/f_sample):50;
     
     pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
@@ -152,7 +156,7 @@ for isubj =1:size(SUBJLIST,1)
             continue        
         end
         
-        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,f_sample,'power');
         pup(iseg)  = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
         if iseg ~= nseg
             pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
@@ -161,8 +165,7 @@ for isubj =1:size(SUBJLIST,1)
         end
     end
     
-    pxx=single(pxx);
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','-v7.3')
     
     tp_parallel(fn,outdir,0)
     

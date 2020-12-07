@@ -1,5 +1,5 @@
 
-%% pp_hh_src_powerspectra
+%% pp_hh_task_src_powerspectra
 % correlate bandpass filtered (or via wavelets) pupil and MEG signals
 
 clear
@@ -40,7 +40,7 @@ for isubj = SUBJLIST
   
   for iblock = 1:2
     %
-    fn = sprintf('pp_hh_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
+    fn = sprintf('pp_hh_task_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
     if tp_parallel(fn,outdir,1,0)
       continue
    	end
@@ -49,7 +49,7 @@ for isubj = SUBJLIST
     
     try
       % load cleaned meg data
-      load(sprintf('~/pp/data/ham/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
+      load(sprintf('~/pp/data/ham/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
     catch me
       continue
     end
@@ -94,7 +94,7 @@ for isubj = SUBJLIST
     
     dat(:,isnan(pupil))=nan(size(dat,1),sum(isnan(pupil)));
     
-    load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');
+    load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');
             
     clear csd
     
