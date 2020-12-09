@@ -130,9 +130,9 @@ for isubj = SUBJLIST
     nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
     
     clear pxx fxx pup pup_df
-    ff = 3:1/(opt.n_win/400):50;
+    ff = 2:1/(opt.n_win/400):128;
     
-    pxx = nan(size(ff,2),size(filt,2),nseg);
+    pxx = nan(size(ff,2),max(BNA.tissue_5mm(:)),nseg);
     for iseg = 1 : nseg
       
       fprintf('%d / %d\n',iseg,nseg)
@@ -144,7 +144,12 @@ for isubj = SUBJLIST
         continue
       end
       
-      [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+      [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0.5,ff,400,'power');
+      
+      for igrid = 1 : max(BNA.tissue_5mm(:))
+        pxx(:,igrid,iseg) = mean(tmp_pxx(:,BNA.tissue_5mm == igrid),2);
+      end
+      
       pup(iseg)  = nanmean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
       if iseg~=nseg
         pup_df(iseg) = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));

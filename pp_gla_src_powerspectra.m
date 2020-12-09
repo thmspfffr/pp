@@ -18,7 +18,7 @@ restoredefaultpath
 v = 2;
 SUBJLIST  = 1:24;
 freqoi    = 2.^(1:(1/4):7);
-win_len = 1600;
+win_len = 800;
 lag = 1;
 % -------------------------
 
@@ -40,9 +40,9 @@ for isubj = 1:24
   for iblock = 1:1
     %
     fn = sprintf('pp_gla_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -146,11 +146,11 @@ for isubj = 1:24
     % -------------------------------
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len; % no overlap
+    opt.n_shift = win_len/2; % no overlap
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 3:1/(opt.n_win/400):50;
+    ff = 2:1/(opt.n_win/400):128;
     
     pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
@@ -158,7 +158,7 @@ for isubj = 1:24
     
     data.avg(pup_nanidx,:)=nan;
      
-    pxx = nan(size(ff,2),size(filt,2),nseg);
+    pxx = nan(size(ff,2),max(BNA.tissue_5mm(:)),nseg);
     for iseg = 1 : nseg
         fprintf('%d / %d\n',iseg,nseg)
         seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
@@ -170,7 +170,12 @@ for isubj = 1:24
             continue        
         end
         
-        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0.5,ff,400,'power');
+        
+        for igrid = 1 : max(BNA.tissue_5mm(:))
+          pxx(:,igrid,iseg) = mean(tmp_pxx(:,BNA.tissue_5mm == igrid),2);
+        end
+        
         pup(iseg)  = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
         if iseg ~= nseg
             pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
@@ -178,7 +183,7 @@ for isubj = 1:24
             pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));            
         end
     end
-    pxx=single(pxx);
+    
     save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     tp_parallel(fn,outdir,0)
     

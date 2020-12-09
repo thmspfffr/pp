@@ -5,8 +5,8 @@ import os
 
 v=2
 
-for isubj in range (0, 24):
-  for iblock in range(1,3):
+for isubj in range (0, 25):
+  for iblock in range(1,2):
         if os.path.exists('/home/tpfeffer/pp/proc/src/pp_gla_src_run_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v)) == True:
             continue
 

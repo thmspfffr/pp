@@ -14,7 +14,7 @@ ft_defaults
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 1
+v = 2
 
 [plt_gla,plt_hh,plt_mue,plt_hh_cnt,plt_all]=pp_load_results(v);
 
@@ -1485,24 +1485,108 @@ line([0.52 0.52],[-0.06 0.04],'color','k')
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_df_allfreqs_v%d.pdf',v))
 
 %% PLOT SCALING EXPONENTS
-
+% SUBJLIST=1:24
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-slp = nan(149,2,34,2);
-for isubj = SUBJLIST
+slp = nan(75,3,length(SUBJLIST),2);
+for isubj = 1: length(SUBJLIST)
   isubj
   for iblock = 1 : 2
-%     try
-      load(sprintf('~/pp/proc/src/pp_hh_src_fooof_s%d_b%d_v%d.mat',isubj,iblock,v))
+    try
+      load(sprintf('~/pp/proc/src/pp_hh_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
       slp(:,1,isubj,iblock) = nanmean(g_lo,1);
-      slp(:,2,isubj,iblock) = nanmean(g_hi,1);
-%     catch me
-%       slp(:,:,isubj,iblock) = nan(8799,2);
-%       continue
-%     end
+      slp(:,2,isubj,iblock) = nanmean(g_me,1);
+      slp(:,3,isubj,iblock) = nanmean(g_hi,1);
+      aper(1,isubj,iblock)= nanmean(aper_lo(2,:),2);
+      aper(2,isubj,iblock)= nanmean(aper_me(2,:),2);
+      aper(3,isubj,iblock)= nanmean(aper_hi(2,:),2);
+    catch me
+      slp(:,:,isubj,iblock) = nan(75,3);
+      aper(:,isubj,iblock)  = nan(3,1);
+      continue
+    end
   end
 end
 
-slp = nanmean(slp(:,:,SUBJLIST,:),4);
+slp = nanmean(slp,4);
+aper = nanmean(aper,3);
+%%
 
+figure_w; hold on
 
+for isubj=1:28
+  
+  plot(slp(:,1,isubj),'linestyle','-','color',cmap(isubj,:))
+  plot(slp(:,2,isubj),'linestyle','--','color',cmap(isubj,:))
+  plot(slp(:,3,isubj),'linestyle',':','color',cmap(isubj,:))
+  
+end
 
+%%
+pow_lo = nan(253,246,24,2);
+pow_hi = nan(253,246,24,2);
+ff = 2:1/(800/400):128;
+
+for isubj =1:24
+  isubj
+for iblock = 1 : 1
+%   try
+  load(sprintf('~/pp/proc/src/pp_gla_src_powerspectra_s%d_b%d_v%d.mat',isubj,iblock,2))
+  
+  idx = ~isnan(squeeze(pxx(1,1,:)));
+  pxx = pxx(:,:,idx);
+  [ii,i]=sort(pup(idx));
+  
+  for ivox = 1: 246
+    
+    pow_lo(:,ivox,isubj,iblock) = nanmean(pxx(:,ivox,i(1:floor(length(i)/3)-1)),3);
+    pow_hi(:,ivox,isubj,iblock) = nanmean(pxx(:,ivox,i((length(i)-floor(length(i)/3)):length(i))),3);
+    pow_me(:,ivox,isubj,iblock) = nanmean(pxx(:,ivox,i(floor(length(i)/3):(length(i)-floor(length(i)/3)-1))),3);
+  end
+
+end
+end
+
+pow_lo((ff>49 & ff<51) | (ff>99 & ff<101),:,:) = nan;
+pow_hi((ff>49 & ff<51) | (ff>99 & ff<101),:,:) = nan;
+pow_me((ff>49 & ff<51) | (ff>99 & ff<101),:,:) = nan;
+
+figure_w; hold on
+plot(log10(ff),log10(nanmean(nanmean(pow_lo(:,:,:,1),3),2)),'color','k')
+plot(log10(ff),log10(nanmean(nanmean(pow_me(:,:,:,1),3),2)),'color',[0.4 0.4 0.4])
+plot(log10(ff),log10(nanmean(nanmean(pow_hi(:,:,:,1),3),2)),'color',[0.8 0.8 0.8])
+
+%%
+pow_lo = nan(253,246,24,2);
+pow_me = nan(253,246,24,2);
+pow_hi = nan(253,246,24,2);
+ff = 2:1/(800/400):128;
+
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+for isubj =1:length(SUBJLIST)
+  isubj
+for iblock = 1 : 1
+%   try
+  load(sprintf('~/pp/proc/src/pp_hh_src_powerspectra_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,2))
+  
+  idx = ~isnan(squeeze(pxx(1,1,:)));
+  pxx = pxx(:,:,idx);
+  [ii,i]=sort(pup(idx));
+  
+  for ivox = 1: 246
+    
+    pow_lo(:,ivox,isubj,iblock) = nanmean(pxx(:,ivox,i(1:floor(length(i)/3)-1)),3);
+    pow_hi(:,ivox,isubj,iblock) = nanmean(pxx(:,ivox,i((length(i)-floor(length(i)/3)):length(i))),3);
+    pow_me(:,ivox,isubj,iblock) = nanmean(pxx(:,ivox,i(floor(length(i)/3):(length(i)-floor(length(i)/3)-1))),3);
+  end
+
+end
+end
+
+pow_lo((ff>48 & ff<53) | (ff>98 & ff<102),:,:) = nan;
+pow_hi((ff>48 & ff<53) | (ff>98 & ff<102),:,:) = nan;
+pow_me((ff>48 & ff<53) | (ff>98 & ff<102),:,:) = nan;
+
+figure_w; hold on
+plot(log10(ff),log10(nanmean(nanmean(pow_lo(:,:,:,1),3),2)),'color','k')
+plot(log10(ff),log10(nanmean(nanmean(pow_me(:,:,:,1),3),2)),'color',[0.4 0.4 0.4])
+plot(log10(ff),log10(nanmean(nanmean(pow_hi(:,:,:,1),3),2)),'color',[0.8 0.8 0.8])
