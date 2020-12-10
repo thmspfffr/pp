@@ -31,10 +31,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_lo)):
             print('%d' % isrc)
             aper_lo[:,isrc] = res_lo[isrc].aperiodic_params
-            for i in range(0,len(res_lo[isrc].peak_params)):
-                c = res_lo[isrc].peak_params[i][0]
-                w = res_lo[isrc].peak_params[i][2]
-                a = res_lo[isrc].peak_params[i][1]
+            for i in range(0,len(res_lo[isrc].gaussian_params)):
+                c = res_lo[isrc].gaussian_params[i][0]
+                w = res_lo[isrc].gaussian_params[i][2]
+                a = res_lo[isrc].gaussian_params[i][1]
                 g_lo[isrc,:] = g_lo[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_lo[isrc].aperiodic_params[0]
             e = res_lo[isrc].aperiodic_params[1]
@@ -47,10 +47,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_me)):
             print('%d' % isrc)
             aper_me[:,isrc] = res_me[isrc].aperiodic_params
-            for i in range(0,len(res_me[isrc].peak_params)):
-                c = res_me[isrc].peak_params[i][0]
-                w = res_me[isrc].peak_params[i][2]
-                a = res_me[isrc].peak_params[i][1]
+            for i in range(0,len(res_me[isrc].gaussian_params)):
+                c = res_me[isrc].gaussian_params[i][0]
+                w = res_me[isrc].gaussian_params[i][2]
+                a = res_me[isrc].gaussian_params[i][1]
                 g_me[isrc,:] = g_me[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_me[isrc].aperiodic_params[0]
             e = res_me[isrc].aperiodic_params[1]
@@ -63,10 +63,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_hi)):
             print('%d' % isrc)
             aper_hi[:,isrc] = res_hi[isrc].aperiodic_params
-            for i in range(0,len(res_hi[isrc].peak_params)):
-                c = res_hi[isrc].peak_params[i][0]
-                w = res_hi[isrc].peak_params[i][2]
-                a = res_hi[isrc].peak_params[i][1]
+            for i in range(0,len(res_hi[isrc].gaussian_params)):
+                c = res_hi[isrc].gaussian_params[i][0]
+                w = res_hi[isrc].gaussian_params[i][2]
+                a = res_hi[isrc].gaussian_params[i][1]
                 g_hi[isrc,:] = g_hi[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_hi[isrc].aperiodic_params[0]
             e = res_hi[isrc].aperiodic_params[1]
@@ -100,10 +100,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_lo)):
             print('%d' % isrc)
             aper_lo[:,isrc] = res_lo[isrc].aperiodic_params
-            for i in range(0,len(res_lo[isrc].peak_params)):
-                c = res_lo[isrc].peak_params[i][0]
-                w = res_lo[isrc].peak_params[i][2]
-                a = res_lo[isrc].peak_params[i][1]
+            for i in range(0,len(res_lo[isrc].gaussian_params)):
+                c = res_lo[isrc].gaussian_params[i][0]
+                w = res_lo[isrc].gaussian_params[i][2]
+                a = res_lo[isrc].gaussian_params[i][1]
                 g_lo[isrc,:] = g_lo[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_lo[isrc].aperiodic_params[0]
             e = res_lo[isrc].aperiodic_params[1]
@@ -116,10 +116,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_me)):
             print('%d' % isrc)
             aper_me[:,isrc] = res_me[isrc].aperiodic_params
-            for i in range(0,len(res_me[isrc].peak_params)):
-                c = res_me[isrc].peak_params[i][0]
-                w = res_me[isrc].peak_params[i][2]
-                a = res_me[isrc].peak_params[i][1]
+            for i in range(0,len(res_me[isrc].gaussian_params)):
+                c = res_me[isrc].gaussian_params[i][0]
+                w = res_me[isrc].gaussian_params[i][2]
+                a = res_me[isrc].gaussian_params[i][1]
                 g_me[isrc,:] = g_me[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_me[isrc].aperiodic_params[0]
             e = res_me[isrc].aperiodic_params[1]
@@ -132,10 +132,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_hi)):
             print('%d' % isrc)
             aper_hi[:,isrc] = res_hi[isrc].aperiodic_params
-            for i in range(0,len(res_hi[isrc].peak_params)):
-                c = res_hi[isrc].peak_params[i][0]
-                w = res_hi[isrc].peak_params[i][2]
-                a = res_hi[isrc].peak_params[i][1]
+            for i in range(0,len(res_hi[isrc].gaussian_params)):
+                c = res_hi[isrc].gaussian_params[i][0]
+                w = res_hi[isrc].gaussian_params[i][2]
+                a = res_hi[isrc].gaussian_params[i][1]
                 g_hi[isrc,:] = g_hi[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_hi[isrc].aperiodic_params[0]
             e = res_hi[isrc].aperiodic_params[1]
@@ -148,6 +148,7 @@ all_subj  = range(1,42)
 all_subj = np.delete(all_subj,[9,11,16,18,21,26,34,37,38,39])
 
 for isubj in all_subj:
+    print('%s' % isubj)
     for iblock in range(1,2):
 
         try:    
@@ -171,10 +172,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_lo)):
             print('%d' % isrc)
             aper_lo[:,isrc] = res_lo[isrc].aperiodic_params
-            for i in range(0,len(res_lo[isrc].peak_params)):
-                c = res_lo[isrc].peak_params[i][0]
-                w = res_lo[isrc].peak_params[i][2]
-                a = res_lo[isrc].peak_params[i][1]
+            for i in range(0,len(res_lo[isrc].gaussian_params)):
+                c = res_lo[isrc].gaussian_params[i][0]
+                w = res_lo[isrc].gaussian_params[i][2]
+                a = res_lo[isrc].gaussian_params[i][1]
                 g_lo[isrc,:] = g_lo[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_lo[isrc].aperiodic_params[0]
             e = res_lo[isrc].aperiodic_params[1]
@@ -187,10 +188,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_me)):
             print('%d' % isrc)
             aper_me[:,isrc] = res_me[isrc].aperiodic_params
-            for i in range(0,len(res_me[isrc].peak_params)):
-                c = res_me[isrc].peak_params[i][0]
-                w = res_me[isrc].peak_params[i][2]
-                a = res_me[isrc].peak_params[i][1]
+            for i in range(0,len(res_me[isrc].gaussian_params)):
+                c = res_me[isrc].gaussian_params[i][0]
+                w = res_me[isrc].gaussian_params[i][2]
+                a = res_me[isrc].gaussian_params[i][1]
                 g_me[isrc,:] = g_me[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_me[isrc].aperiodic_params[0]
             e = res_me[isrc].aperiodic_params[1]
@@ -203,10 +204,10 @@ for isubj in all_subj:
         for isrc in range(0,len(res_hi)):
             print('%d' % isrc)
             aper_hi[:,isrc] = res_hi[isrc].aperiodic_params
-            for i in range(0,len(res_hi[isrc].peak_params)):
-                c = res_hi[isrc].peak_params[i][0]
-                w = res_hi[isrc].peak_params[i][2]
-                a = res_hi[isrc].peak_params[i][1]
+            for i in range(0,len(res_hi[isrc].gaussian_params)):
+                c = res_hi[isrc].gaussian_params[i][0]
+                w = res_hi[isrc].gaussian_params[i][2]
+                a = res_hi[isrc].gaussian_params[i][1]
                 g_hi[isrc,:] = g_hi[isrc,:] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
             b = res_hi[isrc].aperiodic_params[0]
             e = res_hi[isrc].aperiodic_params[1]

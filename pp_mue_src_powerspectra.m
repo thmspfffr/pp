@@ -6,17 +6,17 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-%v = 1;
-%freqoi    = 2.^(1:(1/4):7);
-%win_len = 1600;
-%lag = 0;
+% v = 1;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 1600;
+% lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-v = 2;
-freqoi    = 2.^(1:(1/4):7);
-win_len = 800;
-lag = 1;
+% v = 2;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 800;
+% lag = 1;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/

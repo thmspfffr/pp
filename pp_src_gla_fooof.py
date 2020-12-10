@@ -48,11 +48,11 @@ for isubj in range (0, 25):
         aperiodic = np.zeros([2,np.shape(dat['pxx'])[1],2])
 
         fm.fit(freqs, np.transpose(first_half), freq_range)
-        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_lo_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
+        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_lo_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=True,save_data=True);
 
         fm.fit(freqs, np.transpose(second_half), freq_range)
-        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_me_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
+        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_me_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=True,save_data=True);
   
         fm.fit(freqs, np.transpose(third_half), freq_range)
-        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_hi_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=False,save_data=True);
+        fm.save('/home/tpfeffer/pp/proc/src/pp_gla_fooof_result_hi_s%d_b%d_v%d' % (isubj,iblock,v),save_results=True, save_settings=True,save_data=True);
 
