@@ -31,6 +31,8 @@ ft_defaults
 outdir = '~/pp/proc/src/';
 ord    = pconn_randomization;
 
+addpath ~/pp/matlab
+trans = pp_transfer_gla2hh;
 %%
 % -------------------------
 for isubj = 1:24
@@ -162,7 +164,7 @@ for isubj = 1:24
     for iseg = 1 : nseg
         fprintf('%d / %d\n',iseg,nseg)
         seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
-        
+        seg_dat = seg_dat(:,trans);
         if any(isnan(seg_dat(:,1)))
 %             pxx(:,:,iseg) = nan(size(fxx,1),size(tp_filt,2));
             pup(iseg) = nan;

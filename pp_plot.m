@@ -1527,20 +1527,20 @@ for isubj = 1: length(SUBJLIST)
 end
 
 
-% SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
-% slp_mue = nan(75,3,length(SUBJLIST),1);
-% for isubj = 1: length(SUBJLIST)
-%   isubj
-%   for iblock = 1 : 1
-%       load(sprintf('~/pp/proc/src/pp_mue_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
-%       slp_mue(:,:,1,isubj,iblock) = nanmean(g_lo,1);
-%       slp_mue(:,:,2,isubj,iblock) = nanmean(g_me,1);
-%       slp_mue(:,:,3,isubj,iblock) = nanmean(g_hi,1);
+SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
+slp_mue = nan(75,3,length(SUBJLIST),1);
+for isubj = 1: length(SUBJLIST)
+  isubj
+  for iblock = 1 : 1
+      load(sprintf('~/pp/proc/src/pp_mue_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+      slp_mue(:,1,isubj,iblock) = nanmean(g_lo,1);
+      slp_mue(:,2,isubj,iblock) = nanmean(g_me,1);
+      slp_mue(:,3,isubj,iblock) = nanmean(g_hi,1);
 %       aper_mue(1,isubj,iblock)= nanmean(aper_lo(2,:),2);
 %       aper_mue(2,isubj,iblock)= nanmean(aper_me(2,:),2);
 %       aper_mue(3,isubj,iblock)= nanmean(aper_hi(2,:),2);
-%   end
-% end
+  end
+end
 
 ff = 3:0.5:40;
 % PLOT
@@ -1610,6 +1610,74 @@ line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
 tp_editplots; ylabel('Diff. in slope'); xlabel('Region')
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_fooof_summary_v%d.pdf',v))
+
+%% CORRELATIONS
+d = pow_hi_hh-pow_lo_hh;
+idx = ~isnan(pow_lo_hh(:,1,1));
+for isubj = 1 : 28
+  tmp1=d(idx,:,isubj);
+  tmp2=d(idx,:,isubj);
+
+  r(:,:,isubj)=corr(tmp1',tmp2');
+  
+end
+
+h=ttest(r,zeros(size(r)),'dim',3);
+
+figure_w; 
+subplot(3,2,1);
+imagesc(nanmean(r,3),[-0.5 0.5]); colormap(cmap); axis square
+subplot(3,2,2);
+imagesc(nanmean(r,3).*h,[-0.5 0.5]); colormap(cmap); axis  square
+
+d = pow_hi_gla-pow_lo_gla;
+idx = ~isnan(pow_lo_hh(:,1,1));
+for isubj = 1 : 22
+  tmp1=d(idx,:,isubj);
+  tmp2=d(idx,:,isubj);
+
+  r(:,:,isubj)=corr(tmp1',tmp2');
+  
+end
+
+h=ttest(r,zeros(size(r)),'dim',3);
+
+subplot(3,2,3);
+imagesc(nanmean(r,3),[-0.5 0.5]); colormap(cmap); axis square
+subplot(3,2,4);
+imagesc(nanmean(r,3).*h,[-0.5 0.5]); colormap(cmap); axis  square
+
+d1 = pow_hi_hh-pow_lo_hh;
+d2 = pow_hi_gla-pow_lo_gla;
+d = cat(3,d1,d2);
+
+idx = ~isnan(pow_lo_hh(:,1,1));
+for isubj = 1 : 50
+  tmp1=d(idx,:,isubj);
+  tmp2=d(idx,:,isubj);
+
+  r(:,:,isubj)=corr(tmp1',tmp2');
+  
+end
+
+[h,~,~,s]=ttest(r,zeros(size(r)),'dim',3);
+
+subplot(3,2,5);
+imagesc(nanmean(r,3),[-0.5 0.5]); colormap(cmap); axis square
+subplot(3,2,6);
+imagesc(nanmean(r,3).*h,[-0.5 0.5]); colormap(cmap); axis  square
+
+ffx = 2:0.5:128;
+ffx(ffx>48 & ffx<52) = [];
+ffx(ffx>98 & ffx<102) = [];
+figure_w; hold on
+
+plot(log10(ffx),100*sum(h>0&s.tstat<0)/239)
+plot(log10(ffx),100*sum(h>0&s.tstat>0)/239)
+tp_editplots
+
+set(gca,'xtick',log10(ffx([1,5,13,29,61,118,239])),'xticklabel',ffx([1,5,13,29,61,118,239]))
+xlabel('Frequency [Hz]'); ylabel ('Fraction of sign. correlations')
 %%
 pow_lo = nan(253,246,24,2);
 pow_hi = nan(253,246,24,2);
@@ -1645,12 +1713,12 @@ pow_lo_gla = nanmean(tmp_lo,4);
 pow_me_gla = nanmean(tmp_me,4);
 pow_hi_gla = nanmean(tmp_hi,4);
 
-figure_w;
-imagesc(fxx,1:246,dd,[-0.1 0.1])
-% set(gca,'xtick',freqoi(1:4:25),'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]'); ylabel('Brainnetome region'); tp_editplots
-colormap(cmap);
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_gla_powerspectrum_highlow_imagesc_v%d.pdf',v))
+% figure_w;
+% imagesc(fxx,1:246,dd,[-0.1 0.1])
+% % set(gca,'xtick',freqoi(1:4:25),'xticklabel',round(freqoi(1:4:25)))
+% xlabel('Frequency [Hz]'); ylabel('Brainnetome region'); tp_editplots
+% colormap(cmap);
+% print(gcf,'-dpdf',sprintf('~/pp/plots/pp_gla_powerspectrum_highlow_imagesc_v%d.pdf',v))
 
 %%
 
@@ -1692,15 +1760,15 @@ pow_lo_hh = nanmean(tmp_lo,4);
 pow_me_hh = nanmean(tmp_me,4);
 pow_hi_hh = nanmean(tmp_hi,4);
 
-dd = log10(nanmean(nanmean(pow_hi,4),3))'-log10(nanmean(nanmean(pow_lo,4),3))';
-save(sprintf('~/pp/proc/src/pp_hh_powerspectrum_highlow_v%d.mat',v),'dd')
-
-figure_w;
-imagesc(fxx,1:246,dd,[-0.1 0.1])
-% set(gca,'xtick',freqoi(1:4:25),'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]'); ylabel('Brainnetome region'); tp_editplots
-colormap(cmap);
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_hh_powerspectrum_highlow_imagesc_v%d.pdf',v))
+% dd = log10(nanmean(nanmean(pow_hi,4),3))'-log10(nanmean(nanmean(pow_lo,4),3))';
+% save(sprintf('~/pp/proc/src/pp_hh_powerspectrum_highlow_v%d.mat',v),'dd')
+% 
+% figure_w;
+% imagesc(fxx,1:246,dd,[-0.1 0.1])
+% % set(gca,'xtick',freqoi(1:4:25),'xticklabel',round(freqoi(1:4:25)))
+% xlabel('Frequency [Hz]'); ylabel('Brainnetome region'); tp_editplots
+% colormap(cmap);
+% print(gcf,'-dpdf',sprintf('~/pp/plots/pp_hh_powerspectrum_highlow_imagesc_v%d.pdf',v))
 
 
 %% 
@@ -1746,13 +1814,3 @@ set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Log-Power')
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_mue_powerspectrum_highlow_v%d.pdf',v))
-
-dd = log10(nanmean(nanmean(pow_hi,4),3))'-log10(nanmean(nanmean(pow_lo,4),3))';
-save(sprintf('~/pp/proc/src/pp_mue_powerspectrum_highlow_v%d.mat',v),'dd')
-
-figure_w;
-imagesc(fxx,1:246,dd,[-0.1 0.1])
-% set(gca,'xtick',freqoi(1:4:25),'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]'); ylabel('Brainnetome region'); tp_editplots
-colormap(cmap);
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_mue_powerspectrum_highlow_imagesc_v%d.pdf',v))

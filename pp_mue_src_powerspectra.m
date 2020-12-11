@@ -13,10 +13,10 @@ restoredefaultpath
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-% v = 2;
-% freqoi    = 2.^(1:(1/4):7);
-% win_len = 800;
-% lag = 1;
+v = 2;
+freqoi    = 2.^(1:(1/4):7);
+win_len = 800;
+lag = 1;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -37,6 +37,9 @@ for i = 1 : length(d)
   SUBJLIST = [SUBJLIST; d(i).name(end-7:end-4)];
 end
 
+
+addpath ~/pp/matlab/
+trans = pp_transfer_gla2hh;
 %%
 % -------------------------
 for isubj =1:size(SUBJLIST,1)
@@ -144,6 +147,7 @@ for isubj =1:size(SUBJLIST,1)
     for iseg = 1 : nseg
       fprintf('%d / %d\n',iseg,nseg)
       seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
+      seg_dat = seg_dat(:,trans);
       
       if any(isnan(seg_dat(:,1)))
         pup(iseg) = nan;
@@ -165,7 +169,7 @@ for isubj =1:size(SUBJLIST,1)
       end
     end
     
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','-v7.3')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     
     tp_parallel(fn,outdir,0)
     

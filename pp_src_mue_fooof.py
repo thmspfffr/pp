@@ -14,23 +14,14 @@ for isubj in range (1, 42):
 
         os.system('touch /home/tpfeffer/pp/proc/src/pp_mue_src_run_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
         try:
-            dat = {}
-            f = h5py.File('/home/tpfeffer/pp/proc/src/pp_mue_src_powerspectra_s%d_b%d_v%d.mat' % (isubj,iblock,v))
-            for k,vv in f.items():
-                dat[k] = np.array(vv)
-            del k, vv
+            dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_mue_src_powerspectra_s%d_b%d_v%d.mat' % (isubj,iblock,v))
         except:
             print("Error: File not found!")
             continue
 
         print('Processing S%d B%d ...' % (isubj,iblock))
 
-        dat['pxx'] = np.moveaxis(dat['pxx'],[0,1,2],[2,1,0])
-        dat['pup'] = np.moveaxis(dat['pup'],[0,1],[1,0])
-        dat['pup_df'] = np.moveaxis(dat['pup_df'],[0,1],[1,0])
-
         not_nan_idx  = np.isnan(dat['pxx'][1,1,:])==False
-
 
         dat['pxx'] = dat['pxx'][:,:,not_nan_idx]
         dat['pup'] = dat['pup'][:,not_nan_idx]
@@ -46,7 +37,7 @@ for isubj in range (1, 42):
         
         np.save('/home/tpfeffer/pp/proc/src/pp_src_mue_fooof_result_pupilmeans_s%d_b%d_v%d.npy' % (isubj,iblock,v),'pup_means')
 
-        first_half  = np.mean(dat['pxx'][:,:,0:int(np.floor(sorted.size/3))],axis=2) * 10**10
+        first_half  = np.mean(dat['pxx'][:,:,0:int(np.floor(sorted.size/3))],axis=2)
         second_half = np.mean(dat['pxx'][:,:,int(np.floor(sorted.size/3))+1:sorted.size-int(np.floor(sorted.size/3))],axis=2)
         third_half  = np.mean(dat['pxx'][:,:,sorted.size-int(np.floor(sorted.size/3))+1:],axis=2)
 
