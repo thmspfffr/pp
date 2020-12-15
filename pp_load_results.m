@@ -23,9 +23,14 @@ for n_subj = 1: length(SUBJ)
       plt_gla.corr_sens(:,:,n_subj)     = outp.sens_r;
       plt_gla.corr_src(:,:,n_subj)      = outp.src_r(trans,:);
       plt_gla.corr_src_df(:,:,n_subj)   = outp.src_r_df(trans,:);
-      plt_gla.sens_mi(:,:,n_subj)       = outp.sens_mi;
-      plt_gla.sens_mi0(:,:,n_subj)      = outp.sens_mi0;
+%       plt_gla.sens_mi(:,:,n_subj)       = outp.sens_mi;
+%       plt_gla.sens_mi0(:,:,n_subj)      = outp.sens_mi0;
       plt_gla.src_mi(:,:,n_subj)        = outp.src_mi;
+      for ifreq = 1 : 25
+        plt_gla.xcorr{ifreq}(:,:,n_subj)      = outp.xcorr{ifreq};
+        plt_gla.xcorr_df{ifreq}(:,:,n_subj)  	= outp.xcorr_df{ifreq};
+        plt_gla.xcorr_lags{ifreq}(:,:,n_subj)	= outp.xcorr_lags{ifreq};
+      end
       clear outp
     catch me
       warning('!!!')
@@ -33,8 +38,8 @@ for n_subj = 1: length(SUBJ)
       plt_gla.corr_sens(:,:,n_subj)     = nan(248,25);
       plt_gla.corr_src(:,:,n_subj)      = nan(8799,25);
       plt_gla.corr_src_df(:,:,n_subj)   = nan(8799,25); 
-      plt_gla.sens_mi(:,:,n_subj)       = nan(248,25);
-      plt_gla.sens_mi0(:,:,n_subj)      = nan(275,25);
+%       plt_gla.sens_mi(:,:,n_subj)       = nan(248,25);
+%       plt_gla.sens_mi0(:,:,n_subj)      = nan(248,25);
       plt_gla.src_mi(:,:,n_subj)        = nan(8799,25);
   end
 end
@@ -43,8 +48,19 @@ for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_gla.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src(BNA.tissue_5mm == igrid,:,:))));
   plt_gla.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_gla.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
   plt_gla.src_mi_BNA(igrid,:,:)    = mean(plt_gla.src_mi(BNA.tissue_5mm == igrid,:,:));
-
 end
+
+minmax_src=[min(BNA.centroids(:,2)) max(BNA.centroids(:,2))];
+ser = linspace(minmax_src(1),minmax_src(2),40);
+
+for i = 1 : size(ser,2)-1
+  idx = BNA.centroids(:,2)<ser(i+1) & BNA.centroids(:,2)>ser(i);
+  plt_gla.corr_src_BNA_ord(i,:,:) = nanmean(plt_gla.corr_src_BNA(idx,:,:),1);
+end
+
+% sort source level from anterior to posterior
+[~,ii]=sort(BNA.centroids(:,2));
+
 
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 for isubj = SUBJLIST
@@ -56,22 +72,23 @@ for isubj = SUBJLIST
       plt_hh.corr_sens(:,:,isubj,iblock)    = outp.sens_r;
       plt_hh.corr_src(:,:,isubj,iblock)     = outp.src_r;
       plt_hh.corr_src_df(:,:,isubj,iblock)  = outp.src_r_df;
-      plt_hh.sens_mi(:,:,isubj,iblock)      = outp.sens_mi;
-      plt_hh.sens_mi0(:,:,isubj,iblock)     = outp.sens_mi0;
+%       plt_hh.sens_mi(:,:,isubj,iblock)      = outp.sens_mi;
+%       plt_hh.sens_mi0(:,:,isubj,iblock)     = outp.sens_mi0;
       plt_hh.src_mi(:,:,isubj,iblock)       = outp.src_mi;
-%       for ifreq = 1 : 25
-%         plt_hh.xcorr{ifreq}(:,:,isubj,iblock)          = outp.xcorr{ifreq};
-%         plt_hh.xcorr_df{ifreq}(:,:,,isubj,iblock)       = outp.xcorr_df{ifreq};
-%       end
+      for ifreq = 1 : 25
+        plt_hh.xcorr{ifreq}(:,:,isubj,iblock)       = outp.xcorr{ifreq};
+        plt_hh.xcorr_df{ifreq}(:,:,isubj,iblock)  	= outp.xcorr_df{ifreq};
+        plt_hh.xcorr_lags{ifreq}(:,:,isubj,iblock)	= outp.xcorr_lags{ifreq};
+      end
       clear outp
     catch me
       warning('!!!')
       plt_hh.pow_sens(:,:,isubj,iblock)     = nan(275,25,1,1);
       plt_hh.corr_sens(:,:,isubj,iblock)    = nan(275,25,1,1);
       plt_hh.corr_src(:,:,isubj,iblock)     = nan(8799,25);
-      plt_hh.corr_src_df(:,:,isubj)         = nan(8799,25);
+%       plt_hh.corr_src_df(:,:,isubj)         = nan(8799,25);
       plt_hh.sens_mi(:,:,isubj,iblock)      = nan(275,25,1,1);
-      plt_hh.sens_mi0(:,:,isubj,iblock)     = nan(275,25,1,1);
+%       plt_hh.sens_mi0(:,:,isubj,iblock)     = nan(275,25,1,1);
       plt_hh.src_mi(:,:,isubj,iblock)       = nan(8799,25);
       continue
     end
@@ -93,6 +110,14 @@ for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_hh.src_mi_BNA(igrid,:,:)    = mean(plt_hh.src_mi(BNA.tissue_5mm == igrid,:,:));
 end
 
+minmax_src=[min(BNA.centroids(:,2)) max(BNA.centroids(:,2))];
+ser = linspace(minmax_src(1),minmax_src(2),40);
+
+for i = 1 : size(ser,2)-1
+  idx = BNA.centroids(:,2)<ser(i+1) & BNA.centroids(:,2)>ser(i);
+  plt_hh.corr_src_BNA_ord(i,:,:) = nanmean(plt_hh.corr_src_BNA(idx,:,:),1);
+end
+
 for isubj = SUBJLIST
   fprintf('Hamburg CNT: Subj%d\n',isubj)
   for iblock = 1 : 2
@@ -105,10 +130,11 @@ for isubj = SUBJLIST
       plt_hh_cnt.sens_mi(:,:,isubj,iblock)      = outp.sens_mi;
       plt_hh_cnt.sens_mi0(:,:,isubj,iblock)     = outp.sens_mi0;
       plt_hh_cnt.src_mi(:,:,isubj,iblock)       = outp.src_mi;
-%       for ifreq = 1 : 25
-%         plt_hh.xcorr{ifreq}(:,:,isubj,iblock)          = outp.xcorr{ifreq};
-%         plt_hh.xcorr_df{ifreq}(:,:,,isubj,iblock)       = outp.xcorr_df{ifreq};
-%       end
+      for ifreq = 1 : 25
+        plt_hh.xcorr{ifreq}(:,:,isubj,iblock)       = outp.xcorr{ifreq};
+        plt_hh.xcorr_df{ifreq}(:,:,isubj,iblock)    = outp.xcorr_df{ifreq};
+        plt_hh.xcorr_lags{ifreq}(:,:,isubj,iblock)	= outp.xcorr_lags{ifreq};
+      end
       clear outp
     catch me
       warning('!!!')
@@ -139,6 +165,11 @@ for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_hh_cnt.src_mi_BNA(igrid,:,:)    = mean(plt_hh_cnt.src_mi(BNA.tissue_5mm == igrid,:,:));
 end
 
+for i = 1 : size(ser,2)-1
+  idx = BNA.centroids(:,2)<ser(i+1) & BNA.centroids(:,2)>ser(i);
+  plt_hh_cnt.corr_src_BNA_ord(i,:,:) = nanmean(plt_hh_cnt.corr_src_BNA(idx,:,:),1);
+end
+
 % LOAD MUENSTER DATA
 % ----------------------------
 % list = [10 17 19 22 27 35  40]
@@ -157,10 +188,11 @@ for n_subj = 1:length(SUBJLIST)
       plt_mue.sens_mi(:,:,n_subj)      = outp.sens_mi;
       plt_mue.src_mi(:,:,n_subj)       = outp.src_mi;
       plt_mue.sens_mi0(:,:,n_subj)     = outp.sens_mi0;
-%       for ifreq = 1 : 25
-%         plt_mue.xcorr{ifreq}(:,:,i)    = outp.xcorr{ifreq};
-%         plt_mue.xcorr_df{ifreq}(:,:,i) = outp.xcorr_df{ifreq};
-%       end
+      for ifreq = 1 : 25
+        plt_mue.xcorr{ifreq}(:,:,i)       = outp.xcorr{ifreq};
+        plt_mue.xcorr_df{ifreq}(:,:,i)    = outp.xcorr_df{ifreq};
+        plt_mue.xcorr_lags{ifreq}(:,:,i)  = outp.xcorr_lags{ifreq};
+      end
       clear outp
     catch me
       warning('!!!')
@@ -181,6 +213,11 @@ for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_mue.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src(BNA.tissue_5mm == igrid,:,:))));
   plt_mue.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
   plt_mue.src_mi_BNA(igrid,:,:)    = mean(plt_mue.src_mi(BNA.tissue_5mm == igrid,:,:));
+end
+
+for i = 1 : size(ser,2)-1
+  idx = BNA.centroids(:,2)<ser(i+1) & BNA.centroids(:,2)>ser(i);
+  plt_mue.corr_src_BNA_ord(i,:,:) = nanmean(plt_mue.corr_src_BNA(idx,:,:),1);
 end
 
 % SENSOR LEVEL: SORTED BY SENSOR POSITION 
@@ -247,6 +284,7 @@ plt_all.corr_src = cat(3,plt_hh.corr_src,plt_gla.corr_src,plt_mue.corr_src);
 plt_all.corr_src_BNA = cat(3,plt_hh.corr_src_BNA,plt_gla.corr_src_BNA,plt_mue.corr_src_BNA);
 plt_all.corr_src_df = cat(3,plt_hh.corr_src_df,plt_gla.corr_src_df,plt_mue.corr_src_df);
 plt_all.corr_src_df_BNA = cat(3,plt_hh.corr_src_df_BNA,plt_gla.corr_src_df_BNA,plt_mue.corr_src_df_BNA);
+
 
 
 
