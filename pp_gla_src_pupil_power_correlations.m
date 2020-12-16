@@ -212,8 +212,8 @@ for isubj = SUBJLIST
         [tmp_xcorr(:,isens),lags] = xcorr(tmp_pup,tmp_env,nlags,'coeff');
         [tmp_xcorr_df(:,isens),lags] = xcorr(tmp_pup_df,tmp_env,nlags,'coeff');
       end
-      outp.xcorr{ifreq}(:,outp.chanidx>0) = tmp_xcorr(:,outp.chanidx(outp.chanidx>0));
-      outp.xcorr_df{ifreq}(:,outp.chanidx>0) = tmp_xcorr_df(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr{ifreq}(:,outp.chanidx>0) = tmp_xcorr;
+      outp.xcorr_df{ifreq}(:,outp.chanidx>0) = tmp_xcorr_df;
       lags = lags*(opt.n_shift/f_sample);
       outp.xcorr_lags{ifreq} = lags;
       

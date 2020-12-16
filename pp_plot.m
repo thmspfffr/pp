@@ -14,7 +14,7 @@ ft_defaults
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 2
+v = 1
 
 [plt_gla,plt_hh,plt_mue,plt_hh_cnt,plt_all]=pp_load_results(v);
 
@@ -765,24 +765,11 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cols = cbrewer('seq', 'Oranges', 45,'pchip');
 cols = cols(1:end-15,:); cols=cols(end:-1:1,:);
 
-v=1
-SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
-i = 0;
-for isubj = SUBJLIST
-  i = i + 1; i
-  load(sprintf('/home/tpfeffer/pp/proc/src/pp_mue_src_pupil_power_correlations_s%d_b1_v%d.mat',isubj,v));
-  
-  for ifreq = 1 : 25
-    mue.xcorr{ifreq}(:,i) =  nanmean(outp.xcorr{ifreq},2);
-    mue.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
-  end
-end
-
 figure; set(gcf,'color','w') ;
 subplot(2,2,3); hold on; title('Muenster')
 
 for ifreq = 1 : 25
-  plot(outp.xcorr_lags{ifreq},nanmean(mue.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  plot(plt_mue.xcorr_lags{ifreq},nanmean(plt_mue.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
 
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
@@ -792,21 +779,11 @@ line([0.52 0.52],[-0.06 0.04],'color','k')
 
 cols = cbrewer('seq', 'Reds', 35,'pchip');
 cols = cols(1:end-5,:); cols=cols(end:-1:1,:);
-v=1; SUBJLIST = 1:24; SUBJLIST([5,9])=[];
-i = 0;
-for isubj = SUBJLIST
-  i = i + 1;
-  load(sprintf('/home/tpfeffer/pp/proc/src/pp_gla_src_pupil_power_correlations_s%d_b1_v%d.mat',isubj,v));
-  for ifreq = 1 : 25
-    gla.xcorr{ifreq}(:,i) =  nanmean(outp.xcorr{ifreq},2);
-    gla.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
-  end
-end
 
 subplot(2,2,1); hold on; title('Glasgow')
 
 for ifreq = 1 : 25
-  plot(outp.xcorr_lags{ifreq},nanmean(gla.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  plot(plt_gla.xcorr_lags{ifreq},nanmean(plt_gla.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
 
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
@@ -816,37 +793,11 @@ line([0.52 0.52],[-0.06 0.04],'color','k')
 
 cols = cbrewer('seq', 'Blues', 35,'pchip');
 cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
-v=1
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-i = 0;
-for isubj = SUBJLIST
-  i = i + 1;
-  d = dir(sprintf('/home/tpfeffer/pp/proc/src/pp_src_pupil_power_correlations_s%d_b*_v%d.mat',isubj,v));
-  if length(d)==1
-    load([d(1).folder '/' d(1).name])
-    for ifreq = 1 : 25
-      hh.xcorr{ifreq}(:,i)    =  nanmean(outp.xcorr{ifreq},2);
-      hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
-    end
-  else
-    load([d(1).folder '/' d(1).name])
-    for ifreq = 1 : 25
-      hh.xcorr{ifreq}(:,i)    =  nanmean(outp.xcorr{ifreq},2)./2;
-      hh.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2)./2;
-    end
-    load([d(2).folder '/' d(2).name])
-    for ifreq = 1 : 25
-      hh.xcorr{ifreq}(:,i)    = hh.xcorr{ifreq}(:,i)+ nanmean(outp.xcorr{ifreq},2)./2;
-      hh.xcorr_df{ifreq}(:,i) = hh.xcorr_df{ifreq}(:,i)+nanmean(outp.xcorr_df{ifreq},2)./2;
-    end
-  end
-end
-% figure; set(gcf,'color','w') ;
 
 subplot(2,2,2); hold on; title('Hamburg')
 
 for ifreq = 1 : 25
-  plot(outp.xcorr_lags{ifreq},nanmean(hh.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  plot(plt_hh.xcorr_lags{ifreq},nanmean(plt_hh.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
 tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
@@ -856,15 +807,14 @@ line([0.52 0.52],[-0.06 0.04],'color','k')
 cols = cbrewer('seq', 'Greys', 35,'pchip');
 cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 for ifreq = 1 : 25
-  all.xcorr{ifreq}=cat(2,gla.xcorr{ifreq},mue.xcorr{ifreq},hh.xcorr{ifreq});
-  all.xcorr_df{ifreq}=cat(2,gla.xcorr_df{ifreq},mue.xcorr_df{ifreq},hh.xcorr_df{ifreq});
+  all.xcorr{ifreq}=cat(2,plt_gla.xcorr{ifreq},plt_mue.xcorr{ifreq},plt_hh.xcorr{ifreq});
+  all.xcorr_df{ifreq}=cat(2,plt_gla.xcorr_df{ifreq},plt_mue.xcorr_df{ifreq},plt_hh.xcorr_df{ifreq});
 end
 
 subplot(2,2,4); hold on; title('Pooled')
 
 for ifreq = 1 : 25
-  plot(outp.xcorr_lags{ifreq},nanmean(all.xcorr_df{ifreq},2),'color',cols(ifreq,:))
-  
+  plot(plt_mue.xcorr_lags{ifreq},nanmean(all.xcorr_df{ifreq},2),'color',cols(ifreq,:))
 end
 
 axis([-5 5 -0.06 0.04])

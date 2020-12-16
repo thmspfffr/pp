@@ -7,15 +7,15 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-freqoi    = 2.^(1:(1/4):7);
-lag = 0;
+% v = 1;
+% freqoi    = 2.^(1:(1/4):7);
+% lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-% v = 2;
-% freqoi    = 2.^(1:(1/4):7);
-% lag = 1;
+v = 2;
+freqoi    = 2.^(1:(1/4):7);
+lag = 1;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -190,9 +190,9 @@ for isubj = 1:size(SUBJLIST,1)
         [outp.xcorr{ifreq}(:,isens),lags] = xcorr(tmp_pup(idx),tmp_env(:,isens),nlags,'coeff');
         [outp.xcorr_df{ifreq}(:,isens),lags] = xcorr(tmp_pup_df(idx),tmp_env(:,isens),nlags,'coeff');
       end
-      outp.xcorr{ifreq}(:,outp.chanidx>0) = outp.xcorr{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr{ifreq}(:,outp.chanidx>0) = outp.xcorr{ifreq};
       outp.xcorr{ifreq}(:,outp.chanidx==0)= nan;
-      outp.xcorr_df{ifreq}(:,outp.chanidx>0) = outp.xcorr_df{ifreq}(:,outp.chanidx(outp.chanidx>0));
+      outp.xcorr_df{ifreq}(:,outp.chanidx>0) = outp.xcorr_df{ifreq};
       outp.xcorr_df{ifreq}(:,outp.chanidx==0)= nan;
       
       lags=lags*(opt.n_shift/f_sample);

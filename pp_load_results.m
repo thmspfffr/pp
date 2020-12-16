@@ -177,7 +177,6 @@ for n_subj = 1:length(SUBJLIST)
   end
   clear outp
 end
-end
 
 for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_mue.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_mue.corr_src(BNA.tissue_5mm == igrid,:,:))));
