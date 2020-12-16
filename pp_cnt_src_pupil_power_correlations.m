@@ -39,9 +39,9 @@ for isubj = SUBJLIST
   for iblock = 1:2
 %     
     fn = sprintf('pp_cnt_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
 % %     
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
