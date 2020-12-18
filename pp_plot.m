@@ -761,6 +761,15 @@ set(gcf,'renderer','painters')
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_src_corr_sourcemap_avg_f%df%d_v%d.tiff',min(ifoi),max(ifoi),v))
 
 %% PLOT CROSS CORRELATION
+
+is_dt = 1;
+
+if is_dt==1
+  line_x = 0;
+else
+  line_x = 0.93;
+end
+
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cols = cbrewer('seq', 'Oranges', 45,'pchip');
 cols = cols(1:end-15,:); cols=cols(end:-1:1,:);
@@ -769,13 +778,17 @@ figure; set(gcf,'color','w') ;
 subplot(2,2,3); hold on; title('Muenster')
 
 for ifreq = 1 : 25
-  plot(plt_mue.xcorr_lags{ifreq},nanmean(plt_mue.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  lags = plt_mue.xcorr_lags{ifreq};
+  if is_dt == 0 
+    plot(lags,nanmean(nanmean(plt_mue.xcorr{ifreq},2),3),'color',cols(ifreq,:))
+  else
+    plot(lags,nanmean(nanmean(plt_mue.xcorr_df{ifreq},2),3),'color',cols(ifreq,:))
+  end
 end
 
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
 tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-line([0.93 0.93],[-0.06 0.04],'color','k')
-line([0.52 0.52],[-0.06 0.04],'color','k')
+line([line_x line_x],[-0.06 0.04],'color','k')
 
 cols = cbrewer('seq', 'Reds', 35,'pchip');
 cols = cols(1:end-5,:); cols=cols(end:-1:1,:);
@@ -783,13 +796,17 @@ cols = cols(1:end-5,:); cols=cols(end:-1:1,:);
 subplot(2,2,1); hold on; title('Glasgow')
 
 for ifreq = 1 : 25
-  plot(plt_gla.xcorr_lags{ifreq},nanmean(plt_gla.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  lags = plt_gla.xcorr_lags{ifreq};
+  if is_dt == 0 
+    plot(lags,nanmean(nanmean(plt_gla.xcorr{ifreq},2),3),'color',cols(ifreq,:))
+  else
+    plot(lags,nanmean(nanmean(plt_gla.xcorr_df{ifreq},2),3),'color',cols(ifreq,:))
+  end
 end
 
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
 tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-line([0.93 0.93],[-0.06 0.04],'color','k')
-line([0.52 0.52],[-0.06 0.04],'color','k')
+line([line_x line_x],[-0.06 0.04],'color','k')
 
 cols = cbrewer('seq', 'Blues', 35,'pchip');
 cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
@@ -797,34 +814,157 @@ cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 subplot(2,2,2); hold on; title('Hamburg')
 
 for ifreq = 1 : 25
-  plot(plt_hh.xcorr_lags{ifreq},nanmean(plt_hh.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  lags = squeeze(plt_hh.xcorr_lags{ifreq});
+  if is_dt == 0 
+    plot(lags,nanmean(nanmean(plt_hh.xcorr{ifreq},2),3),'color',cols(ifreq,:))
+  else
+    plot(lags,nanmean(nanmean(plt_hh.xcorr_df{ifreq},2),3),'color',cols(ifreq,:))
+  end
 end
 axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
 tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-line([0.93 0.93],[-0.06 0.04],'color','k')
-line([0.52 0.52],[-0.06 0.04],'color','k')
+line([line_x line_x],[-0.06 0.04],'color','k')
 
 cols = cbrewer('seq', 'Greys', 35,'pchip');
 cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 for ifreq = 1 : 25
-  all.xcorr{ifreq}=cat(2,plt_gla.xcorr{ifreq},plt_mue.xcorr{ifreq},plt_hh.xcorr{ifreq});
-  all.xcorr_df{ifreq}=cat(2,plt_gla.xcorr_df{ifreq},plt_mue.xcorr_df{ifreq},plt_hh.xcorr_df{ifreq});
+  all.xcorr{ifreq}=cat(2,squeeze(nanmean(plt_gla.xcorr{ifreq},2)),squeeze(nanmean(plt_mue.xcorr{ifreq},2)),squeeze(nanmean(plt_hh.xcorr{ifreq},2)));
+  all.xcorr_df{ifreq}=cat(2,squeeze(nanmean(plt_gla.xcorr_df{ifreq},2)),squeeze(nanmean(plt_mue.xcorr_df{ifreq},2)),squeeze(nanmean(plt_hh.xcorr_df{ifreq},2)));
 end
 
 subplot(2,2,4); hold on; title('Pooled')
 
 for ifreq = 1 : 25
-  plot(plt_mue.xcorr_lags{ifreq},nanmean(all.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  if is_dt == 0 
+    plot(plt_mue.xcorr_lags{ifreq},nanmean(all.xcorr{ifreq},2),'color',cols(ifreq,:))
+  else
+    plot(plt_mue.xcorr_lags{ifreq},nanmean(all.xcorr_df{ifreq},2),'color',cols(ifreq,:))
+  end
 end
 
 axis([-5 5 -0.06 0.04])
 xlabel('Lag [s]'); ylabel('Correlation coeff.');
 tp_editplots
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-line([0.93 0.93],[-0.06 0.04],'color','k')
-line([0.52 0.52],[-0.06 0.04],'color','k')
+line([line_x line_x],[-0.06 0.04],'color','k')
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_df_allfreqs_v%d.pdf',v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_allfreqs_v%d.pdf',is_dt,v))
+
+%% ORDERED XCORR (FRON ANTERIOR TO POSTERIOR)
+
+is_dt = 1;
+
+if is_dt==1
+  line_x = 0;
+else
+  line_x = 0.93;
+end
+
+cols = cbrewer('seq', 'Greys', 35,'pchip');
+cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
+for ifreq = 1 : 25
+  all.xcorr_df_ord{ifreq}=cat(3,plt_gla.xcorr_df_ord{ifreq},plt_mue.xcorr_df_ord{ifreq},plt_hh.xcorr_df_ord{ifreq});
+  all.xcorr_ord{ifreq}=cat(3,plt_gla.xcorr_ord{ifreq},plt_mue.xcorr_ord{ifreq},plt_hh.xcorr_ord{ifreq});
+end
+
+
+figure_w
+subplot(2,3,1); hold on
+
+i = 0; clear sig
+for ifreq = 2:4
+  i = i + 1;
+  if task
+    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{4},1)));
+  else
+    if is_dt==0
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
+    else
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
+    end
+  end
+end
+
+[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
+imagesc(plt_hh.xcorr_lags{4},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.05 0.05])
+set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
+tp_editplots; colormap(cmap)
+
+axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
+line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
+
+subplot(2,3,2); hold on
+
+i = 0; clear sig
+for ifreq = 9:11
+  i = i + 1;
+  if task
+    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{11},1)));
+  else
+    if is_dt==0
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
+    else
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
+    end
+  end
+end
+
+[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
+imagesc(plt_hh.xcorr_lags{11},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.05 0.05])
+set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
+tp_editplots; colormap(cmap)
+
+axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
+line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
+
+
+subplot(2,3,4); hold on
+
+i = 0; clear sig
+for ifreq = 12:14
+  i = i + 1;
+  if task
+    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{14},1)));
+  else
+    if is_dt==0
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
+    else
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
+    end
+  end
+end
+
+[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
+imagesc(plt_hh.xcorr_lags{14},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.05 0.05])
+set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
+tp_editplots; colormap(cmap)
+axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
+line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
+
+subplot(2,3,5); hold on
+
+i = 0; clear sig
+for ifreq = 21:24
+  i = i + 1;
+  if task
+    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{24},1)));
+  else
+    if is_dt==0
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
+    else
+      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
+    end
+  end
+end
+
+[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
+imagesc(plt_hh.xcorr_lags{24},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.02 0.02])
+set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
+tp_editplots; colormap(cmap)
+axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
+line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_freqsoi_across_sensors_v%d.pdf',is_dt,v))
 
 %% XCORR FOR SELECTED FREQUENCIES
 task = 0;
@@ -841,51 +981,51 @@ figure_w
 subplot(2,2,1); hold on
 
 i = 0; clear sig
-for ifreq = 1:4
+for ifreq = 2:4
     i = i + 1;
        if task
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{5},1)));
+        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{4},1)));
        else
-        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{5},1)));
+        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{4},1)));
    end
 end
     
 [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
 
 sig = zscore(nanmean(nanmean(sig,2),3));
-[i,j]= min(sig); lag = outp.xcorr_lags{5}(j);
+[i,j]= min(sig); lag = outp.xcorr_lags{4}(j);
 lag
-plot(outp.xcorr_lags{5},sig,'color',cols(1,:))
+plot(outp.xcorr_lags{4},sig,'color',cols(1,:))
 
 for i = 1 : length(c)
     if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{5}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(5,:));
+    plot(outp.xcorr_lags{4}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(4,:));
 end
-line([lag lag],[i 0],'color',cols(1,:))
+line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
 
 i = 0; clear sig
-for ifreq = 11:13
+for ifreq = 9:11
     i = i + 1;
     if task
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{14},1)));
+        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{11},1)));
     else
-        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{14},1)));
+        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{11},1)));
     end
 end
 
 [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
 
 sig = zscore(nanmean(nanmean(sig,2),3));
-[i,j]= max(sig); lag = outp.xcorr_lags{14}(j);
+[i,j]= max(sig); lag = outp.xcorr_lags{11}(j);
 
-plot(outp.xcorr_lags{14},sig,'color',cols(14,:))
+plot(outp.xcorr_lags{11},sig,'color',cols(11,:))
 for i = 1 : length(c)
     if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{14}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(14,:));
+    plot(outp.xcorr_lags{11}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(11,:));
 end
 axis([-5 5 -6 4]);xlabel('Lag [s]'); ylabel('Correlation coeff. (z-scored)');
 tp_editplots;
-line([lag lag],[0 i],'color',cols(14,:))
+line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
 lag
 line([0 0],[-6 4],'color',[.8 .8 .8],'linestyle',':')
 line([-5 5],[0 0],'color',[0.8 .8 .8],'linestyle',':')
@@ -894,25 +1034,24 @@ i = 0; clear sig
 for ifreq = 21:24
     i = i + 1;
     if task 
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{25},1)));
+        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{24},1)));
     else
-        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{25},1)));
+        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{24},1)));
     end
 end
 
 [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
 
 sig = zscore(nanmean(nanmean(sig,2),3));
-[i,j]= max(sig); lag = outp.xcorr_lags{25}(j);
-plot(outp.xcorr_lags{25},sig,'color',cols(25,:))
+[i,j]= max(sig); lag = outp.xcorr_lags{24}(j);
+plot(outp.xcorr_lags{24},sig,'color',cols(24,:))
 for i = 1 : length(c)
     if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{25}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(25,:));
+    plot(outp.xcorr_lags{24}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(24,:));
 end
-line([lag lag],[0 i],'color',cols(25,:))
 lag
-[i,j]= max(sig(1:find(outp.xcorr_lags{25}<0.85,1,'last'))); lag = outp.xcorr_lags{25}(j);
-line([lag lag],[0 i],'color',cols(25,:))
+[i,j]= max(sig(1:find(outp.xcorr_lags{24}<0.85,1,'last'))); lag = outp.xcorr_lags{24}(j);
+line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
 lag
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 
@@ -928,16 +1067,16 @@ for ifreq = 21:24
     end
 end
 
-[c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
+% [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
 
 sig = zscore(nanmean(nanmean(sig,2),3));
     
 subplot(2,2,2); hold on
 plot(outp.xcorr_lags{25},sig,'color',cols(25,:))
-for i = 1 : length(c)
-    if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{25}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(25,:));
-end
+% for i = 1 : length(c)
+%     if p(i)>0.05; continue; end
+%     plot(outp.xcorr_lags{25}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(25,:));
+% end
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 
 clear sig
@@ -952,15 +1091,15 @@ for ifreq = 1:4
     end
 end
 
-[c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
+% [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
 
 sig = zscore(nanmean(nanmean(sig,2),3));
 
 plot(outp.xcorr_lags{5},sig,'color',cols(1,:))
-for i = 1 : length(c)
-    if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{5}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(5,:));
-end
+% for i = 1 : length(c)
+%     if p(i)>0.05; continue; end
+%     plot(outp.xcorr_lags{5}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(5,:));
+% end
 clear sig
 
 i = 0; 
@@ -972,17 +1111,19 @@ for ifreq = 11:13
     sig(:,:,i) = interp1(1:size(all.xcorr_df{ifreq},1),all.xcorr_df{ifreq},linspace(1,size(all.xcorr_df{ifreq},1),size(all.xcorr_df{14},1)));
     end
 end
-[c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
+% [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
 
 sig = zscore(nanmean(nanmean(sig,2),3));
     
 plot(outp.xcorr_lags{14},sig,'color',cols(14,:))
-for i = 1 : length(c)
-    if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{14}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(14,:));
-end
+% for i = 1 : length(c)
+%     if p(i)>0.05; continue; end
+%     plot(outp.xcorr_lags{14}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(14,:));
+% end
 axis([-5 5 -6 4]);xlabel('Lag [s]'); ylabel('Correlation coeff. (z-scored)');
 tp_editplots; 
+line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
+
 line([0 0],[-6 4],'color',[.8 .8 .8],'linestyle',':')
 line([-5 5],[0 0],'color',[0.8 .8 .8],'linestyle',':')
 % cfg=[];
@@ -993,6 +1134,47 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_pooledfreqs_v%d.pdf',v))
 else
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_pooledfreqs_v%d.pdf',v))
 end
+
+%% IMGAESC IN HEAD PLOT
+
+
+i = 0; clear sig
+for ifreq = 1 : 25
+  ifreq
+  i = i + 1;
+  if task
+    sig(:,:,ifreq) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{25},1)));
+  else
+    if is_dt==0
+      sig(:,:,:,ifreq) = interp1(1:size(plt_hh.xcorr{ifreq},1),plt_hh.xcorr{ifreq},linspace(1,size(plt_hh.xcorr{ifreq},1),size(plt_hh.xcorr{25},1)));
+    else
+      sig(:,:,:,ifreq) = interp1(1:size(plt_hh.xcorr_df{ifreq},1),plt_hh.xcorr_df{ifreq},linspace(1,size(plt_hh.xcorr_df{ifreq},1),size(plt_hh.xcorr_df{25},1)));
+    end
+  end
+end
+
+sig = permute(sig,[2 1 3]);
+
+
+R=find(startsWith(lay.label(1:275),'MR')); R = R(1:2:end);
+L=find(startsWith(lay.label(1:275),'ML')); L = L(1:2:end);
+[~,i1]=min(abs(plt_hh.xcorr_lags{25}-(-2)))
+[~,i2]=min(abs(plt_hh.xcorr_lags{25}-(2)))
+[~,z0] = min(abs(plt_hh.xcorr_lags{25}));
+
+cfg.channel = lay.label([R,L])
+
+sig(:,z0,:)=0;
+dummy_freq.powspctrm = sig(:,i1:i2,:);
+dummy_freq.time = i1:i2;
+% dummy_freq
+
+pars =[];
+pars.resolution= 50;
+% pars.scale  = [-0.08 0.08];
+idx = zeros(275,1); idx(1:4:end)=1;
+chan_idx =-1*ones(275,1); chan_idx(2:60:end)=5;
+tp_showtfinhead(sig,[chan_idx,lay.pos(1:275,:),10*ones(275,1),ones(275,1)],pars)
 %%
 
 cols = cbrewer('seq', 'Blues', 35,'pchip');
