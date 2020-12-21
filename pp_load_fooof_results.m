@@ -14,7 +14,7 @@ for isubj = 1: length(SUBJLIST)
       fooof.aper_hh(:,:,2,isubj,iblock)= aper_me;
       fooof.aper_hh(:,:,3,isubj,iblock)= aper_hi;
     catch me
-      fooof.slp_hh(:,:,:,isubj,iblock) = nan(246,75,3);
+      fooof.psfit_hh(:,:,:,1,isubj,iblock)= nan(246,75,3);
       fooof.aper_hh(:,:,:,isubj,iblock)  = nan(2,246,3);
       continue
     end
@@ -39,7 +39,7 @@ for isubj = 1: length(SUBJLIST)
 end
 
 
-SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
+SUBJLIST=1:41; SUBJLIST([4,10,12,17,19,22,27,35,38,39,40])=[];
 for isubj = 1: length(SUBJLIST)
   
   for iblock = 1 : 1

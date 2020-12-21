@@ -136,6 +136,7 @@ end
 
 for ifreq = 1: length(freqoi)
   plt_hh_cnt.xcorr{ifreq} = nanmean(plt_hh_cnt.xcorr{ifreq}(:,:,SUBJLIST,:),4);
+  plt_hh_cnt.xcorr_df{ifreq} = nanmean(plt_hh_cnt.xcorr_df{ifreq}(:,:,SUBJLIST,:),4);
 end
 
 plt_hh_cnt.pow_sens     = nanmean(plt_hh_cnt.pow_sens(:,:,SUBJLIST,:),4);

@@ -14,15 +14,15 @@ ft_defaults
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 1
+v = 2;
 
 [plt_gla,plt_hh,plt_mue,plt_hh_cnt,plt_all]=pp_load_results(v);
 
-colors = cbrewer('qual', 'Set3', 10,'pchip'); 
+colors = cbrewer('qual', 'Set3', 10,'pchip');
 colors = colors(4:6,:);
 
 %% PLOT MUTUAL INFORMATION
-freqoi=2.^(1:(1/4):7); 
+freqoi=2.^(1:(1/4):7);
 
 figure_w
 
@@ -59,7 +59,7 @@ xlabel('Frequency [Hz]')
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_MI_v%d.pdf',v))
 
-freqoi=2.^(1:(1/4):7); 
+freqoi=2.^(1:(1/4):7);
 
 tot_size = size(plt_mue.sens_mi,3)+size(plt_gla.sens_mi,3)+size(plt_hh.sens_mi,3);
 
@@ -83,7 +83,7 @@ axis([.3 2.11 0 0.007])
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
-subplot(4,3,2); hold on 
+subplot(4,3,2); hold on
 shadedErrorBar(log10(freqoi),par_hh,std_hh,{'color',colors(2,:)})
 axis([.3 2.11 0 0.0030])
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
@@ -114,30 +114,30 @@ set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_MI_lineplot_v%d.pdf',v))
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
-freqoi=2.^(1:(1/4):7); 
+freqoi=2.^(1:(1/4):7);
 
 figure_w
 
 subplot(2,3,1);
-imagesc(nanmean(plt_gla.corr_sens_ord(3:end,:,:),3),[-0.03 0.03])
+imagesc(nanmean(plt_gla.corr_sens_ord,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
 subplot(2,3,2);
-imagesc(nanmean(plt_hh.corr_sens_ord(3:end,:,:),3),[-0.03 0.03])
+imagesc(nanmean(plt_hh.corr_sens_ord,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
 subplot(2,3,3);
-imagesc(nanmean(plt_mue.corr_sens_ord(3:end,:,:),3),[-0.03 0.03])
+imagesc(nanmean(plt_mue.corr_sens_ord,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
 subplot(2,3,4);
-imagesc(nanmean(plt_hh_cnt.corr_sens_ord(3:end,:,:),3),[-0.03 0.03])
+imagesc(nanmean(plt_hh_cnt.corr_sens_ord,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
@@ -145,7 +145,7 @@ xlabel('Frequency [Hz]')
 pooled = cat(3,plt_hh.corr_sens_ord,plt_gla.corr_sens_ord,plt_mue.corr_sens_ord);
 
 subplot(2,3,5);
-imagesc(nanmean(pooled(3:end,:,:),3),[-0.03 0.03])
+imagesc(nanmean(pooled,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square;
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
@@ -154,19 +154,31 @@ xlabel('Frequency [Hz]')
 h = p<fdr1(p(:),0.05,0);
 
 subplot(2,3,6);
-imagesc(nanmean(pooled(3:end,:,:),3).*h(3:end,:),[-0.03 0.03])
+imagesc(nanmean(pooled,3).*h,[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square;
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_anterior_post_v%d.pdf',v))
 
+figure_w;
+% TASK VS REST
+[h,p]=ttest(plt_hh_cnt.corr_sens_ord,plt_hh.corr_sens_ord,'dim',3);
+% h = p<fdr1(p(:),0.05,1); 
+h = p < 0.01;
+par = nanmean(plt_hh_cnt.corr_sens_ord-plt_hh.corr_sens_ord,3);
+subplot(2,3,6);
+imagesc(par.*h,[-0.03 0.03])
+colormap(cmap); tp_editplots; axis square;
+set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]')
+
 %% PLOT AVERAGES ACROSS SPACE, HAMBURG, GLASGOW, ALL
 
 % -----------------
 % SENSOR SPACE - POWER
 % -----------------
-freqoi=2.^(1:(1/4):7); 
+freqoi=2.^(1:(1/4):7);
 
 tot_size = size(plt_mue.corr_sens,3)+size(plt_gla.corr_sens,3)+size(plt_hh.corr_sens,3);
 
@@ -260,7 +272,7 @@ set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_corr_lineplots_v%d.pdf',v))
 
 % -----------------
-% SOURCE SPACE: NORMAL PUPIL 
+% SOURCE SPACE: NORMAL PUPIL
 % -----------------
 
 figure_w
@@ -356,27 +368,32 @@ set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_derivative_lineplots_v%d.pdf',v))
 
-%% PLOT SOURCE SPACE 
+%% PLOT SOURCE SPACE
 
 [~,idx_sorted] = sort(BNA.centroids(:,2),'descend');
+%
+% idx_R = idx_sorted(contains(BNA.tissuelabel(idx_sorted),'Right'));
+% idx_L = idx_sorted(contains(BNA.tissuelabel(idx_sorted),'Left'));
+% %
+% idx_sorted = [idx_R idx_L];
 
 figure_w
 subplot(2,4,1)
-[h,p]=ttest(plt_gla.corr_src_BNA(idx_sorted,:,:),zeros(size(plt_gla.corr_src_BNA)),'dim',3); 
+[h,p]=ttest(plt_gla.corr_src_BNA(idx_sorted,:,:),zeros(size(plt_gla.corr_src_BNA)),'dim',3);
 imagesc(nanmean(plt_gla.corr_src_BNA(idx_sorted,:,:),3).*h,[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,4,2)
-[h,p]=ttest(plt_hh.corr_src_BNA(idx_sorted,:,:),zeros(size(plt_hh.corr_src_BNA)),'dim',3); 
+[h,p]=ttest(plt_hh.corr_src_BNA(idx_sorted,:,:),zeros(size(plt_hh.corr_src_BNA)),'dim',3);
 imagesc(nanmean(plt_hh.corr_src_BNA(idx_sorted,:,:),3).*h,[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,4,3)
-[h,p]=ttest(plt_mue.corr_src_BNA(idx_sorted,:,:),zeros(size(plt_mue.corr_src_BNA)),'dim',3); 
+[h,p]=ttest(plt_mue.corr_src_BNA(idx_sorted,:,:),zeros(size(plt_mue.corr_src_BNA)),'dim',3);
 imagesc(nanmean(plt_mue.corr_src_BNA(idx_sorted,:,:),3).*h,[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
@@ -384,7 +401,7 @@ xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,4,4)
 
-pooled= cat(3,plt_hh.corr_src_BNA(idx_sorted,:,:),plt_gla.corr_src_BNA(idx_sorted,:,:),plt_mue.corr_src_BNA(idx_sorted,:,:)); 
+pooled= cat(3,plt_hh.corr_src_BNA(idx_sorted,:,:),plt_gla.corr_src_BNA(idx_sorted,:,:),plt_mue.corr_src_BNA(idx_sorted,:,:));
 
 [~,p]=ttest(pooled,zeros(size(pooled)),'dim',3); h = p<fdr1(p(:),0.05,0);
 imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
@@ -393,21 +410,21 @@ set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,4,5)
-[h,p]=ttest(plt_gla.corr_src_df_BNA(idx_sorted,:,:),zeros(size(plt_gla.corr_src_BNA)),'dim',3); 
+[h,p]=ttest(plt_gla.corr_src_df_BNA(idx_sorted,:,:),zeros(size(plt_gla.corr_src_BNA)),'dim',3);
 imagesc(nanmean(plt_gla.corr_src_df_BNA(idx_sorted,:,:),3).*h,[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,4,6)
-[h,p]=ttest(plt_hh.corr_src_df_BNA(idx_sorted,:,:),zeros(size(plt_hh.corr_src_BNA)),'dim',3); 
+[h,p]=ttest(plt_hh.corr_src_df_BNA(idx_sorted,:,:),zeros(size(plt_hh.corr_src_BNA)),'dim',3);
 imagesc(nanmean(plt_hh.corr_src_df_BNA(idx_sorted,:,:),3).*h,[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,4,7)
-[h,p]=ttest(plt_mue.corr_src_df_BNA(idx_sorted,:,:),zeros(size(plt_mue.corr_src_BNA)),'dim',3); 
+[h,p]=ttest(plt_mue.corr_src_df_BNA(idx_sorted,:,:),zeros(size(plt_mue.corr_src_BNA)),'dim',3);
 imagesc(nanmean(plt_mue.corr_src_df_BNA(idx_sorted,:,:),3).*h,[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
@@ -415,7 +432,7 @@ xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,4,8)
 
-pooled= cat(3,plt_hh.corr_src_df_BNA(idx_sorted,:,:),plt_gla.corr_src_df_BNA(idx_sorted,:,:),plt_mue.corr_src_df_BNA(idx_sorted,:,:)); 
+pooled= cat(3,plt_hh.corr_src_df_BNA(idx_sorted,:,:),plt_gla.corr_src_df_BNA(idx_sorted,:,:),plt_mue.corr_src_df_BNA(idx_sorted,:,:));
 
 [~,p]=ttest(pooled,zeros(size(pooled)),'dim',3); h = p<fdr1(p(:),0.05,0);
 imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
@@ -525,41 +542,41 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
 for ifoi = 1:25
-% ifoi = 14;
-
-[h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
-h=p<(fdr1(p(:),0.05,0));
-par=nanmean(plt_all.corr_src(:,ifoi,:),3).*h;
-% project onto fine grid
-par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
-
-clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
-para = [];
-para.colorlimits = clim
-para.colormaps{1} = cmap;
-para.orientation = 'axial';
-
-para.dslice_shown = 0.95;
-para.colorbar= 0;
-
-tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
-
-move_x = [0:0.08:0.32];
-move_y = [0.08:-0.02:0];
-
-for i=4:-1:1
-  for j = 0:3
-    if j ~= 4
-      f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+  % ifoi = 14;
+  
+  [h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
+  h=p<(fdr1(p(:),0.05,0));
+  par=nanmean(plt_all.corr_src(:,ifoi,:),3).*h;
+  % project onto fine grid
+  par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
+  
+  clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+  para = [];
+  para.colorlimits = clim
+  para.colormaps{1} = cmap;
+  para.orientation = 'axial';
+  
+  para.dslice_shown = 0.95;
+  para.colorbar= 0;
+  
+  tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
+  
+  move_x = [0:0.08:0.32];
+  move_y = [0.08:-0.02:0];
+  
+  for i=4:-1:1
+    for j = 0:3
+      if j ~= 4
+        f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+      end
+      f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
     end
-    f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
   end
-end
-
-
-set(gcf,'renderer','painters')
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
-
+  
+  
+  set(gcf,'renderer','painters')
+  print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
+  
 end
 
 %% PLOT SOURCE MAPS: PUPIL DERIVATIVE
@@ -570,71 +587,71 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
 for ifoi = 1:25
-% ifoi = 14;
-
-[h,p] = ttest(plt_all.corr_src_df(:,ifoi,:),zeros(size(plt_all.corr_src_df(:,ifoi,:))),'dim',3);
-h=p<(fdr1(p(:),0.05,0));
-par=nanmean(plt_all.corr_src_df(:,ifoi,:),3).*h;
-% project onto fine grid
-par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
-
-clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
-para = [];
-para.colorlimits = clim
-para.colormaps{1} = cmap;
-para.orientation = 'axial';
-
-para.dslice_shown = 0.95;
-para.colorbar= 0;
-
-
-tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
-
-move_x = [0:0.08:0.32];
-move_y = [0.08:-0.02:0];
-
-for i=4:-1:1
-  for j = 0:3
-    if j ~= 4
-      f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+  % ifoi = 14;
+  
+  [h,p] = ttest(plt_all.corr_src_df(:,ifoi,:),zeros(size(plt_all.corr_src_df(:,ifoi,:))),'dim',3);
+  h=p<(fdr1(p(:),0.05,0));
+  par=nanmean(plt_all.corr_src_df(:,ifoi,:),3).*h;
+  % project onto fine grid
+  par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
+  
+  clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+  para = [];
+  para.colorlimits = clim
+  para.colormaps{1} = cmap;
+  para.orientation = 'axial';
+  
+  para.dslice_shown = 0.95;
+  para.colorbar= 0;
+  
+  
+  tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
+  
+  move_x = [0:0.08:0.32];
+  move_y = [0.08:-0.02:0];
+  
+  for i=4:-1:1
+    for j = 0:3
+      if j ~= 4
+        f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+      end
+      f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
     end
-    f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
   end
-end
-
-set(gcf,'renderer','painters')
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_df_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
-
+  
+  set(gcf,'renderer','painters')
+  print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_df_sourcemap_avg_f%d_v%d.tiff',ifoi,v))
+  
 end
 
 error('!')
-%% PLOT COUNTING/TASK RESULTS 
+%% PLOT COUNTING/TASK RESULTS
 
 figure_w
 
 subplot(2,3,1)
-imagesc(nanmean(plt_hh.corr_src_BNA_cnt(idx_sorted,:,:),3),[-0.05 0.05])
+imagesc(nanmean(plt_hh_cnt.corr_src_BNA(idx_sorted,:,:),3),[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,3,2)
-imagesc(nanmean(plt_hh.corr_src_BNA_cnt(idx_sorted,:,:),3)-nanmean(plt_hh.corr_src_BNA(idx_sorted,:,:),3),[-0.05 0.05])
-tp_editplots; colormap(cmap)
-set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]'); ylabel('Brain region')
-
-subplot(2,3,3)
-[h,p]=ttest(plt_hh.corr_src_BNA_cnt,zeros(size(plt_hh.corr_src_BNA)),'dim',3); 
-imagesc((nanmean(plt_hh.corr_src_BNA_cnt(idx_sorted,:,:),3)-nanmean(plt_hh.corr_src_BNA(idx_sorted,:,:),3)).*h,[-0.05 0.05])
+imagesc(nanmean(plt_hh_cnt.corr_src_BNA(idx_sorted,:,:),3)-nanmean(plt_hh.corr_src_BNA(idx_sorted,:,:),3),[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
 
 subplot(2,3,4)
-[h,p]=ttest(plt_hh.corr_src_BNA_cnt(idx_sorted,:,:),plt_hh.corr_src_BNA(idx_sorted,:,:),'dim',3); 
+[h,p]=ttest(plt_hh_cnt.corr_src_BNA,zeros(size(plt_hh.corr_src_BNA)),'dim',3);
+imagesc((nanmean(plt_hh_cnt.corr_src_BNA(idx_sorted,:,:),3)).*h,[-0.05 0.05])
+tp_editplots; colormap(cmap)
+set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+xlabel('Frequency [Hz]'); ylabel('Brain region')
+
+subplot(2,3,5)
+[h,p]=ttest(plt_hh_cnt.corr_src_BNA(idx_sorted,:,:),plt_hh.corr_src_BNA(idx_sorted,:,:),'dim',3);
 h=p<0.05;
-imagesc((nanmean(plt_hh.corr_src_BNA_cnt(idx_sorted,:,:),3)-nanmean(plt_hh.corr_src_BNA(idx_sorted,:,:),3)).*h,[-0.05 0.05])
+imagesc((nanmean(plt_hh_cnt.corr_src_BNA(idx_sorted,:,:),3)-nanmean(plt_hh.corr_src_BNA(idx_sorted,:,:),3)).*h,[-0.05 0.05])
 tp_editplots; colormap(cmap)
 set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]'); ylabel('Brain region')
@@ -666,8 +683,8 @@ end
 
 figure_w;
 subplot(4,3,1); hold on
-r_A1_lr = corr(nanmean(plt_hh.corr_src_cnt(A1_l,:,:),3)',nanmean(plt_hh.corr_src_cnt(A1_r,:,:),3)');
-sig_A1_lr = mean(plt_hh.corr_src_cnt([A1_l A1_r],:,:),1);
+r_A1_lr = corr(nanmean(plt_hh_cnt.corr_src(A1_l,:,:),3)',nanmean(plt_hh_cnt.corr_src(A1_r,:,:),3)');
+sig_A1_lr = mean(plt_hh_cnt.corr_src([A1_l A1_r],:,:),1);
 [~,p]=ttest(sig_A1_lr,zeros(size(sig_A1_lr)),'dim',3); h=(p*25)<0.05;
 shadedErrorBar(log10(freqoi),nanmean(sig_A1_lr,3),std(sig_A1_lr,[],3)/sqrt(size(sig_A1_lr,3)),'k')
 plot(log10(freqoi(h)),nanmean(sig_A1_lr(:,h,:),3),'k.','markersize',8)
@@ -677,8 +694,8 @@ set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 axis([.3 2.11 -0.05 0.05]); title(sprintf('A1: r = %.3f',r_A1_lr))
 
 subplot(4,3,2); hold on
-r_V1_lr = corr(nanmean(plt_hh.corr_src_cnt(V1_l,:,:),3)',nanmean(plt_hh.corr_src_cnt(V1_r,:,:),3)');
-sig_V1_lr = mean(plt_hh.corr_src_cnt([V1_l V1_r],:,:),1);
+r_V1_lr = corr(nanmean(plt_hh_cnt.corr_src(V1_l,:,:),3)',nanmean(plt_hh_cnt.corr_src(V1_r,:,:),3)');
+sig_V1_lr = mean(plt_hh_cnt.corr_src([V1_l V1_r],:,:),1);
 [~,p]=ttest(sig_V1_lr,zeros(size(sig_V1_lr)),'dim',3); h=(p*25)<0.05;
 shadedErrorBar(log10(freqoi),nanmean(sig_V1_lr,3),std(sig_V1_lr,[],3)/sqrt(size(sig_V1_lr,3)),'k')
 plot(log10(freqoi(h)),nanmean(sig_V1_lr(:,h,:),3),'k.','markersize',8)
@@ -688,8 +705,8 @@ set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 axis([.3 2.11 -0.05 0.05]); title(sprintf('V1: r = %.3f',r_V1_lr))
 
 subplot(4,3,3); hold on
-r_M1_lr = corr(nanmean(plt_hh.corr_src_cnt(M1_l,:,:),3)',nanmean(plt_hh.corr_src_cnt(M1_r,:,:),3)');
-sig_M1_lr = mean(plt_hh.corr_src_cnt([M1_l M1_r],:,:),1);
+r_M1_lr = corr(nanmean(plt_hh_cnt.corr_src(M1_l,:,:),3)',nanmean(plt_hh_cnt.corr_src(M1_r,:,:),3)');
+sig_M1_lr = mean(plt_hh_cnt.corr_src([M1_l M1_r],:,:),1);
 [~,p]=ttest(sig_M1_lr,zeros(size(sig_M1_lr)),'dim',3); h=(p*25)<0.05;
 shadedErrorBar(log10(freqoi),nanmean(sig_M1_lr,3),std(sig_M1_lr,[],3)/sqrt(size(sig_M1_lr,3)),'k')
 plot(log10(freqoi(h)),nanmean(sig_M1_lr(:,h,:),3),'k.','markersize',8)
@@ -700,34 +717,34 @@ axis([.3 2.11 -0.05 0.05]); title(sprintf('SOM: r = %.3f',r_M1_lr))
 
 
 subplot(4,3,4); hold on
-sig_A1_lr = mean(plt_hh.corr_src_cnt([A1_l A1_r],:,:),1)-mean(plt_hh.corr_src([A1_l A1_r],:,:),1);
+sig_A1_lr = mean(plt_hh_cnt.corr_src([A1_l A1_r],:,:),1)-mean(plt_hh.corr_src([A1_l A1_r],:,:),1);
 [~,p]=ttest(sig_A1_lr,zeros(size(sig_A1_lr)),'dim',3); h=(p*25)<0.05;
 shadedErrorBar(log10(freqoi),nanmean(sig_A1_lr,3),std(sig_A1_lr,[],3)/sqrt(size(sig_A1_lr,3)),'k')
 plot(log10(freqoi(h)),mean(sig_A1_lr(:,h,:),3),'k.','markersize',8)
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-axis([.3 2.11 -0.05 0.05]); 
+axis([.3 2.11 -0.05 0.05]);
 
 subplot(4,3,5); hold on
-sig_V1_lr = mean(plt_hh.corr_src_cnt([V1_l V1_r],:,:),1)-mean(plt_hh.corr_src([V1_l V1_r],:,:),1);
+sig_V1_lr = mean(plt_hh_cnt.corr_src([V1_l V1_r],:,:),1)-mean(plt_hh.corr_src([V1_l V1_r],:,:),1);
 [~,p]=ttest(sig_V1_lr,zeros(size(sig_V1_lr)),'dim',3); h=(p*25)<0.05;
 shadedErrorBar(log10(freqoi),nanmean(sig_V1_lr,3),std(sig_V1_lr,[],3)/sqrt(size(sig_V1_lr,3)),'k')
 plot(log10(freqoi(h)),mean(sig_V1_lr(:,h,:),3),'k.','markersize',8)
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-axis([.3 2.11 -0.05 0.05]); 
+axis([.3 2.11 -0.05 0.05]);
 
 subplot(4,3,6); hold on
-sig_M1_lr = mean(plt_hh.corr_src_cnt([M1_l M1_r],:,:),1)-mean(plt_hh.corr_src([M1_l M1_r],:,:),1);
+sig_M1_lr = mean(plt_hh_cnt.corr_src([M1_l M1_r],:,:),1)-mean(plt_hh.corr_src([M1_l M1_r],:,:),1);
 [~,p]=ttest(sig_M1_lr,zeros(size(sig_M1_lr)),'dim',3); h=(p*25)<0.05;
 shadedErrorBar(log10(freqoi),nanmean(sig_M1_lr,3),std(sig_M1_lr,[],3)/sqrt(size(sig_M1_lr,3)),'k')
 plot(log10(freqoi(h)),mean(sig_M1_lr(:,h,:),3),'k.','markersize',8)
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-axis([.3 2.11 -0.05 0.05]); 
+axis([.3 2.11 -0.05 0.05]);
 
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_src_ROIs_v%d.pdf',v))
@@ -762,7 +779,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_src_corr_sourcemap_avg_f%df%d_v%d.t
 
 %% PLOT CROSS CORRELATION
 
-is_dt = 1;
+is_dt = 0;
 
 if is_dt==1
   line_x = 0;
@@ -779,7 +796,7 @@ subplot(2,2,3); hold on; title('Muenster')
 
 for ifreq = 1 : 25
   lags = plt_mue.xcorr_lags{ifreq};
-  if is_dt == 0 
+  if is_dt == 0
     plot(lags,nanmean(nanmean(plt_mue.xcorr{ifreq},2),3),'color',cols(ifreq,:))
   else
     plot(lags,nanmean(nanmean(plt_mue.xcorr_df{ifreq},2),3),'color',cols(ifreq,:))
@@ -797,7 +814,7 @@ subplot(2,2,1); hold on; title('Glasgow')
 
 for ifreq = 1 : 25
   lags = plt_gla.xcorr_lags{ifreq};
-  if is_dt == 0 
+  if is_dt == 0
     plot(lags,nanmean(nanmean(plt_gla.xcorr{ifreq},2),3),'color',cols(ifreq,:))
   else
     plot(lags,nanmean(nanmean(plt_gla.xcorr_df{ifreq},2),3),'color',cols(ifreq,:))
@@ -815,7 +832,7 @@ subplot(2,2,2); hold on; title('Hamburg')
 
 for ifreq = 1 : 25
   lags = squeeze(plt_hh.xcorr_lags{ifreq});
-  if is_dt == 0 
+  if is_dt == 0
     plot(lags,nanmean(nanmean(plt_hh.xcorr{ifreq},2),3),'color',cols(ifreq,:))
   else
     plot(lags,nanmean(nanmean(plt_hh.xcorr_df{ifreq},2),3),'color',cols(ifreq,:))
@@ -835,7 +852,7 @@ end
 subplot(2,2,4); hold on; title('Pooled')
 
 for ifreq = 1 : 25
-  if is_dt == 0 
+  if is_dt == 0
     plot(plt_mue.xcorr_lags{ifreq},nanmean(all.xcorr{ifreq},2),'color',cols(ifreq,:))
   else
     plot(plt_mue.xcorr_lags{ifreq},nanmean(all.xcorr_df{ifreq},2),'color',cols(ifreq,:))
@@ -848,10 +865,35 @@ tp_editplots
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 line([line_x line_x],[-0.06 0.04],'color','k')
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_allfreqs_v%d.pdf',is_dt,v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task0__allfreqs_v%d.pdf',is_dt,v))
+
+figure_w
+subplot(2,2,4); hold on; title('Pooled')
+
+cols = cbrewer('seq', 'Blues', 35,'pchip');
+cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
+
+for ifreq = 1 : 25
+  if is_dt == 0
+    tmp = nanmean(plt_hh_cnt.xcorr{ifreq},3);
+    plot(plt_hh_cnt.xcorr_lags{ifreq},nanmean(tmp,2),'color',cols(ifreq,:))
+  else
+    tmp = nanmean(plt_hh_cnt.xcorr_df{ifreq},3);
+    plot(plt_hh_cnt.xcorr_lags{ifreq},nanmean(tmp,2),'color',cols(ifreq,:))
+  end
+end
+
+axis([-5 5 -0.06 0.04])
+xlabel('Lag [s]'); ylabel('Correlation coeff.');
+tp_editplots
+h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+line([line_x line_x],[-0.06 0.04],'color','k')
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task1_allfreqs_v%d.pdf',is_dt,v))
+
 
 %% ORDERED XCORR (FRON ANTERIOR TO POSTERIOR)
-
+is_task = 1;
 is_dt = 1;
 
 if is_dt==1
@@ -867,273 +909,87 @@ for ifreq = 1 : 25
   all.xcorr_ord{ifreq}=cat(3,plt_gla.xcorr_ord{ifreq},plt_mue.xcorr_ord{ifreq},plt_hh.xcorr_ord{ifreq});
 end
 
+figure_w;
+ff = [1 5; 9 13; 21 25]; color_idx = [1 12 25]; clims = [-0.05 0.05; -0.05 0.05; -0.02 0.02; ]
 
-figure_w
-subplot(2,3,1); hold on
-
-i = 0; clear sig
-for ifreq = 2:4
-  i = i + 1;
-  if task
-    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{4},1)));
-  else
-    if is_dt==0
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
+for iff = 1 : size(ff,1)
+  subplot(2,3,iff); hold on
+  i = 0; clear sig
+  for ifreq = ff(iff,1):ff(iff,2)
+    i = i + 1;
+    if is_task
+      if is_dt==0
+        sig(:,:,:,i) = interp1(1:size(plt_hh_cnt.xcorr_ord{ifreq},1),plt_hh_cnt.xcorr_ord{ifreq},linspace(1,size(plt_hh_cnt.xcorr_ord{ifreq},1),size(plt_hh_cnt.xcorr_ord{ff(iff,2)},1)));
+      else
+        sig(:,:,:,i) = interp1(1:size(plt_hh_cnt.xcorr_df_ord{ifreq},1),plt_hh_cnt.xcorr_df_ord{ifreq},linspace(1,size(plt_hh_cnt.xcorr_df_ord{ifreq},1),size(plt_hh_cnt.xcorr_df_ord{ff(iff,2)},1)));
+      end
     else
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
+      if is_dt==0
+        sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{ff(iff,2)},1)));
+      else
+        sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{ff(iff,2)},1)));
+      end
     end
   end
+
+  [h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
+  imagesc(plt_hh.xcorr_lags{ff(iff,2)},1:39,nanmean(nanmean(sig,4),3)'.*h',clims(iff,:))
+  set(gca,'ydir','normal','ytick',[],'yticklabels',[]);
+  tp_editplots; colormap(cmap)
+
+  axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
+  line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
+
 end
 
-[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
-imagesc(plt_hh.xcorr_lags{4},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.05 0.05])
-set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
-tp_editplots; colormap(cmap)
-
-axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
-line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
-
-subplot(2,3,2); hold on
-
-i = 0; clear sig
-for ifreq = 9:11
-  i = i + 1;
-  if task
-    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{11},1)));
-  else
-    if is_dt==0
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
-    else
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
-    end
-  end
-end
-
-[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
-imagesc(plt_hh.xcorr_lags{11},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.05 0.05])
-set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
-tp_editplots; colormap(cmap)
-
-axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
-line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
-
-
-subplot(2,3,4); hold on
-
-i = 0; clear sig
-for ifreq = 12:14
-  i = i + 1;
-  if task
-    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{14},1)));
-  else
-    if is_dt==0
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
-    else
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
-    end
-  end
-end
-
-[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
-imagesc(plt_hh.xcorr_lags{14},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.05 0.05])
-set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
-tp_editplots; colormap(cmap)
-axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
-line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
-
-subplot(2,3,5); hold on
-
-i = 0; clear sig
-for ifreq = 21:24
-  i = i + 1;
-  if task
-    sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{24},1)));
-  else
-    if is_dt==0
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_ord{ifreq},1),all.xcorr_ord{ifreq},linspace(1,size(all.xcorr_ord{ifreq},1),size(all.xcorr_ord{4},1)));
-    else
-      sig(:,:,:,i) = interp1(1:size(all.xcorr_df_ord{ifreq},1),all.xcorr_df_ord{ifreq},linspace(1,size(all.xcorr_df_ord{ifreq},1),size(all.xcorr_df_ord{4},1)));
-    end
-  end
-end
-
-[h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
-imagesc(plt_hh.xcorr_lags{24},1:39,nanmean(nanmean(sig,4),3)'.*h',[-0.02 0.02])
-set(gca,'ydir','normal','ytick',[],'yticklabels',[]); 
-tp_editplots; colormap(cmap)
-axis([-5 5 1 39]);xlabel('Lag [s]'); ylabel('Posterior < Anterior')
-line([line_x line_x],[1 39],'linestyle',':','color',[0.8 0.8 0.8])
-
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_freqsoi_across_sensors_v%d.pdf',is_dt,v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task%d_freqsoi_across_sensors_v%d.pdf',is_dt,is_task,v))
 
 %% XCORR FOR SELECTED FREQUENCIES
-task = 0;
+is_task = 1;
+is_dt = 0;
 
-if task 
-cols = cbrewer('seq', 'Blues', 35,'pchip');
-cols = cols(3:end-3,:); cols=cols(end:-1:1,:);    
+if is_task
+  cols = cbrewer('seq', 'Blues', 35,'pchip');
+  cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 else
-cols = cbrewer('seq', 'Greys', 35,'pchip');
-cols = cols(3:end-3,:); cols=cols(end:-1:1,:);    
+  cols = cbrewer('seq', 'Greys', 35,'pchip');
+  cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 end
 
 figure_w
-subplot(2,2,1); hold on
 
-i = 0; clear sig
-for ifreq = 2:4
+ff = [1 5; 9 13; 21 25]; color_idx = [1 12 25];
+
+for iff = 1 : size(ff,1)
+  subplot(2,2,1); hold on
+
+  i = 0; clear sig
+  for ifreq = ff(iff,1):ff(iff,2)
     i = i + 1;
-       if task
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{4},1)));
-       else
-        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{4},1)));
-   end
-end
-    
-[c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
-
-sig = zscore(nanmean(nanmean(sig,2),3));
-[i,j]= min(sig); lag = outp.xcorr_lags{4}(j);
-lag
-plot(outp.xcorr_lags{4},sig,'color',cols(1,:))
-
-for i = 1 : length(c)
-    if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{4}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(4,:));
-end
-line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
-
-i = 0; clear sig
-for ifreq = 9:11
-    i = i + 1;
-    if task
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{11},1)));
+    if is_task
+      if is_dt
+        xcorr_tmp = squeeze(nanmean(plt_hh_cnt.xcorr{ifreq},2));
+        sig(:,:,i) = interp1(1:size(xcorr_tmp,1),xcorr_tmp,linspace(1,size(xcorr_tmp,1),size(plt_hh_cnt.xcorr{ff(iff,2)},1)));
+      else
+        xcorr_tmp = squeeze(nanmean(plt_hh_cnt.xcorr_df{ifreq},2));
+        sig(:,:,i) = interp1(1:size(xcorr_tmp,1),xcorr_tmp,linspace(1,size(xcorr_tmp,1),size(plt_hh_cnt.xcorr{ff(iff,2)},1)));
+      end
     else
-        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{11},1)));
+      if is_dt
+        sig(:,:,i) = interp1(1:size(all.xcorr_df{ifreq},1),all.xcorr_df{ifreq},linspace(1,size(all.xcorr_df{ifreq},1),size(all.xcorr_df{ff(iff,2)},1)));
+      else
+        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{ff(iff,2)},1)));
+      end
     end
+  end
+
+  sig = zscore(nanmean(nanmean(sig,2),3));
+  plot(plt_hh_cnt.xcorr_lags{ff(iff,2)},sig,'color',cols(color_idx(iff),:))
+  line([0.93 0.93],[-4 4],'color',[0.8 0.8 0.8],'linestyle',':')
+  h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
+  axis([-5 5 -6 4]);xlabel('Lag [s]'); tp_editplots; ylabel('Correlation coeff. (z-scored)')
 end
-
-[c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
-
-sig = zscore(nanmean(nanmean(sig,2),3));
-[i,j]= max(sig); lag = outp.xcorr_lags{11}(j);
-
-plot(outp.xcorr_lags{11},sig,'color',cols(11,:))
-for i = 1 : length(c)
-    if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{11}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(11,:));
-end
-axis([-5 5 -6 4]);xlabel('Lag [s]'); ylabel('Correlation coeff. (z-scored)');
-tp_editplots;
-line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
-lag
-line([0 0],[-6 4],'color',[.8 .8 .8],'linestyle',':')
-line([-5 5],[0 0],'color',[0.8 .8 .8],'linestyle',':')
-
-i = 0; clear sig
-for ifreq = 21:24
-    i = i + 1;
-    if task 
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{24},1)));
-    else
-        sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{24},1)));
-    end
-end
-
-[c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
-
-sig = zscore(nanmean(nanmean(sig,2),3));
-[i,j]= max(sig); lag = outp.xcorr_lags{24}(j);
-plot(outp.xcorr_lags{24},sig,'color',cols(24,:))
-for i = 1 : length(c)
-    if p(i)>0.05; continue; end
-    plot(outp.xcorr_lags{24}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(24,:));
-end
-lag
-[i,j]= max(sig(1:find(outp.xcorr_lags{24}<0.85,1,'last'))); lag = outp.xcorr_lags{24}(j);
-line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
-lag
-h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-
-% SAME FOR DERIVATIVE
-i = 0;  clear sig
-for ifreq = 21:24
-    i = i + 1;
-    if task
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr_df{ifreq},1),hh_cnt.xcorr_df{ifreq},linspace(1,size(hh_cnt.xcorr_df{ifreq},1),size(hh_cnt.xcorr_df{25},1)));
-    else
-        sig(:,:,i) = interp1(1:size(all.xcorr_df{ifreq},1),all.xcorr_df{ifreq},linspace(1,size(all.xcorr_df{ifreq},1),size(all.xcorr_df{25},1)));
-   
-    end
-end
-
-% [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
-
-sig = zscore(nanmean(nanmean(sig,2),3));
-    
-subplot(2,2,2); hold on
-plot(outp.xcorr_lags{25},sig,'color',cols(25,:))
-% for i = 1 : length(c)
-%     if p(i)>0.05; continue; end
-%     plot(outp.xcorr_lags{25}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(25,:));
-% end
-h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-
-clear sig
-
-i = 0;
-for ifreq = 1:4
-    i = i + 1;
-    if task
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr_df{ifreq},1),hh_cnt.xcorr_df{ifreq},linspace(1,size(hh_cnt.xcorr_df{ifreq},1),size(hh_cnt.xcorr_df{5},1)));
-    else
-    sig(:,:,i) = interp1(1:size(all.xcorr_df{ifreq},1),all.xcorr_df{ifreq},linspace(1,size(all.xcorr_df{ifreq},1),size(all.xcorr_df{5},1)));
-    end
-end
-
-% [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
-
-sig = zscore(nanmean(nanmean(sig,2),3));
-
-plot(outp.xcorr_lags{5},sig,'color',cols(1,:))
-% for i = 1 : length(c)
-%     if p(i)>0.05; continue; end
-%     plot(outp.xcorr_lags{5}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(5,:));
-% end
-clear sig
-
-i = 0; 
-for ifreq = 11:13
-    i = i + 1;
-    if task
-        sig(:,:,i) = interp1(1:size(hh_cnt.xcorr_df{ifreq},1),hh_cnt.xcorr_df{ifreq},linspace(1,size(hh_cnt.xcorr_df{ifreq},1),size(hh_cnt.xcorr_df{14},1)));
-    else
-    sig(:,:,i) = interp1(1:size(all.xcorr_df{ifreq},1),all.xcorr_df{ifreq},linspace(1,size(all.xcorr_df{ifreq},1),size(all.xcorr_df{14},1)));
-    end
-end
-% [c,p]=permutest(nanmean(sig,3),zeros(size(nanmean(sig,3))),1,0.05,1000,1);
-
-sig = zscore(nanmean(nanmean(sig,2),3));
-    
-plot(outp.xcorr_lags{14},sig,'color',cols(14,:))
-% for i = 1 : length(c)
-%     if p(i)>0.05; continue; end
-%     plot(outp.xcorr_lags{14}(c{i}),sig(c{i}),'*','markersize',3,'color',cols(14,:));
-% end
-axis([-5 5 -6 4]);xlabel('Lag [s]'); ylabel('Correlation coeff. (z-scored)');
-tp_editplots; 
-line([0.93 0.93],[-i i],'color',[0.8 0.8 0.8],'linestyle',':')
-
-line([0 0],[-6 4],'color',[.8 .8 .8],'linestyle',':')
-line([-5 5],[0 0],'color',[0.8 .8 .8],'linestyle',':')
-% cfg=[];
-colorbar
-    
-if task
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_pooledfreqs_v%d.pdf',v))
-else
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_pooledfreqs_v%d.pdf',v))
-end
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task%d_pooledfreqs_v%d.pdf',is_dt,is_task,v))
 
 %% IMGAESC IN HEAD PLOT
 
@@ -1175,52 +1031,12 @@ pars.resolution= 50;
 idx = zeros(275,1); idx(1:4:end)=1;
 chan_idx =-1*ones(275,1); chan_idx(2:60:end)=5;
 tp_showtfinhead(sig,[chan_idx,lay.pos(1:275,:),10*ones(275,1),ones(275,1)],pars)
-%%
 
-cols = cbrewer('seq', 'Blues', 35,'pchip');
-cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
-v=1
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-i = 0;
-for isubj = SUBJLIST
-    i = i + 1;
-    d = dir(sprintf('/home/tpfeffer/pp/proc/src/pp_cnt_src_pupil_power_correlations_s%d_b*_v%d.mat',isubj,v));
-    if length(d)==1
-        load([d(1).folder '/' d(1).name])   
-        for ifreq = 1 : 25       
-            hh_cnt.xcorr{ifreq}(:,i)    =  nanmean(outp.xcorr{ifreq},2);
-            hh_cnt.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2);
-        end
-    else
-        load([d(1).folder '/' d(1).name])
-        for ifreq = 1 : 25
-            hh_cnt.xcorr{ifreq}(:,i)    =  nanmean(outp.xcorr{ifreq},2)./2;
-            hh_cnt.xcorr_df{ifreq}(:,i) = nanmean(outp.xcorr_df{ifreq},2)./2;
-        end
-        load([d(2).folder '/' d(2).name])
-        for ifreq = 1 : 25
-            hh_cnt.xcorr{ifreq}(:,i)    = hh_cnt.xcorr{ifreq}(:,i)+ nanmean(outp.xcorr{ifreq},2)./2;
-            hh_cnt.xcorr_df{ifreq}(:,i) = hh_cnt.xcorr_df{ifreq}(:,i)+nanmean(outp.xcorr_df{ifreq},2)./2;
-        end
-    end
-end
-
-figure; set(gcf,'color','w') ;
-subplot(2,2,1); hold on; title('Hamburg')
-for ifreq = 1 : 25
-    plot(outp.xcorr_lags{ifreq},nanmean(hh_cnt.xcorr_df{ifreq},2),'color',cols(ifreq,:))
-end
-axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
-tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-line([0.93 0.93],[-0.06 0.04],'color','k')
-line([0.52 0.52],[-0.06 0.04],'color','k')
-
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_df_allfreqs_v%d.pdf',v))
 
 %% PLOT SCALING EXPONENTS
-
+v_fooof = 2;
 % load fooof results and power spectra
-% fooof = pp_load_fooof_results(v);
+fooof = pp_load_fooof_results(v_fooof);
 % fooof.ps_* = power spectra
 % fooof.psfit_* = fooof fits of spectra
 % fooof.aper_* = offset and slope of 1/f component
@@ -1230,129 +1046,174 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_cnt_xcorr_df_allfreqs_v%d.pdf',v))
 % ----------------------------------------
 
 [~,idx_sorted] = sort(BNA.centroids(:,2),'descend');
-
+%%
 figure_w;
 
-subplot(4,3,1); hold on; title('Offset - HH')
-par = squeeze(nanmean(fooof.aper_hh(1,idx_sorted,3,:)-fooof.aper_hh(1,idx_sorted,1,:),3));
-plot(nanmean(par,2),'k'); 
-d = squeeze(fooof.aper_hh(1,idx_sorted,3,:)-fooof.aper_hh(1,idx_sorted,1,:));
-[h,p] = ttest(d,zeros(size(d)),'dim',2); 
-plot(find(h),nanmean(par(find(h),:),2),'r.','markersize',5)
-line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
-tp_editplots; ylabel('Diff. in offs.'); xlabel('Region')
+data = {'gla';'hh';'mue'};
 
-subplot(4,3,4); hold on; title('Slope - HH')
-par = squeeze(nanmean(fooof.aper_hh(2,idx_sorted,3,:)-fooof.aper_hh(2,idx_sorted,1,:),3));
-plot(nanmean(par,2),'k'); 
-d = squeeze(fooof.aper_hh(2,idx_sorted,3,:)-fooof.aper_hh(2,idx_sorted,1,:));
-[h,p] = ttest(d,zeros(size(d)),'dim',2); 
-plot(find(h),nanmean(par(find(h),:),2),'r.','markersize',5)
-line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
-tp_editplots; ylabel('Diff. in slope'); xlabel('Region')
+for idata = 1 : 3
+  subplot(4,3,idata); hold on; title(sprintf('Offset - %s',upper(data{idata})))
+  eval(sprintf('par_off{idata} = squeeze(nanmean(fooof.aper_%s(1,idx_sorted,3,:)-fooof.aper_%s(1,idx_sorted,1,:),3));',data{idata},data{idata}))
+  plot(nanmean(par_off{idata},2),'color',colors(idata,:));
+  [h,p] = ttest(par_off{idata},zeros(size(par_off{idata})),'dim',2); h = p<fdr1(p(:),0.05,1);
+  if sum(h)>0
+    plot(find(h),nanmean(par_off{idata}(find(h),:),2),'r.','markersize',5)
+  end
+  axis([1 246 -0.1 0.1]); set(gca,'ytick',[-0.1 0 0.1],'yticklabel',[0.1 0 0.1]); 
+  line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
+  tp_editplots; ylabel('Diff. in offs.'); xlabel('Anterior > Posterior')
+  set(gca,'xtick',[],'xticklabel',[]); 
 
-subplot(4,3,2); hold on; title('Offset - GLA')
-par = squeeze(nanmean(fooof.aper_gla(1,idx_sorted,3,:)-fooof.aper_gla(1,idx_sorted,1,:),3));
-plot(nanmean(par,2),'k'); 
-d = squeeze(fooof.aper_gla(1,idx_sorted,3,:)-fooof.aper_gla(1,idx_sorted,1,:));
-[h,p] = ttest(d,zeros(size(d)),'dim',2); 
-plot(find(h),nanmean(par(find(h),:),2),'r.','markersize',5)
-line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
-tp_editplots; ylabel('Diff. in offs.'); xlabel('Region')
+  subplot(4,3,3+idata); hold on; title(sprintf('Slope - %s',upper(data{idata})))
+  eval(sprintf('par_slp{idata} = squeeze(nanmean(fooof.aper_%s(2,idx_sorted,3,:)-fooof.aper_%s(2,idx_sorted,1,:),3))',data{idata},data{idata}));
+  plot(nanmean(par_slp{idata},2),'color',colors(idata,:));
+  [h,p] = ttest(par_slp{idata},zeros(size(par_slp{idata})),'dim',2); h = p<fdr1(p(:),0.05,1);
+  if sum(h)>0
+    plot(find(h),nanmean(par_slp{idata}(find(h),:),2),'r.','markersize',5)
+  end
+  axis([1 246 -0.075 0.075]); set(gca,'ytick',[-0.075 0 0.075],'yticklabel',[0.075 0 0.075]); 
+  line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
+  tp_editplots; ylabel('Diff. in slope'); xlabel('Anterior > Posterior')
+  set(gca,'xtick',[],'xticklabel',[]); 
 
-subplot(4,3,5); hold on; title('Slope - GLA')
-par = squeeze(nanmean(fooof.aper_gla(2,idx_sorted,3,:)-fooof.aper_gla(2,idx_sorted,1,:),3));
-plot(nanmean(par,2),'k'); 
-d = squeeze(fooof.aper_gla(2,:,3,:)-fooof.aper_gla(2,:,1,:));
-[h,p] = ttest(d,zeros(size(d)),'dim',2); 
-plot(find(h),nanmean(par(find(h),:),2),'r.','markersize',5)
-line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
-tp_editplots; ylabel('Diff. in slope'); xlabel('Region')
+end
 
-subplot(4,3,3); hold on; title('Offset - MUE')
-par = squeeze(nanmean(fooof.aper_mue(1,idx_sorted,3,:)-fooof.aper_mue(1,idx_sorted,1,:),3));
-plot(nanmean(par,2),'k'); 
-d = squeeze(fooof.aper_mue(1,idx_sorted,3,:)-fooof.aper_mue(1,idx_sorted,1,:));
-[h,p] = ttest(d,zeros(size(d)),'dim',2); 
-plot(find(h),nanmean(par(find(h),:),2),'r.','markersize',5)
+subplot(4,3,7); hold on; title(sprintf('Offset - Pooled'))
+par_off_all = cat(2,par_off{1},par_off{2},par_off{3});
+plot(nanmean(par_off_all,2),'color','k');
+[h,p] = ttest(par_off_all,zeros(size(par_off_all)),'dim',2); h = p<fdr1(p(:),0.05,1);
+if sum(h)>0
+  plot(find(h),nanmean(par_off_all(find(h),:),2),'r.','markersize',5)
+end
+axis([1 246 -0.05 0.05]); set(gca,'ytick',[-0.05 0 0.05],'yticklabel',[0.05 0 0.05]); 
 line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
-tp_editplots; ylabel('Diff. in offs.'); xlabel('Region')
+tp_editplots; ylabel('Diff. in offs.'); xlabel('Anterior > Posterior')
+set(gca,'xtick',[],'xticklabel',[]);
 
-subplot(4,3,6); hold on; title('Slope - MUE')
-par = squeeze(nanmean(fooof.aper_mue(2,idx_sorted,3,:)-fooof.aper_mue(2,idx_sorted,1,:),3));
-plot(nanmean(par,2),'k'); 
-d = squeeze(fooof.aper_mue(2,idx_sorted,3,:)-fooof.aper_mue(2,idx_sorted,1,:));
-[h,p] = ttest(d,zeros(size(d)),'dim',2); 
-plot(find(h),nanmean(par(find(h),:),2),'r.','markersize',5)
+subplot(4,3,10); hold on; title(sprintf('Slope - Pooled'))
+par_slp_all = cat(2,par_slp{1},par_slp{2},par_slp{3});
+plot(nanmean(par_slp_all,2),'color','k');
+[h,p] = ttest(par_slp_all,zeros(size(par_slp_all)),'dim',2); h = p<fdr1(p(:),0.05,1);
+if sum(h)>0
+  plot(find(h),nanmean(par_slp_all(find(h),:),2),'r.','markersize',5)
+end
+axis([1 246 -0.04 0.04]); set(gca,'ytick',[-0.04 0 0.04],'yticklabel',[0.04 0 0.04]); 
 line([0 246],[0 0],'linestyle',':','color',[0.8 0.8 0.8])
-tp_editplots; ylabel('Diff. in slope'); xlabel('Region')
+tp_editplots; ylabel('Diff. in offs.'); xlabel('Anterior > Posterior')
+set(gca,'xtick',[],'xticklabel',[]);
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_fooof_offset_and_slope_v%d.pdf',v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_fooof_offset_and_slope_v%d.pdf',v_fooof))
+%% SPATIAL MAPS OF SLOPE AND OFFSET CHANGE
+% START WITH SLOPE
+% ---------------------------
+[h,p] = ttest(par_slp_all,zeros(size(par_slp_all)),'dim',2); h = p<fdr1(p(:),0.05,1);
+idx = find(h);
+par_src = zeros(8799,80);
+for i = 1:sum(h)
+  par_src(BNA.tissue_5mm == idx(i),:) = repmat(par_slp_all(idx(i),:),[sum(BNA.tissue_5mm == idx(i)), 1]);
+end
+
+par = nanmean(par_src,2);
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+para = [];
+para.colorlimits = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+para.colormaps{1} = cmap;
+para.orientation = 'axial';
+para.dslice_shown = 0.95;
+para.colorbar= 0;
+
+tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par]); f=get(gcf)
+move_x = [0:0.08:0.32];
+move_y = [0.08:-0.02:0];
+
+for i=4:-1:1
+  for j = 0:3
+    if j ~= 4
+      f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+    end
+    f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
+  end
+end
+  
+set(gcf,'renderer','painters')
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_fooof_slope_spatialmap_v%d.tiff',v_fooof))
+% ---------------------------
+% OFFSET SECOND
+% ---------------------------
+
+[h,p] = ttest(par_off_all,zeros(size(par_off_all)),'dim',2); h = p<fdr1(p(:),0.05,1);
+idx = find(h);
+par_src = zeros(8799,80);
+for i = 1:sum(h)
+  par_src(BNA.tissue_5mm == idx(i),:) = repmat(par_off_all(idx(i),:),[sum(BNA.tissue_5mm == idx(i)), 1]);
+end
+
+par = nanmean(par_src,2);
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+para = [];
+para.colorlimits = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+para.colormaps{1} = cmap;
+para.orientation = 'axial';
+para.dslice_shown = 0.95;
+para.colorbar= 0;
+
+tp_showmri_transp(mri,para,[BNA.grid_5mm./10 par]); f=get(gcf)
+move_x = [0:0.08:0.32];
+move_y = [0.08:-0.02:0];
+
+for i=4:-1:1
+  for j = 0:3
+    if j ~= 4
+      f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+    end
+    f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
+  end
+end
+set(gcf,'renderer','painters')
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_fooof_offset_spatialmap_v%d.tiff',v_fooof))
 
 %% CORRELATIONS
-d = pow_hi_hh-pow_lo_hh;
-idx = ~isnan(pow_lo_hh(:,1,1));
-for isubj = 1 : 28
-  tmp1=d(idx,:,isubj);
-  tmp2=d(idx,:,isubj);
-
-  r(:,:,isubj)=corr(tmp1',tmp2');
-  
-end
-
-h=ttest(r,zeros(size(r)),'dim',3);
-
-figure_w; 
-subplot(3,2,1);
-imagesc(nanmean(r,3),[-0.5 0.5]); colormap(cmap); axis square
-subplot(3,2,2);
-imagesc(nanmean(r,3).*h,[-0.5 0.5]); colormap(cmap); axis  square
-
-d = pow_hi_gla-pow_lo_gla;
-idx = ~isnan(pow_lo_hh(:,1,1));
-for isubj = 1 : 22
-  tmp1=d(idx,:,isubj);
-  tmp2=d(idx,:,isubj);
-
-  r(:,:,isubj)=corr(tmp1',tmp2');
-  
-end
-
-h=ttest(r,zeros(size(r)),'dim',3);
-
-subplot(3,2,3);
-imagesc(nanmean(r,3),[-0.5 0.5]); colormap(cmap); axis square
-subplot(3,2,4);
-imagesc(nanmean(r,3).*h,[-0.5 0.5]); colormap(cmap); axis  square
-
-d1 = pow_hi_hh-pow_lo_hh;
-d2 = pow_hi_gla-pow_lo_gla;
-d = cat(3,d1,d2);
-
-idx = ~isnan(pow_lo_hh(:,1,1));
-for isubj = 1 : 50
-  tmp1=d(idx,:,isubj);
-  tmp2=d(idx,:,isubj);
-
-  r(:,:,isubj)=corr(tmp1',tmp2');
-  
-end
-
-[h,~,~,s]=ttest(r,zeros(size(r)),'dim',3);
-
-subplot(3,2,5);
-imagesc(nanmean(r,3),[-0.5 0.5]); colormap(cmap); axis square
-subplot(3,2,6);
-imagesc(nanmean(r,3).*h,[-0.5 0.5]); colormap(cmap); axis  square
-
 ffx = 2:0.5:128;
-ffx(ffx>48 & ffx<52) = [];
-ffx(ffx>98 & ffx<102) = [];
-figure_w; hold on
+pow = cat(3,fooof.ps_gla,fooof.ps_hh,fooof.ps_mue);
+slp  = cat(4,fooof.aper_gla,fooof.aper_hh,fooof.aper_mue);
 
-plot(log10(ffx),100*sum(h>0&s.tstat<0)/239)
-plot(log10(ffx),100*sum(h>0&s.tstat>0)/239)
-tp_editplots
+d_pow = pow(:,:,:,3)-pow(:,:,:,1);
+d_slp = squeeze(slp(2,:,3,:)-slp(2,:,1,:));
+d_off = squeeze(slp(1,:,3,:)-slp(1,:,1,:));
 
-set(gca,'xtick',log10(ffx([1,5,13,29,61,118,239])),'xticklabel',ffx([1,5,13,29,61,118,239]))
-xlabel('Frequency [Hz]'); ylabel ('Fraction of sign. correlations')
+idx = ~isnan(d_pow(:,1,1));
+for isubj = 1 : 28
+  tmp1=d_pow(idx,:,isubj);
+  tmp2=d_slp(:,isubj);
+  tmp3=d_off(:,isubj);
+  
+  r_powslp(:,isubj)=corr(tmp1',tmp2);
+  r_powoff(:,isubj)=corr(tmp1',tmp3);
+ 
+end
+
+[~, p]=ttest(r_powslp,zeros(size(r)),'dim',2); h_slp=p<fdr1(p(:),0.05,1);
+[~, p]=ttest(r_powoff,zeros(size(r)),'dim',2); h_off=p<fdr1(p(:),0.05,1);
+
+% ffx = ffx(idx);
+figure_w;
+par = nan(1,length(ffx)); par(idx) = nanmean(r_powoff,2); 
+h = logical(zeros(1,length(ffx))); h(idx) = h_off;
+subplot(3,2,1); hold on
+plot(log10(ffx),par,'k'); 
+plot(log10(ffx(h)),par(:,h),'r.','markersize',8)
+axis([log10(2) log10(128) -0.15 0.15]); tp_editplots; box on
+xlabel('Frequency [Hz]'); ylabel('Correlation coeff.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+par = nan(1,length(ffx)); par(idx) = nanmean(r_powslp,2); 
+h = logical(zeros(1,length(ffx))); h(idx) = h_off;
+subplot(3,2,2); hold on
+plot(log10(ffx),par,'k'); 
+plot(log10(ffx(h)),par(:,h),'r.','markersize',8)
+axis([log10(2) log10(128) -0.15 0.15]); tp_editplots; box on
+xlabel('Frequency [Hz]'); ylabel('Correlation coeff.')
+set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_fooof_correlation_with_changes_in_power_v%d.pdf',v_fooof))
