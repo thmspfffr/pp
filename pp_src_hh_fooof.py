@@ -7,12 +7,12 @@ v=22
 SUBJLIST = [4,5,6,7,8,9,10,11,12,13,15,16,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
 
 for isubj in SUBJLIST:
-    for iblock in range(1,2):
+    for iblock in range(1,3):
 
-        if os.path.exists('/home/tpfeffer/pp/proc/src/pp_hh_src_run_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v)) == True:
+        if os.path.exists('/home/tpfeffer/pp/proc/src/pp_hh_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v)) == True:
             continue
 
-        os.system('touch /home/tpfeffer/pp/proc/src/pp_hh_src_run_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
+        os.system('touch /home/tpfeffer/pp/proc/src/pp_hh_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
         try:
             dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_powerspectra_s%d_b%d_v%d.mat' % (isubj,iblock,v_in))
         except:
@@ -89,7 +89,7 @@ for isubj in SUBJLIST:
               e = tmp[isens].aperiodic_params[1]
               g[isens,:,iseg] = g[isens,:,iseg] + b - np.log10(pow(F,e)) 
 
-              scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_mue_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g,  'aper':  aper})
+              scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g,  'aper':  aper})
 
 
 
