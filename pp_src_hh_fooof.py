@@ -2,8 +2,10 @@ from fooof import FOOOFGroup
 import numpy as np
 import scipy.io
 import os
+import time
 
 v=22
+
 SUBJLIST = [4,5,6,7,8,9,10,11,12,13,15,16,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
 
 for isubj in SUBJLIST:
@@ -14,7 +16,7 @@ for isubj in SUBJLIST:
 
         os.system('touch /home/tpfeffer/pp/proc/src/pp_hh_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
         try:
-            dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_powerspectra_s%d_b%d_v%d.mat' % (isubj,iblock,v_in))
+            dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_powerspectra_s%d_b%d_v%d.mat' % (isubj,iblock,v))
         except:
             print("Error: File not found!")
             continue
@@ -64,6 +66,7 @@ for isubj in SUBJLIST:
 
           freqs = np.squeeze(dat['fxx'])
           aper = np.empty([2,dat['pxx'].shape[1],dat['pxx'].shape[2]])
+          g = np.zeros([dat['pxx'].shape[1],75,dat['pxx'].shape[2]])
 
           for iseg in range(0,dat['pxx'].shape[2]):
 
@@ -78,7 +81,7 @@ for isubj in SUBJLIST:
               aper[:,isens,iseg] = tmp[0].aperiodic_params
 
             F = fm.freqs
-            g = np.zeros([len(tmp),len(F),dat['pxx'].shape[2]])
+            
             for isens in range(0,dat['pxx'].shape[1]):
               for i in range(0,len(tmp[isens].gaussian_params)):
                   c = tmp[isens].gaussian_params[i][0]
@@ -88,10 +91,10 @@ for isubj in SUBJLIST:
               b = tmp[isens].aperiodic_params[0]
               e = tmp[isens].aperiodic_params[1]
               g[isens,:,iseg] = g[isens,:,iseg] + b - np.log10(pow(F,e)) 
-
-              scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g,  'aper':  aper})
-
-
+          
+          scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_hh_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g,  'aper':  aper})
+            
+    
 
 
 

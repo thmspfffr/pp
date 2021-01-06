@@ -7,16 +7,30 @@ restoredefaultpath
 % VERSION 1: no pupil lag
 % -------------------------
 % v = 1;
-% freqoi    = 2.^(1:(1/4):7);
-% win_len = 1600;
 % lag = 0;
+% win_len = 800;
+% overlap = 2; % 50% overlap
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-v = 2;
-freqoi    = 2.^(1:(1/4):7);
-win_len = 800;
+% v = 2;
+% lag = 1;
+% win_len = 800;
+% overlap = 2; % 50% overlap
+% -------------------------
+% VERSION 11: no pupil lag, less overlap
+% -------------------------
+% v = 11;
+% lag = 0;
+% win_len = 800;
+% overlap = 1; % 0% overlap
+% -------------------------
+% VERSION 2: with pupil lag
+% -------------------------
+v = 22;
 lag = 1;
+win_len = 800;
+overlap = 1; % 0% overlap
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -37,9 +51,10 @@ for i = 1 : length(d)
   SUBJLIST = [SUBJLIST; d(i).name(end-7:end-4)];
 end
 
-
 addpath ~/pp/matlab/
 trans = pp_transfer_gla2hh;
+freqoi=2.^(1:(1/4):7);
+
 %%
 % -------------------------
 for isubj =1:size(SUBJLIST,1)
@@ -131,7 +146,7 @@ for isubj =1:size(SUBJLIST,1)
     % -------------------------------
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len/2; % no overlap
+    opt.n_shift = win_len/overlap; % no overlap
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
