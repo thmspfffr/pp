@@ -78,7 +78,7 @@ for isubj in SUBJLIST:
             tmp = fm.get_results()
 
             for isens in range(0,dat['pxx'].shape[1]):
-              aper[:,isens,iseg] = tmp[0].aperiodic_params
+              aper[:,isens,iseg] = tmp[isens].aperiodic_params
 
             F = fm.freqs
             

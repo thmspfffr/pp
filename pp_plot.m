@@ -1021,7 +1021,7 @@ tp_showtfinhead(sig,[chan_idx,lay.pos(1:275,:),10*ones(275,1),ones(275,1)],pars)
 
 
 %% PLOT SCALING EXPONENTS
-v_fooof = 2;
+v_fooof = 22;
 % load fooof results and power spectra
 fooof = pp_load_fooof_results(v_fooof);
 % fooof.ps_* = power spectra

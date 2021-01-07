@@ -28,6 +28,7 @@ SUBJLIST=1:24; SUBJLIST([5,9]) = [];
 
 for isubj = 1: length(SUBJLIST)
   for iblock = 1 : 1
+    if v<3
       load(sprintf('~/pp/proc/src/pp_gla_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
       fooof.psfit_gla(:,:,1,isubj,iblock) = g_lo;
       fooof.psfit_gla(:,:,2,isubj,iblock) = g_me;
@@ -35,6 +36,13 @@ for isubj = 1: length(SUBJLIST)
       fooof.aper_gla(:,:,1,isubj,iblock)= aper_lo;
       fooof.aper_gla(:,:,2,isubj,iblock)= aper_me;
       fooof.aper_gla(:,:,3,isubj,iblock)= aper_hi;
+    else
+      load(sprintf('~/pp/proc/src/pp_gla_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+      load(sprintf('~/pp/proc/src/pp_gla_src_powerspectra_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+      for iff = 1 : 75
+        fooof.psfit_gla(:,iff,isubj,iblock)=corr(squeeze(g(:,iff,:))',pup(~isnan(pup))');
+        
+      end
   end
 end
 
