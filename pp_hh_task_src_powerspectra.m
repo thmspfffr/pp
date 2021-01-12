@@ -143,7 +143,7 @@ for isubj = SUBJLIST
     pupil_df(idx) = nan;
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len; % 50% overlap
+    opt.n_shift = win_len/overlap; % 50% overlap
     
     nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
     
@@ -185,7 +185,7 @@ for isubj = SUBJLIST
   end
 end
 
-% exit
+exit
 
 
 
