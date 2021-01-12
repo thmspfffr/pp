@@ -23,18 +23,18 @@ restoredefaultpath
 % -------------------------
 % VERSION 11: no pupil lag, less overlap
 % -------------------------
-% v = 11;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
-% win_len = 800;
-% overlap = 1; % 0% overlap
+v = 11;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 0;
+win_len = 800;
+overlap = 1; % 0% overlap
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-v = 22;
-lag = 1;
-win_len = 800;
-overlap = 1; % 0% overlap
+% v = 22;
+% lag = 1;
+% win_len = 800;
+% overlap = 1; % 0% overlap
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -212,5 +212,5 @@ for isubj = 1:24
   end
 end
 
-error('!')
+exit
 %%

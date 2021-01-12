@@ -4,7 +4,7 @@ import scipy.io
 import os
 import time
 
-v=22
+v=11
 
 
 for isubj in range(1,25):

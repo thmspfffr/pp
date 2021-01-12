@@ -20,17 +20,17 @@ restoredefaultpath
 % -------------------------
 % VERSION 11: no pupil lag, less overlap
 % -------------------------
-% v = 11;
-% lag = 0;
-% win_len = 800;
-% overlap = 1; % 0% overlap
+v = 11;
+lag = 0;
+win_len = 800;
+overlap = 1; % 0% overlap
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-v = 22;
-lag = 1;
-win_len = 800;
-overlap = 1; % 0% overlap
+% v = 22;
+% lag = 1;
+% win_len = 800;
+% overlap = 1; % 0% overlap
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -52,7 +52,7 @@ for i = 1 : length(d)
 end
 
 addpath ~/pp/matlab/
-trans = pp_transfer_gla2hh;
+% trans = pp_transfer_gla2hh;
 freqoi=2.^(1:(1/4):7);
 
 %%
@@ -162,7 +162,7 @@ for isubj =1:size(SUBJLIST,1)
     for iseg = 1 : nseg
       fprintf('%d / %d\n',iseg,nseg)
       seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
-      seg_dat = seg_dat(:,trans);
+%       seg_dat = seg_dat(:,trans);
       
       if any(isnan(seg_dat(:,1)))
         pup(iseg) = nan;
@@ -193,4 +193,4 @@ for isubj =1:size(SUBJLIST,1)
   end
 end
 
-error('!')
+exit
