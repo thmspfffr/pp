@@ -70,7 +70,7 @@ for isubj = SUBJLIST
     k = 2; f_sample = 1000;
     fnq = f_sample/2;
     hil_hi = 0.005; hil_lo = 2;
-    hil_Wn=[hil_hi/fnq hil_lo/fnq];
+    hil_Wn = [hil_hi/fnq hil_lo/fnq];
     [bhil, ahil] = butter(k, hil_Wn);
     
     pupil = filtfilt(bhil, ahil, pupil);

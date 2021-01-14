@@ -52,8 +52,10 @@ for isubj = SUBJLIST
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
+              load(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1))
+
       % load cleaned meg data
-      load(sprintf('~/pp/data/ham/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
+%       load(sprintf('~/pp/data/ham/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
     catch me
       continue
     end
@@ -61,7 +63,7 @@ for isubj = SUBJLIST
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
-    [~, outp.chanidx] = ismember(lay.label(1:275),label);
+    [~, outp.chanidx] = ismember(lay.label(1:275),startswith(label,'M'));
     
     % bp-filter and resample pupil
     % ------
@@ -77,7 +79,8 @@ for isubj = SUBJLIST
     f_sample = 400;
     % align pupil and meg (at signal offset)
     % ------
-
+    
+    pupil = pupil(end:-1:1,end);
     dat = dat(:,end:-1:1);
     
     len = min([size(pupil,1) size(dat,2)]);
