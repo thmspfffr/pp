@@ -12,16 +12,16 @@ addpath ~/pconn/matlab/
 ord = pconn_randomization;
 
 
-for isubj = 8
+for isubj = SUBJLIST
   
   im = find(ord(isubj,:)==1);
   
-  for iblock = 2
+  for iblock = 1 : 2
     
-%     fn = sprintf('pp_sens_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    fn = sprintf('pp_sens_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
 %     
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
