@@ -13,15 +13,21 @@ restoredefaultpath
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-% v = 2;
+v = 2;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 1;
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+% v = 3;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 1;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-v = 3;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 1;
+% v = 4;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 0;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -52,7 +58,7 @@ for isubj = SUBJLIST
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
-              load(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1))
+              load(sprintf('~/pp/data/ham/pp_task_s%d_b%d_v%d.mat',isubj,iblock,1))
 
       % load cleaned meg data
 %       load(sprintf('~/pp/data/ham/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
@@ -63,7 +69,7 @@ for isubj = SUBJLIST
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
-    [~, outp.chanidx] = ismember(lay.label(1:275),startswith(label,'M'));
+    [~, outp.chanidx] = ismember(lay.label(1:275),label(startsWith(label,'M')));
     
     % bp-filter and resample pupil
     % ------

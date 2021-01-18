@@ -4,6 +4,7 @@ clear
 restoredefaultpath
 
 addpath ~/pconn/matlab/
+addpath ~/pp/matlab/
 load /home/gnolte/meth/templates/mri.mat
 load /home/gnolte/meth/templates/sa_template.mat
 addpath ~/Documents/MATLAB/fieldtrip-20190224/
@@ -744,7 +745,7 @@ end
 
 %% PLOT CROSS CORRELATION
 
-is_dt = 0;
+is_dt = 1;
 
 if is_dt==1
   line_x = 0;
@@ -830,7 +831,7 @@ tp_editplots
 h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
 line([line_x line_x],[-0.06 0.04],'color','k')
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task0__allfreqs_v%d.pdf',is_dt,v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task0_allfreqs_v%d.pdf',is_dt,v))
 
 figure_w
 subplot(2,2,4); hold on; title('Pooled')
@@ -859,7 +860,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task1_allfreqs_v%d.pdf',is_d
 
 %% ORDERED XCORR (FRON ANTERIOR TO POSTERIOR)
 is_task = 1;
-is_dt = 1;
+is_dt = 0;
 
 if is_dt==1
   line_x = 0;
@@ -980,7 +981,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task%d_pooledfreqs_v%d.pdf',
 
 %% IMGAESC IN HEAD PLOT
 
-
+task = 0
 i = 0; clear sig
 for ifreq = 1 : 25
   ifreq

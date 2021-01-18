@@ -64,7 +64,7 @@ for isubj = SUBJLIST
     load(sprintf('~/pconn_cnt/proc/preproc/pconn_cnt_preproc_data_count_s%d_m%d_b%d_v1.mat',isubj,im,iblock))
     label = data.label;
     
-    pupil = pupil(1:end-1100,:);
+    pupil = pupil(1:end-lag(isubj,iblock),:);
     
     save(sprintf('~/pp/data/ham/pp_task_s%d_b%d_v%d.mat',isubj,iblock,1),'dat','pupil','label')
     
@@ -95,3 +95,23 @@ end
 % % siz = nanmean(siz(SUBJLIST,:,:),3);
 % siz = siz(SUBJLIST,:,:);
 % siz (siz==0) = nan;
+for isubj = SUBJLIST
+  
+  % identify placebo condition (ord==1)
+  im = find(ord(isubj,:)==1);
+  
+  for iblock = 1:2
+
+  load(sprintf('~/pconn_cnt/proc/preproc/pconn_cnt_trig_raw_s%d_m%d_b%d_v1.mat',isubj,im,iblock))
+  [p,l]=findpeaks(trig.trial{1});
+  lag(isubj,iblock)=1100+1000*(600-(mean(l(end)+find(trig.trial{1}(l(end):end)>0.5)-1)/1200-l(1)/1200))
+%   
+% sum(p==100)
+% (l(find(p==50,1,'last'))-l(find(p==100,1,'first')))/1200
+% size(l)
+% (l(end)-l(1))/1200
+%   l(1)/1200
+%   tmp=600-cumsum(diff(l(2:end))/1200); tmp(end)
+  end
+  
+end
