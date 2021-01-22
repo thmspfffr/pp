@@ -4,7 +4,7 @@ import scipy.io
 import os
 import time
 
-v=11
+v=22
 
 
 for isubj in range(1,25):
@@ -29,7 +29,7 @@ for isubj in range(1,25):
         dat['pup'] = dat['pup'][:,not_nan_idx]
         dat['pup_df'] = dat['pup_df'][:,not_nan_idx]
 
-        if v < 3: 
+        if v > 33:
 
           sorted = np.argsort(dat['pup'])[0]
           pup_sorted = dat['pup'][0][sorted]
@@ -66,6 +66,7 @@ for isubj in range(1,25):
           freqs = np.squeeze(dat['fxx'])
           aper = np.empty([2,dat['pxx'].shape[1],dat['pxx'].shape[2]])  
           g = np.zeros([dat['pxx'].shape[1],75,dat['pxx'].shape[2]])
+          gg = np.zeros([dat['pxx'].shape[1],75,dat['pxx'].shape[2]])
 
           for iseg in range(0,dat['pxx'].shape[2]):
             print('%d / %d' % (iseg,dat['pxx'].shape[2]))
@@ -87,9 +88,9 @@ for isubj in range(1,25):
                   g[isens,:,iseg] = g[isens,:,iseg] + a * np.exp ((-(F-c)**2)/(2*pow(w,2))) 
               b = tmp[isens].aperiodic_params[0]
               e = tmp[isens].aperiodic_params[1]
-              g[isens,:,iseg] = g[isens,:,iseg] + b - np.log10(pow(F,e))
+              gg[isens,:,iseg] = g[isens,:,iseg] + b - np.log10(pow(F,e))
  
-          scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g,  'aper':  aper})
+          scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_gla_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g, 'gg': gg,  'aper':  aper})
             
     
 

@@ -44,9 +44,10 @@ fooof.slope_df_hh=nanmean(fooof.slope_df_hh,3);
 % -------------
 SUBJLIST=1:24; SUBJLIST([5,9]) = []; iblock = 1;
 
-for isubj = 1: length(SUBJLIST)
+for isubj = 2: length(SUBJLIST)
   load(sprintf('~/pp/proc/src/pp_gla_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
   load(sprintf('~/pp/proc/src/pp_gla_src_powerspectra_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+  isubj
   for iff = 1 : 75
     fooof.psfit_gla(:,iff,isubj,iblock)=corr(squeeze(g(:,iff,:))',pup(~isnan(pup))');
   end

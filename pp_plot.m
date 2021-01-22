@@ -15,7 +15,7 @@ ft_defaults
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 1;
+v = 2;
 
 [plt_gla,plt_hh,plt_mue,plt_hh_cnt,plt_all]=pp_load_results(v);
 
@@ -176,7 +176,7 @@ xlabel('Frequency [Hz]')
 
 [h,p]=ttest(plt_hh_cnt.corr_sens_ord,plt_hh.corr_sens_ord,'dim',3);
 h = p<fdr1(p(:),0.05,1); 
-h = p < 0.05;
+h = p < 0.01;
 par = nanmean(plt_hh_cnt.corr_sens_ord-plt_hh.corr_sens_ord,3);
 subplot(2,3,5);
 imagesc(par,[-0.03 0.03])
@@ -562,7 +562,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_task_src_correlations_BNA_v%d.pdf',v))
 %% PLOT REGIONS OF INTEREST, SENSORY AREAS
 load ~/pp/proc/pp_atlas_BNA.mat
 
-is_dt = 1; is_task = 1;
+is_dt = 0; is_task = 0;
 
 M1 = [-42 -26 54; 38 -32 48];
 V1 = [-20 -86 18; 16 -80 26];
@@ -683,7 +683,7 @@ addpath /home/gnolte/meth/highlevel/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-is_dt = 1; is_task = 1;
+is_dt = 0; is_task = 1;
 
 for ifoi = [5 11 14 22]
   
@@ -859,8 +859,8 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task1_allfreqs_v%d.pdf',is_d
 
 
 %% ORDERED XCORR (FRON ANTERIOR TO POSTERIOR)
-is_task = 1;
-is_dt = 0;
+is_task = 0;
+is_dt = 1;
 
 if is_dt==1
   line_x = 0;
@@ -1022,7 +1022,7 @@ tp_showtfinhead(sig,[chan_idx,lay.pos(1:275,:),10*ones(275,1),ones(275,1)],pars)
 
 
 %% PLOT SCALING EXPONENTS
-v_fooof = 22;
+v_fooof = 2;
 % load fooof results and power spectra
 fooof = pp_load_fooof_results(v_fooof);
 % fooof.ps_* = power spectra
