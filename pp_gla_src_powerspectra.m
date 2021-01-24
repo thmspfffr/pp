@@ -4,14 +4,13 @@
 clear
 restoredefaultpath
 
-
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
 % v = 1;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 1;
-% win_len = 2400;
+% lag = 0;
+% win_len = 800;
 % overlap = 2; % 50% overlap
 % -------------------------
 % VERSION 2: with pupil lag
@@ -19,24 +18,23 @@ restoredefaultpath
 % v = 2;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 1;
-% win_len = 2400;
+% win_len = 800;
 % overlap = 2; % 50% overlap
 % -------------------------
-% VERSION 11: no pupil lag
+% VERSION 11: no pupil lag, less overlap
 % -------------------------
 v = 11;
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 1;
+lag = 0;
 win_len = 800;
-overlap = 1; % 50% overlap
+overlap = 1; % 0% overlap
 % -------------------------
-% VERSION 22: with pupil lag
+% VERSION 2: with pupil lag
 % -------------------------
 % v = 22;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 1;
 % win_len = 800;
-% overlap = 1; % 50% overlap
+% overlap = 1; % 0% overlap
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -96,13 +94,8 @@ for isubj = 1:24
       
       chanidx = outp.chanidx;
       save(sprintf('~/pp/proc/src/chanidx_s%d.mat',isubj),'chanidx')
-            
-      outp.tp_sens_pow = nan(248,25);
-      outp.sens_r      = nan(248,25);
-      outp.sens_r_sp   = nan(248,25);
+                  
     catch me
-      src_r = nan(246,25);
-      save([outdir fn '.mat'],'src_r')
       continue
     end
     
@@ -113,7 +106,7 @@ for isubj = 1:24
     hil_Wn=[hil_hi/fnq hil_lo/fnq];
     [bhil, ahil] = butter(k, hil_Wn);
     
-    pupil = filtfilt(bhil, ahil, pupil(:,end));
+    pupil = filtfilt(bhil, ahil, pupil(:,4));
     
     if lag
         pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
@@ -169,7 +162,7 @@ for isubj = 1:24
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 2:0.5:128;
+    ff = 2:1/(opt.n_win/400):128;
     
     pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
@@ -189,12 +182,8 @@ for isubj = 1:24
             continue        
         end
         
-      if v < 3
-        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(800),400,ff,400,'power');
-      else
-        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
-      end
-      
+        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0.5,ff,400,'power');
+        
         for igrid = 1 : max(BNA.tissue_5mm(:))
           pxx(:,igrid,iseg) = mean(tmp_pxx(:,BNA.tissue_5mm == igrid),2);
         end

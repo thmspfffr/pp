@@ -25,13 +25,13 @@ for isubj in range(1,42):
         not_nan_idx  = np.isnan(dat['pxx'][1,1,:])==False
 
         dat['pxx'] = dat['pxx'][:,:,not_nan_idx]
-        dat['pup'] = dat['pup'][:,not_nan_idx]
-        dat['pup_df'] = dat['pup_df'][:,not_nan_idx]
+        pup = dat['pup'][:,not_nan_idx]; 
+        pup_df = dat['pup_df'][:,not_nan_idx]
 
         if v > 33: 
 
-          sorted = np.argsort(dat['pup'])[0]
-          pup_sorted = dat['pup'][0][sorted]
+          sorted = np.argsort(pup)[0]
+          pup_sorted = pup[0][sorted]
           pup_means = np.zeros([3,1])
           pup_means[0] = np.mean(pup_sorted[0:int(np.floor(sorted.size/3))])
           pup_means[1] = np.mean(pup_sorted[int(np.floor(sorted.size/3))+1:sorted.size-int(np.floor(sorted.size/3))])
@@ -89,7 +89,7 @@ for isubj in range(1,42):
               e = tmp[isens].aperiodic_params[1]
               gg[isens,:,iseg] = g[isens,:,iseg] + b - np.log10(pow(F,e))
 
-          scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_mue_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g, 'gg': gg,  'aper':  aper})
+          scipy.io.savemat('/home/tpfeffer/pp/proc/src/pp_mue_collected_fooof_s%d_b%d_v%d.mat' % (isubj,iblock,v), {'g': g, 'gg': gg,  'aper':  aper, 'pup': pup, 'pup_df': pup_df})
 
 
 
