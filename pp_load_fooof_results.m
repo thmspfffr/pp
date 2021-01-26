@@ -29,6 +29,16 @@ for isubj = 1: length(SUBJLIST)
       fooof.slope_df_hh(:,isubj,iblock)=nan(246,1);
       continue
     end
+    % take out slope of empirical pxx
+    idx = ~isnan(pxx(1,1,:));
+    slopes=-aper(2,:,:).*log10(2:0.5:128)' + aper(1,:,:);
+    tmp = log10(pxx(:,:,idx))-slopes;
+    for iff = 1 : 253
+      fooof.ps_hh_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup(~isnan(pup))');
+      fooof.ps_hh_df_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup_df(~isnan(pup_df))');
+
+    end
+
   end
 end
 
@@ -38,14 +48,18 @@ fooof.slope_hh=nanmean(fooof.slope_hh,3);
 fooof.psfit_df_hh=nanmean(fooof.psfit_df_hh,4);
 fooof.offset_df_hh=nanmean(fooof.offset_df_hh,3);
 fooof.slope_df_hh=nanmean(fooof.slope_df_hh,3);
-% -------------
+fooof.ps_hh_corrected = nanmean(fooof.ps_hh_corrected,4);
+clear pup pup_df pxx fxx
 
+% -------------
 % LOAD GLASGOW 
 % -------------
 SUBJLIST=1:24; SUBJLIST([5,9]) = []; iblock = 1;
 
 for isubj = 1: length(SUBJLIST)
   load(sprintf('~/pp/proc/src/pp_gla_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+  load(sprintf('~/pp/proc/src/pp_gla_src_powerspectra_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+
   isubj
   for iff = 1 : 75
     fooof.psfit_gla(:,iff,isubj,iblock)=corr(squeeze(g(:,iff,:))',pup(~isnan(pup))');
@@ -57,14 +71,27 @@ for isubj = 1: length(SUBJLIST)
   end
   fooof.offset_df_gla(:,isubj,iblock)=corr(squeeze(aper(1,:,:))',pup_df(~isnan(pup_df))');
   fooof.slope_df_gla(:,isubj,iblock)=corr(squeeze(aper(2,:,:))',pup_df(~isnan(pup_df))');
-end
-% -------------
+  
+  % take out slope of empirical pxx
+  idx = ~isnan(pxx(1,1,:));
+    slopes=-aper(2,:,:).*log10(2:0.5:128)' + aper(1,:,:);
+    tmp = log10(pxx(:,:,idx))-slopes;
+    for iff = 1 : 253
+      fooof.ps_gla_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup(~isnan(pup))');
+      fooof.ps_gla_df_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup_df(~isnan(pup_df))');
 
+    end
+end
+
+clear pup pup_df pxx fxx
+% -------------
 % LOAD MUENSTER 
 % -------------
 SUBJLIST=1:41; SUBJLIST([4,10,12,17,19,22,27,35,38,39,40])=[]; iblock = 1;
 for isubj = 1: length(SUBJLIST)
   load(sprintf('~/pp/proc/src/pp_mue_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+  load(sprintf('~/pp/proc/src/pp_mue_src_powerspectra_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
+
   for iff = 1 : 75
     fooof.psfit_mue(:,iff,isubj,iblock)=corr(squeeze(g(:,iff,:))',pup(~isnan(pup))');
   end
@@ -75,6 +102,16 @@ for isubj = 1: length(SUBJLIST)
   end
   fooof.offset_df_mue(:,isubj,iblock)=corr(squeeze(aper(1,:,:))',pup_df(~isnan(pup_df))');
   fooof.slope_df_mue(:,isubj,iblock)=corr(squeeze(aper(2,:,:))',pup_df(~isnan(pup_df))');
+  
+  % take out slope of empirical pxx
+  idx = ~isnan(pxx(1,1,:));
+    slopes=-aper(2,:,:).*log10(2:0.5:128)' + aper(1,:,:);
+    tmp = log10(pxx(:,:,idx))-slopes;
+    for iff = 1 : 253
+      fooof.ps_mue_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup(~isnan(pup))');
+      fooof.ps_mue_df_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup_df(~isnan(pup_df))');
+
+    end
 end
 
 

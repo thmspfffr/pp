@@ -7,19 +7,19 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 1;
-win_len = 2400;
-overlap = 2; % 50% overlap
-% -------------------------
-% VERSION 2: with pupil lag
-% -------------------------
-% v = 2;
+% v = 1;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 1;
 % win_len = 2400;
 % overlap = 2; % 50% overlap
+% -------------------------
+% VERSION 2: with pupil lag
+% -------------------------
+v = 2;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 1;
+win_len = 2400;
+overlap = 2; % 50% overlap
 % -------------------------
 % VERSION 11: no pupil lag
 % -------------------------
@@ -71,9 +71,9 @@ for isubj =1:size(SUBJLIST,1)
   for iblock = 1:1
     %
     fn = sprintf('pp_mue_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
