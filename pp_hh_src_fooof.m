@@ -11,6 +11,7 @@ clear
 % v = 1;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 0;
+
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
@@ -124,8 +125,8 @@ for isubj = SUBJLIST
     pupil(idx) = nan;
     pupil_df(idx) = nan;
     
-    opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len; % 50% overlap
+    opt.n_win = win_len; % 4s segment length, i.e., 0.1:0.1:100
+    opt.n_shift = win_len; % 0% overlap
     
     nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
     

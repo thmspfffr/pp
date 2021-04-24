@@ -159,6 +159,8 @@ end
 % list = [10 17 19 22 27 35  40]
 
 SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
+% SUBJLIST=1:41; SUBJLIST(list)=[];
+
 for n_subj = 1:length(SUBJLIST)
   isubj = SUBJLIST(n_subj);
   fprintf('Muenster: Subj%d\n',isubj)

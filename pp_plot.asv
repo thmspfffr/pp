@@ -836,9 +836,9 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task0_allfreqs_v%d.pdf',is_d
 
 %% ORDERED XCORR (FRON ANTERIOR TO POSTERIOR)
 is_task = 0;
-is_dt = 1;
+is_dt = 0;
 
-to_plot = 'hh';
+to_pl
 
 if is_dt==1
   line_x = 0;
@@ -849,20 +849,10 @@ end
 cols = cbrewer('seq', 'Greys', 35,'pchip');
 cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
 for ifreq = 1 : 25
-  if strcmp(to_plot,'all')
-    all.xcorr_df_ord{ifreq}=cat(3,plt_gla.xcorr_df_ord{ifreq},plt_mue.xcorr_df_ord{ifreq},plt_hh.xcorr_df_ord{ifreq});
-    all.xcorr_ord{ifreq}=cat(3,plt_gla.xcorr_ord{ifreq},plt_mue.xcorr_ord{ifreq},plt_hh.xcorr_ord{ifreq});
-  elseif strcmp(to_plot,'gla')
-    all.xcorr_df_ord{ifreq}=plt_gla.xcorr_df_ord{ifreq};
-    all.xcorr_ord{ifreq}=plt_gla.xcorr_ord{ifreq};
-  elseif strcmp(to_plot,'hh')
-    all.xcorr_df_ord{ifreq}=plt_hh.xcorr_df_ord{ifreq};
-    all.xcorr_ord{ifreq}=plt_hh.xcorr_ord{ifreq};
-  elseif strcmp(to_plot,'mue')
-    all.xcorr_df_ord{ifreq}=plt_mue.xcorr_df_ord{ifreq};
-    all.xcorr_ord{ifreq}=plt_mue.xcorr_ord{ifreq};
-  end
+  all.xcorr_df_ord{ifreq}=cat(3,plt_gla.xcorr_df_ord{ifreq},plt_mue.xcorr_df_ord{ifreq},plt_hh.xcorr_df_ord{ifreq});
+  all.xcorr_ord{ifreq}=cat(3,plt_gla.xcorr_ord{ifreq},plt_mue.xcorr_ord{ifreq},plt_hh.xcorr_ord{ifreq});
 end
+
 figure_w;
 ff = [1 5; 9 13; 21 25]; color_idx = [1 12 25]; clims = [-0.05 0.05; -0.05 0.05; -0.02 0.02; ]
 
@@ -879,10 +869,7 @@ for iff = 1 : size(ff,1)
     end
   end
   
-  [h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); 
-  if strcmp(to_plot,'all')
-    h = p<fdr1(p(:),0.05,1);
-  end
+  [h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); h = p<fdr1(p(:),0.05,1);
   imagesc(plt_hh.xcorr_lags{ff(iff,2)},1:39,nanmean(nanmean(sig,4),3)'.*h',clims(iff,:))
   set(gca,'ydir','normal','ytick',[],'yticklabels',[]);
   tp_editplots; colormap(cmap)
@@ -892,7 +879,7 @@ for iff = 1 : size(ff,1)
   
 end
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_%s_xcorr_dt%d_task%d_freqsoi_across_sensors_v%d.pdf',to_plot,is_dt,is_task,v))
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task%d_freqsoi_across_sensors_v%d.pdf',is_dt,is_task,v))
 
 %% XCORR FOR SELECTED FREQUENCIES
 is_task = 0;
