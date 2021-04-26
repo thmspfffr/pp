@@ -486,3 +486,57 @@ text(1,1,sprintf('[%.3f %.3f]',clim(1),clim(2)))
 % set(gcf,'renderer','painters')
 % print(gcf,'-dpdf',sprintf('~/pp/plots/pp_fooof_sourcemap_dt%d_slp%d_v%d.tiff',is_dt,is_slope,v))
 
+%% PLOT iverted U
+is_dt=0; 
+if is_dt == 0
+    pooled=cat(3,mean(fooof22.pxx_seg_hh,4),fooof22.pxx_seg_gla,fooof22.pxx_seg_mue);
+    pooled_slp=squeeze(cat(3,mean(fooof22.slopes_seg_hh,4),fooof22.slopes_seg_gla,fooof22.slopes_seg_mue));
+else
+  pooled=cat(3,mean(fooof11.pxx_seg_dt_hh,4),fooof11.pxx_seg_dt_gla,fooof11.pxx_seg_dt_mue);
+end
+tmp = mean(pooled,3);
+
+idx_low=fooof22.fxx>2 & fooof22.fxx<4;
+idx_alpha=fooof22.fxx>8 & fooof22.fxx<16;
+idx_high=fooof22.fxx>64 & fooof22.fxx<128;
+
+[p_low,S_low]=polyfit(1:20,mean(tmp(idx_low,:),1),2);
+[p_alpha,S_alpha]=polyfit(1:20,mean(tmp(idx_alpha,:),1),2);
+[p_high,S_high]=polyfit(1:20,mean(tmp(idx_high,:),1),2);
+
+figure_w
+subplot(3,3,1); hold on
+plot(mean(tmp(idx_low,:),1),'o','markersize',7,'markeredgecolor','w','markerfacecolor','k')
+plot(1:20,p_low(1).*(1:20).^2 + p_low(2).*(1:20) + p_low(3))
+tp_editplots; xlabel('Pupil bin'); ylabel('Power [a.u.]')
+
+subplot(3,3,2); hold on
+plot(mean(tmp(idx_alpha,:),1),'o','markersize',7,'markeredgecolor','w','markerfacecolor','k')
+plot(1:20,p_alpha(1).*(1:20).^2 + p_alpha(2).*(1:20) + p_alpha(3))
+tp_editplots; xlabel('Pupil bin'); ylabel('Power [a.u.]')
+
+
+subplot(3,3,3); hold on
+plot(mean(tmp(idx_high,:),1),'o','markersize',7,'markeredgecolor','w','markerfacecolor','k')
+plot(1:20,p_high(1).*(1:20).^2 + p_high(2).*(1:20) + p_high(3))
+tp_editplots; xlabel('Pupil bin'); ylabel('Power [a.u.]')
+
+[p_slp,S_slp]=polyfit(1:20,mean(pooled_slp,2),2);
+
+subplot(3,3,4); hold on
+plot(mean(pooled_slp,2),'o','markersize',7,'markeredgecolor','w','markerfacecolor','k')
+plot(1:20,p_slp(1).*(1:20).^2 + p_slp(2).*(1:20) + p_slp(3))
+tp_editplots; xlabel('Pupil bin'); ylabel('Power [a.u.]')
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_invU_isdt%d_v%d.pdf',is_dt,v))
+
+%%
+
+tmp = nanmean(fooof22.pxx_seg_hh,4);
+for i = 1 : 246
+  i
+  for j = 1 : 253
+    
+  [p(:,i,j),S_low]=polyfit(1:20,squeeze(tmp(j,i,:)),2);
+end
+  end

@@ -40,6 +40,24 @@ for isubj = 1: length(SUBJLIST)
 
     end
 
+    % Divide pupil signal into 5% bins
+    nanidx = ~isnan(pup(:)) | ~isnan(squeeze(pxx(1,1,:)));
+    tmp_pup = pup(nanidx)';
+    tmp_pup_dt =  pup_df(nanidx)';
+    for i = 1 : 21
+      thresh(i) = prctile(tmp_pup,5*(i-1));
+      thresh_dt(i) = prctile(tmp_pup_dt,5*(i-1));
+    end
+    idx = discretize(tmp_pup,thresh);
+    idx_dt = discretize(tmp_pup_dt,thresh_dt);
+    tmp_pxx = pxx(:,:,nanidx);
+    for i = 1 : 20
+      fooof.pxx_seg_hh(:,:,i,isubj,iblock) = mean(tmp_pxx(:,:,idx==i),3);
+      fooof.pxx_seg_dt_hh(:,:,i,isubj,iblock) = mean(tmp_pxx(:,:,idx_dt==i),3);
+      fooof.slopes_seg_hh(:,:,i,:,isubj,iblock) = mean(aper(2,:,idx==i),3);
+    end
+    fooof.fxx = fxx;
+    
   end
 end
 
@@ -82,6 +100,23 @@ for isubj = 1: length(SUBJLIST)
       fooof.ps_gla_df_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup_df(~isnan(pup_df))');
 
     end
+    
+    % Divide pupil signal into 5% bins
+    nanidx = ~isnan(pup(:)) | ~isnan(squeeze(pxx(1,1,:)));
+    tmp_pup = pup(nanidx)';
+    tmp_pup_dt =  pup_df(nanidx)';
+    for i = 1 : 21
+      thresh(i) = prctile(tmp_pup,5*(i-1));
+      thresh_dt(i) = prctile(tmp_pup_dt,5*(i-1));
+    end
+    idx = discretize(tmp_pup,thresh);
+    idx_dt = discretize(tmp_pup_dt,thresh_dt);
+    tmp_pxx = pxx(:,:,nanidx);
+    for i = 1 : 20
+      fooof.pxx_seg_gla(:,i,isubj,iblock) = mean(mean(tmp_pxx(:,:,idx==i),3),2);
+      fooof.pxx_seg_dt_gla(:,i,isubj,iblock) = mean(mean(tmp_pxx(:,:,idx_dt==i),3),2);
+      fooof.slopes_seg_gla(:,i,isubj,iblock) = mean(mean(aper(2,:,idx==i),3),2);
+    end
 end
 
 clear pup pup_df pxx fxx
@@ -112,6 +147,23 @@ for isubj = 1: length(SUBJLIST)
       fooof.ps_mue_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup(~isnan(pup))');
       fooof.ps_mue_df_corrected(:,iff,isubj,iblock)=corr(squeeze(tmp(iff,:,:))',pup_df(~isnan(pup_df))');
 
+    end
+    
+    % Divide pupil signal into 5% bins
+    nanidx = ~isnan(pup(:)) | ~isnan(squeeze(pxx(1,1,:)));
+    tmp_pup = pup(nanidx)';
+    tmp_pup_dt =  pup_df(nanidx)';
+    for i = 1 : 21
+      thresh(i) = prctile(tmp_pup,5*(i-1));
+      thresh_dt(i) = prctile(tmp_pup_dt,5*(i-1));
+    end
+    idx = discretize(tmp_pup,thresh);
+    idx_dt = discretize(tmp_pup_dt,thresh_dt);
+    tmp_pxx = pxx(:,:,nanidx);
+    for i = 1 : 20
+      fooof.pxx_seg_mue(:,i,isubj,iblock) = mean(mean(tmp_pxx(:,:,idx==i),3),2);
+      fooof.pxx_seg_dt_mue(:,i,isubj,iblock) = mean(mean(tmp_pxx(:,:,idx_dt==i),3),2);
+      fooof.slopes_seg_mue(:,i,isubj,iblock) = mean(mean(aper(2,:,idx==i),3),2);
     end
 end
 

@@ -33,14 +33,14 @@ addpath /home/gnolte/meth/highlevel/
 d=dir('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/*mat');
 
 SUBJLIST = [];
-for i = 1 : length(d) 
-    SUBJLIST = [SUBJLIST; d(i).name(end-7:end-4)];  
+for i = 1 : length(d)
+  SUBJLIST = [SUBJLIST; d(i).name(end-7:end-4)];
 end
 
 %%
 % -------------------------
-for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
-
+for isubj = 1 : size(SUBJLIST,1)
+  
   size(SUBJLIST,1)
   
   clear pxx fxx pup pup_df
@@ -48,28 +48,28 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
   for iblock = 1:1
     %
     fn = sprintf('pp_mue_src_fooof_s%d_b%d_v%d',isubj,iblock,v);
-	if tp_parallel(fn,outdir,1,0)
-       continue
-     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
       % load pupil data
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/rawpupil_%s.mat',SUBJLIST(isubj,:)))
-  
+      
       pupil = puptc(:);
       
       % load meg data
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/cleanmeg_%s.mat',SUBJLIST(isubj,:)))
       data = cleanmeg; clear cleanmeg
       f_sample = data.fsample;
-   
+      
       cfg=[];
       cfg.layout='CTF275.lay';
       lay = ft_prepare_layout(cfg);
       [~, outp.chanidx] = ismember(lay.label(1:275),data.label);
-    
+      
     catch me
       src_r = nan(246,25);
       save([outdir fn '.mat'],'src_r')
@@ -86,34 +86,34 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
     pupil = filtfilt(bhil, ahil, pupil);
     
     if lag
-        pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
-        pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+      pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
+      pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     end
     pupil_df = diff(pupil);
     
     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
     
     data.avg = data.trial{1}'; %data.trial{1} = [];
-
+    
     load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/leadfields/lf_%s.mat',SUBJLIST(isubj,:)))
     
     for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
-
+      
       % -------------------------------
       % compute csd
       % -------------------------------
       para          = [];
       para.freq     = freqoi(ifreq);
-      para.fsample  = 400;  
+      para.fsample  = 400;
       para.overlap = 0.5;
       csd(:,:,ifreq)=tp_compute_csd_wavelets(data.avg',para);
       
     end
     
     csd = nanmean(csd,3);
-      
+    
     % -------------------------------
     % beamforming
     % -------------------------------
@@ -123,7 +123,7 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
     filt   = tp_beamformer(real(csd),lf,para);
     % -------------------------------
     
-%     data_src = data.avg*tp_filt; 
+    %     data_src = data.avg*tp_filt;
     clear data
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
@@ -138,25 +138,25 @@ for isubj =1:1:1:1:1:1:1:1:1:1:1: size(SUBJLIST,1)
     pupil_df = diff(pupil);
     
     data.avg(pup_nanidx,:)=nan;
-     
+    
     pxx = nan(size(ff,2),size(filt,2),nseg);
     for iseg = 1 : nseg
-        fprintf('%d / %d\n',iseg,nseg)
-        seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
-        
-        if any(isnan(seg_dat(:,1)))
-            pup(iseg) = nan;
-            pup_df(iseg)=nan;
-            continue        
-        end
-        
-        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
-        pup(iseg)  = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-        if iseg ~= nseg
-            pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
-        else
-            pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));            
-        end
+      fprintf('%d / %d\n',iseg,nseg)
+      seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
+      
+      if any(isnan(seg_dat(:,1)))
+        pup(iseg) = nan;
+        pup_df(iseg)=nan;
+        continue
+      end
+      
+      [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+      pup(iseg)  = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+      if iseg ~= nseg
+        pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
+      else
+        pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));
+      end
     end
     
     pxx=single(pxx);
