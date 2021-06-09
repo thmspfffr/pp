@@ -60,9 +60,9 @@ for isubj = 1:24
   for iblock = 1:1
     %
     fn = sprintf('pp_gla_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
-    if tp_parallel(fn,outdir,1,0)
-      continue
-    end
+%     if tp_parallel(fn,outdir,1,0)
+%       continue
+%     end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -152,7 +152,7 @@ for isubj = 1:24
     % beamforming
     % -------------------------------
     para      = [];
-    para.iscs = 1;
+    para.iscs = 1; 
     para.reg  = 0.05;
     filt   = tp_beamformer(real(tp_csd),lf,para);
     % -------------------------------

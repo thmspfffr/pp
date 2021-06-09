@@ -1,16 +1,109 @@
 
-% pupil
 fooof22 = pp_load_fooof_results(2);
-% pupil derivative
-fooof11 = pp_load_fooof_results(1);
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
-
-load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
+%%
+load ~/pp/proc/pp_atlas_BNA.mat
 [~,idx_sorted] = sort(BNA.centroids(:,2),'descend');
-cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 colors = cbrewer('qual', 'Set3', 10,'pchip');
 colors = colors(4:6,:);
-load /home/gnolte/meth/templates/sa_template.mat
+
+
+
+%% SLOPES PER SEGMENT
+
+pooled = squeeze(cat(5,nanmean(fooof22.slopes_seg_hh,6),fooof22.slopes_seg_gla,fooof22.slopes_seg_mue));
+
+figure_w;
+
+subplot(3,4,1); hold on
+
+plot(1:20,squeeze(mean(mean(pooled,3),1)),'.','markersize',20)
+lsline
+
+tp_editplots; xlabel('Pupil bin'); ylabel('Spectral exponent')
+axis([0 21 0.91 0.96])
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_slope_vs_pupil.pdf',v))
+% 
+% figure_w
+% % subplot(3,4,2); 
+% hold on
+% 
+% isubj = 10;
+% 
+% tmp  = squeeze(nanmean(fooof22.pxx_seg_gla(5:100,160,:,:,:),5));
+% 
+% plot(log10(fooof22.fxx(5:100)),log10(squeeze(mean(tmp(1:end,1,isubj),3))))
+% plot(log10(fooof22.fxx(5:100)),log10(squeeze(mean(tmp(1:end,20,isubj),3))))
+%%
+
+close
+
+V1_r = find(BNA.tissue_5mm==205);
+V1_l = find(BNA.tissue_5mm==206);
+A1_r = find(BNA.tissue_5mm==71);
+A1_l = find(BNA.tissue_5mm==72);
+M1_r = find(BNA.tissue_5mm==159);
+M1_l = find(BNA.tissue_5mm==160);
+ACC_l= find(BNA.tissue_5mm==179);
+ACC_r= find(BNA.tissue_5mm==180);
+
+
+pooled = squeeze(cat(2,fooof22.slope_hh,fooof22.slope_gla,fooof22.slope_mue));
+
+
+figure_w
+subplot(5,3,[1 2 4 5]); hold on
+
+r = (rand(81,1)-0.5)/4;
+
+plot(ones(81,1)+r,squeeze(mean(pooled(:,:),1)),'k.','markersize',12)
+% plot(1.4,squeeze(mean(mean(pooled(:,:),1),2)),'k.','markersize',20)
+[~,p]=ttest(squeeze(mean(pooled(:,:),1)))
+
+plot(2*ones(81,1)+r,squeeze(mean(pooled([205, 206],:),1)),'.','markersize',12)
+% plot(2.4,squeeze(mean(mean(pooled([205, 206],:),1),2)),'.','markersize',20)
+
+[~,p1]=ttest(squeeze(mean(pooled([205, 206],:),1)))
+
+plot(3*ones(81,1)+r,squeeze(mean(pooled([71, 72],:),1)),'.','markersize',12)
+[~,p2]=ttest(squeeze(mean(pooled([71, 72],:),1)))
+
+plot(4*ones(81,1)+r,squeeze(mean(pooled([159, 160],:),1)),'.','markersize',12)
+[~,p3]=ttest(squeeze(mean(pooled([159, 160],:),1)))
+
+plot(5*ones(81,1)+r,squeeze(mean(pooled([179, 180],:),1)),'.','markersize',12)
+[~,p4]=ttest(squeeze(mean(pooled([179, 180],:),1)))
+
+axis([0.5 5.5 -0.80 0.80])
+
+line([0.8 1.2],[mean(mean(pooled(:,:),1),2) mean(mean(pooled(:,:),1),2)],'linewidth',2)
+line([1.8 2.2],[mean(mean(pooled([205, 206],:),1),2) mean(mean(pooled([205, 206],:),1),2)],'linewidth',2)
+line([2.8 3.2],[mean(mean(pooled([71, 72],:),1),2) mean(mean(pooled([71, 72],:),1),2)],'linewidth',2)
+line([3.8 4.2],[mean(mean(pooled([159, 160],:),1),2) mean(mean(pooled([159, 160],:),1),2)],'linewidth',2)
+line([4.8 5.2],[mean(mean(pooled([179, 180],:),1),2) mean(mean(pooled([179, 180],:),1),2)],'linewidth',2)
+
+line([0.5 4.5],[0 0],'linewidth',0.5,'color',[0.7 0.7 0.7],'linestyle','--')
+
+tp_editplots
+
+set(gca,'xtick',1:4,'xticklabels',{'Visual cortex';'Auditory cortex';'Somatosensory cortex';'Anterior cigulate cortex'})
+set(gca,'ytick',[-0.8 -0.4 0 0.4 0.8],'yticklabels',[-0.8 -0.4 0 0.4 0.8])
+ylabel('Correlation')
+% mean(mean(pooled([71, 72],:),1),2)
+% mean(mean(pooled([159, 160],:),1),2)
+% mean(mean(pooled([179, 180],:),1),2)
+ 
+% 
+% for isubj = 1 : size(pooled,3)
+%   
+%   
+%   
+%   
+% end
+
+
+
 %%
 figure_w;
 
@@ -87,11 +180,12 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/figure100.pdf'))
 %%
 
 addpath /home/gnolte/meth/highlevel/
+load /home/gnolte/meth/templates/sa_template;
+
 load /home/gnolte/meth/templates/mri.mat
 figure_w
 is_slope = 1; is_dt = 0;
 
-par = zeros(8799,80);
 
 if is_slope && ~is_dt
   pooled = cat(2,fooof22.slope_gla,fooof22.slope_hh,fooof22.slope_mue);
@@ -103,18 +197,8 @@ elseif ~is_slope && is_dt
   pooled = cat(2,fooof11.offset_df_gla,fooof11.offset_df_hh,fooof11.offset_df_mue);
 end
 
-par1 = mean(pooled,1);
-
-figure_w; 
-subplot(2,2,1);hold on
-plot(ones(size(par1,1),1)+(rand(80,1)-0.5)/15,par1,'ko','markeredgecolor','w','markerfacecolor','k','markersize',7)
-plot(1,mean(par1),'ko','markeredgecolor','r','markerfacecolor','r','markersize',10)
-line([1 1],[mean(par1)-std(par1) mean(par1)+std(par1)],'color','r','linewidth',2)
-line([0.6 1.4],[0 0],'color',[.7 .7 .7],'linewidth',1,'linestyle',':')
-axis([0.6 1.4 -0.5 0.5])
-tp_editplots; ylabel('Correlation (Pupil x Slope)')
-
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_corr_slope_pupil_isdt%d_v%d.pdf',is_dt,v))
+cmap = redblue;
+par = zeros(8799,81);
 
 for i = 1 : size(pooled,1)
   par(BNA.tissue_5mm==i,:)=repmat(pooled(i,:),[sum(BNA.tissue_5mm==i) 1]); 
@@ -489,20 +573,44 @@ text(1,1,sprintf('[%.3f %.3f]',clim(1),clim(2)))
 %% PLOT iverted U
 is_dt=0; 
 if is_dt == 0
-    pooled=cat(3,mean(fooof22.pxx_seg_hh,4),fooof22.pxx_seg_gla,fooof22.pxx_seg_mue);
-    pooled_slp=squeeze(cat(3,mean(fooof22.slopes_seg_hh,4),fooof22.slopes_seg_gla,fooof22.slopes_seg_mue));
+    pooled=double(cat(4,double(nanmean(fooof22.pxx_seg_hh,5)),double(fooof22.pxx_seg_gla),double(fooof22.pxx_seg_mue)));
+%     pooled_slp=squeeze(cat(3,mean(fooof22.slopes_seg_hh,4),fooof22.slopes_seg_gla,fooof22.slopes_seg_mue));
 else
   pooled=cat(3,mean(fooof11.pxx_seg_dt_hh,4),fooof11.pxx_seg_dt_gla,fooof11.pxx_seg_dt_mue);
 end
-tmp = mean(pooled,3);
+tmp = mean(pooled,4);
 
 idx_low=fooof22.fxx>2 & fooof22.fxx<4;
 idx_alpha=fooof22.fxx>8 & fooof22.fxx<16;
 idx_high=fooof22.fxx>64 & fooof22.fxx<128;
 
-[p_low,S_low]=polyfit(1:20,mean(tmp(idx_low,:),1),2);
-[p_alpha,S_alpha]=polyfit(1:20,mean(tmp(idx_alpha,:),1),2);
-[p_high,S_high]=polyfit(1:20,mean(tmp(idx_high,:),1),2);
+[~,idx_sorted] = sort(BNA.centroids(:,2),'descend');
+
+p_low=  zeros(size(pooled,1),size(pooled,2),3,size(pooled,4));
+for isubj =1  : size(pooled,4)
+  isubj
+  for iff = 1  : 253
+%     iff
+  for i = 1 : 246
+    [p_low(iff,i,:,isubj),S_low(i,:)]=polyfit(1:20,mean(tmp(iff,i,:),1),2);
+  %   [p_alpha(i,:),S_alpha(i,:)]=polyfit(1:20,mean(tmp(idx_alpha,i,:),1),2);
+  %   [p_high(i,:),S_high(i,:)]=polyfit(1:20,mean(tmp(idx_high,i,:),1),2);
+
+  end
+  end
+end
+
+p_low=p_low(:,idx_sorted,:,:);
+figure_w
+
+subplot(1,2,1);
+imagesc(fooof22.fxx,1:246,mean(p_low(:,:,1,:),4))
+
+[h,p]=ttest(p_low(:,:,1,:),zeros(size(p_low(:,:,1,:))),'dim',4)
+subplot(1,2,2);
+imagesc(fooof22.fxx,1:246,mean(p_low(:,:,1,:),4).*h)
+
+
 
 figure_w
 subplot(3,3,1); hold on

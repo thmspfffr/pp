@@ -10,7 +10,7 @@ restoredefaultpath
 % v = 1;
 % SUBJLIST  = 1:24;
 % freqoi    = 2.^(1:(1/4):7);
-% win_len = 1600;
+% win_len = 800;
 % lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag
@@ -18,7 +18,7 @@ restoredefaultpath
 v = 2;
 SUBJLIST  = 1:24;
 freqoi    = 2.^(1:(1/4):7);
-win_len = 1600;
+win_len = 800;
 lag = 1;
 % -------------------------
 
@@ -170,7 +170,7 @@ for isubj = 1:24
             continue        
         end
         
-        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+        [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),0,ff,400,'power');
         pup(iseg)  = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
         if iseg ~= nseg
             pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));

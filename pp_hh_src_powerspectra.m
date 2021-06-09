@@ -11,32 +11,16 @@ restoredefaultpath
 % v = 1;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 0;
-% win_len = 2400;
+% win_len = 800;
 % overlap = 2; % 50% overlap
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-% v = 2;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 1;
-% win_len = 2400;
-% overlap = 2; % 50% overlap
-% -------------------------
-% VERSION 11: no pupil lag
-% -------------------------
-v = 11;
+v = 2;
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 0;
+lag = 1;
 win_len = 800;
-overlap = 1; % 50% overlap
-% -------------------------
-% VERSION 22: with pupil lag
-% -------------------------
-% v = 22;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 1;
-% win_len = 800;
-% overlap = 1; % 50% overlap
+overlap = 2; % 50% overlap
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -148,7 +132,7 @@ for isubj = SUBJLIST
     nseg=floor((size(dat,2)-opt.n_win)/opt.n_shift+1);
     
     clear pxx fxx pup pup_df
-    ff = 2:0.5:128;
+    ff = 2:1/(opt.n_win/400):128;
     
     pxx = nan(size(ff,2),max(BNA.tissue_5mm(:)),nseg);
     for iseg = 1 : nseg
@@ -162,11 +146,8 @@ for isubj = SUBJLIST
         continue
       end
       
-      if v < 3
-        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(800),400,ff,400,'power');
-      else
-        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
-      end
+      [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0.5,ff,400,'power');
+
       
       for igrid = 1 : max(BNA.tissue_5mm(:))
         pxx(:,igrid,iseg) = mean(tmp_pxx(:,BNA.tissue_5mm == igrid),2);

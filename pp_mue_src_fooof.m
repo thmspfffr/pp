@@ -8,14 +8,14 @@ restoredefaultpath
 % -------------------------
 %v = 1;
 %freqoi    = 2.^(1:(1/4):7);
-%win_len = 1600;
+%win_len = 800;
 %lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
 v = 2;
 freqoi    = 2.^(1:(1/4):7);
-win_len = 1600;
+win_len = 800;
 lag = 1;
 % -------------------------
 
@@ -124,7 +124,7 @@ for isubj = 1 : size(SUBJLIST,1)
     % -------------------------------
     
     %     data_src = data.avg*tp_filt;
-    clear data
+%     clear data
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
     opt.n_shift = win_len; % no overlap
@@ -150,7 +150,7 @@ for isubj = 1 : size(SUBJLIST,1)
         continue
       end
       
-      [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+      [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),0,ff,400,'power');
       pup(iseg)  = mean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
       if iseg ~= nseg
         pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));

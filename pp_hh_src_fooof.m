@@ -11,14 +11,14 @@ clear
 % v = 1;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 0;
-
+% win_len = 800;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
 v = 2;
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 lag = 1;
-win_len = 1600;
+win_len = 800;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -42,9 +42,9 @@ for isubj = SUBJLIST
   for iblock = 1:2
     %
     fn = sprintf('pp_hh_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%    	end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+   	end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -145,7 +145,7 @@ for isubj = SUBJLIST
         continue
       end
       
-      [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),[],ff,400,'power');
+      [pxx(:,:,iseg),fxx]=pwelch(seg_dat,hanning(opt.n_win),0,ff,400,'power');
       pup(iseg)  = nanmean(pupil((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));
       if iseg~=nseg
         pup_df(iseg) = nanmean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win));

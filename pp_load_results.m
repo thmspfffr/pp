@@ -3,6 +3,8 @@ function [plt_gla, plt_hh,plt_mue,plt_hh_cnt,plt_all]  = pp_load_results(v)
 %% LOAD GLASGOW DATA
 
 outdir = '~/pp/proc/src/';
+
+addpath ~/pconn/matlab
 ord    = pconn_randomization;
 load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
 load ~/standard_sourcemodel_BNA_5mm.mat
@@ -156,8 +158,8 @@ end
 
 % LOAD MUENSTER DATA
 % ----------------------------
-% list = [10 17 19 22 27 35  40]
-
+% SUBJLIST=1:41; SUBJLIST([10 12 17 19 22 27 35 38 40])=[];
+% 
 SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
 % SUBJLIST=1:41; SUBJLIST(list)=[];
 
