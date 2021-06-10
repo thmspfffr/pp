@@ -4,8 +4,8 @@
 fooof22 = pp_load_fooof_results(2);
 fooof11 = pp_load_fooof_results(1);
 
-tmp22 =  cat(4,nanmean(double(fooof22.pxx_seg_hh),5),double(fooof22.pxx_seg_gla),double(fooof22.pxx_seg_mue));
-tmp11 = cat(4,nanmean(double(fooof11.pxx_seg_hh),5),double(fooof11.pxx_seg_gla),double(fooof11.pxx_seg_mue));
+tmp22 =  cat(4,nanmean(fooof22.pxx_seg_hh,5),fooof22.pxx_seg_gla,fooof22.pxx_seg_mue);
+tmp11 = cat(4,nanmean(fooof11.pxx_seg_hh,5),fooof11.pxx_seg_gla,fooof11.pxx_seg_mue);
 
 fxx = fooof22.fxx;
 

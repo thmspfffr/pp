@@ -8,6 +8,7 @@ SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31
 for isubj = 1: length(SUBJLIST)
   isubj
   for iblock = 1 : 2
+    
     try
       load(sprintf('~/pp/proc/src/pp_hh_collected_fooof_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
       load(sprintf('~/pp/proc/src/pp_hh_src_powerspectra_s%d_b%d_v%d.mat',SUBJLIST(isubj),iblock,v))
@@ -47,9 +48,9 @@ for isubj = 1: length(SUBJLIST)
     nanidx = ~isnan(pup(:)) | ~isnan(squeeze(pxx(1,1,:)));
     tmp_pup = pup(nanidx)';
     tmp_pup_dt =  pup_df(nanidx)';
-    for i = 1 : 41
-      thresh(i) = prctile(tmp_pup,2.5*(i-1));
-      thresh_dt(i) = prctile(tmp_pup_dt,2.5*(i-1));
+    for i = 1 : 21
+      thresh(i) = prctile(tmp_pup,5*(i-1));
+      thresh_dt(i) = prctile(tmp_pup_dt,5*(i-1));
     end
     idx = discretize(tmp_pup,thresh);
     idx_dt = discretize(tmp_pup_dt,thresh_dt);

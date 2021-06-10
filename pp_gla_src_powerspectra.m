@@ -1,4 +1,4 @@
-%% pp_gla_src_powerspectra
+%% pp_gla_src_fooof
 % correlate bandpass filtered (or via wavelets) pupil and MEG signals
 
 clear
@@ -8,33 +8,18 @@ restoredefaultpath
 % VERSION 1: no pupil lag
 % -------------------------
 v = 1;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 0;
+SUBJLIST  = 1:24;
+freqoi    = 2.^(1:(1/4):7);
 win_len = 800;
-overlap = 2; % 50% overlap
+lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
 % v = 2;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% SUBJLIST  = 1:24;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 800;
 % lag = 1;
-% win_len = 800;
-% overlap = 2; % 50% overlap
-% -------------------------
-% VERSION 11: no pupil lag, less overlap
-% -------------------------
-% v = 11;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
-% win_len = 800;
-% overlap = 1; % 0% overlap
-% -------------------------
-% VERSION 2: with pupil lag
-% -------------------------
-% v = 22;
-% lag = 1;
-% win_len = 800;
-% overlap = 1; % 0% overlap
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -46,11 +31,6 @@ ft_defaults
 outdir = '~/pp/proc/src/';
 ord    = pconn_randomization;
 
-addpath ~/pp/matlab
-trans = pp_transfer_gla2hh;
-
-freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
-
 %%
 % -------------------------
 for isubj = 1:24
@@ -60,9 +40,9 @@ for isubj = 1:24
   for iblock = 1:1
     %
     fn = sprintf('pp_gla_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -94,8 +74,16 @@ for isubj = 1:24
       
       chanidx = outp.chanidx;
       save(sprintf('~/pp/proc/src/chanidx_s%d.mat',isubj),'chanidx')
-                  
+      
+%       
+%       [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
+%             
+%       outp.tp_sens_pow = nan(248,25);
+%       outp.sens_r      = nan(248,25);
+%       outp.sens_r_sp   = nan(248,25);
     catch me
+      src_r = nan(246,25);
+      save([outdir fn '.mat'],'src_r')
       continue
     end
     
@@ -140,7 +128,7 @@ for isubj = 1:24
       % -------------------------------
       para          = [];
       para.freq     = freqoi(ifreq);
-      para.fsample  = 400;  
+      para.fsample  = f_sample;  
       para.overlap = 0.5;
       tp_csd(:,:,ifreq)=tp_compute_csd_wavelets(data.avg',para);
       
@@ -152,17 +140,17 @@ for isubj = 1:24
     % beamforming
     % -------------------------------
     para      = [];
-    para.iscs = 1; 
+    para.iscs = 1;
     para.reg  = 0.05;
     filt   = tp_beamformer(real(tp_csd),lf,para);
     % -------------------------------
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len/overlap; % no overlap
+    opt.n_shift = win_len; % no overlap
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 2:1/(opt.n_win/400):128;
+    ff = 3:1/(opt.n_win/400):50;
     
     pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
@@ -174,7 +162,7 @@ for isubj = 1:24
     for iseg = 1 : nseg
         fprintf('%d / %d\n',iseg,nseg)
         seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
-        seg_dat = seg_dat(:,trans);
+        
         if any(isnan(seg_dat(:,1)))
 %             pxx(:,:,iseg) = nan(size(fxx,1),size(tp_filt,2));
             pup(iseg) = nan;
@@ -182,8 +170,7 @@ for isubj = 1:24
             continue        
         end
         
-        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0.5,ff,400,'power');
-        
+        [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0,ff,400,'power');
         for igrid = 1 : max(BNA.tissue_5mm(:))
           pxx(:,igrid,iseg) = mean(tmp_pxx(:,BNA.tissue_5mm == igrid),2);
         end
@@ -195,8 +182,8 @@ for isubj = 1:24
             pup_df(iseg) = mean(pupil_df((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win-1));            
         end
     end
-    
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
+%     pxx=single(pxx);
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','-v7.3')
     tp_parallel(fn,outdir,0)
     
     clear pxx fxx pup pup_df
@@ -205,4 +192,5 @@ for isubj = 1:24
 end
 
 exit
+error('!')
 %%
