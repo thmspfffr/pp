@@ -2,29 +2,31 @@
 
 % Load data computed in powerspectra.m
 fooof22 = pp_load_fooof_results(2);
-fooof11 = pp_load_fooof_results(1);
+% fooof11 = pp_load_fooof_results(1);
 
 tmp22 =  cat(4,nanmean(fooof22.pxx_seg_hh,5),fooof22.pxx_seg_gla,fooof22.pxx_seg_mue);
-tmp11 = cat(4,nanmean(fooof11.pxx_seg_hh,5),fooof11.pxx_seg_gla,fooof11.pxx_seg_mue);
+% tmp11 = cat(4,nanmean(fooof11.pxx_seg_hh,5),fooof11.pxx_seg_gla,fooof11.pxx_seg_mue);
 
-fxx = fooof22.fxx;
+
+% fxx = fooof22.fxx;
+fooof22.fxx = fxx;
 
 % set notch filter range to nan
 idx = (fooof22.fxx>=47 & fooof22.fxx<=53) |  (fooof22.fxx>=97 & fooof22.fxx<=103);
 tmp22(idx,:,:,:) = nan;
-tmp11(idx,:,:,:) = nan;
+% tmp11(idx,:,:,:) = nan;
 
 pooled22 = zeros(size(tmp22),'double');
-pooled11 = zeros(size(tmp11),'double');
+% pooled11 = zeros(size(tmp11),'double');
 
 % interpolate nans (speed up at some point)
-for ireg = 1 : 246
+for ireg = 1 : size(pooled22,2)
   ireg
-  for iseg = 1 : 20
-    for isubj = 1 : 81
+  for iseg = 1 : size(pooled22,3)
+    for isubj = 1 : size(pooled22,4)
       
       pooled22(:,ireg,iseg,isubj) = fillmissing(tmp22(:,ireg,iseg,isubj),'spline');
-      pooled11(:,ireg,iseg,isubj) = fillmissing(tmp11(:,ireg,iseg,isubj),'spline');
+%       pooled11(:,ireg,iseg,isubj) = fillmissing(tmp11(:,ireg,iseg,isubj),'spline');
       
     end
   end
@@ -35,20 +37,20 @@ end
 clear mean_dat22 mean_dat11
 
 pooled_f22 = zeros(25,size(pooled22,2),size(pooled22,3),size(pooled22,4),'double');
-pooled_f11 = zeros(25,size(pooled11,2),size(pooled11,3),size(pooled11,4),'double');
+% pooled_f11 = zeros(25,size(pooled11,2),size(pooled11,3),size(pooled11,4),'double');
 
 f = 2.^(1:0.25:7)
 for ii = 1 : 25
   [wavelet, outp]= tp_mkwavelet(f(ii),0.5,400,0);
   freq_range(ii,:) = outp.freq_range;
-  pooled_f22(ii,:,:,:) = squeeze(mean(pooled22(fxx>freq_range(ii,1) & fxx<freq_range(ii,2),:,:,:),1));
-  pooled_f11(ii,:,:,:) = squeeze(mean(pooled11(fxx>freq_range(ii,1) & fxx<freq_range(ii,2),:,:,:),1));
+  pooled_f22(ii,:,:,:) = squeeze(nanmean(pooled22(fxx>freq_range(ii,1) & fxx<freq_range(ii,2),:,:,:),1));
+%   pooled_f11(ii,:,:,:) = squeeze(mean(pooled11(fxx>freq_range(ii,1) & fxx<freq_range(ii,2),:,:,:),1));
 end
 
-x = 1 :20;
+x = 1 :25;
 
 p_low22 = zeros(size(pooled_f22,1),size(pooled_f22,2),3,size(pooled_f22,4),'double');
-p_low11 = zeros(size(pooled_f22,1),size(pooled_f22,2),3,size(pooled_f22,4),'double');
+% p_low11 = zeros(size(pooled_f22,1),size(pooled_f22,2),3,size(pooled_f22,4),'double');
 
 for isubj = 1  : size(pooled_f22,4)
   
@@ -68,10 +70,10 @@ for isubj = 1  : size(pooled_f22,4)
       mean_dat22(iff,i,:,isubj) = dat;
 
       % PERMUTE PUPIL SEGMENTS
-      dat = zscore(squeeze(pooled_f11(iff,i,:,isubj))');     
-      p_low11(iff,i,:,isubj)=polyfit(x,dat,2);
+%       dat = zscore(squeeze(pooled_f11(iff,i,:,isubj))');     
+%       p_low11(iff,i,:,isubj)=polyfit(x,dat,2);
       
-      mean_dat11(iff,i,:,isubj) = dat;
+%       mean_dat11(iff,i,:,isubj) = dat;
 
       clear dat
 
@@ -177,7 +179,7 @@ ppp = p_low22(:,:,1,:);%./mean(pooled_f(:,:,:,:),3);
 
 [h,p,~,s]=ttest(ppp,zeros(size(ppp)),'dim',4);
 h=p<0.05;
-imagesc(s.tstat(:,idx_sorted)'.*h',[-3 3])
+imagesc(s.tstat(:,:)'.*h',[-3 3])
 colormap(redblue)
 %%
 freqs = 2.^(1:0.25:7);
@@ -187,7 +189,7 @@ figure_w
 ppp = p_low22(:,:,1,:);
 
 subplot(2,2,2); hold on
-par = squeeze(mean(ppp,2));
+par = squeeze(nanmean(ppp,2));
 [h,p]=ttest(par,zeros(size(par)),'dim',2)
 
 shadedErrorBar(log10(freqs),mean(par,2),std(par,[],2)/sqrt(size(par,2))); hold on
@@ -199,20 +201,20 @@ line([log10(freqs(1)) log10(freqs(end))], [0 0])
 axis([log10(freqs(1)) log10(freqs(end)) -0.004 0.004])
 set(gca,'xtick',log10(freqs(1:4:end)),'xticklabels',freqs(1:4:end))
 
-ppp = p_low11(:,:,1,:);
-
-subplot(2,2,4)
-par = squeeze(mean(ppp,2));
-[h,p]=ttest(par,zeros(size(par)),'dim',2)
-
-shadedErrorBar(log10(freqs),mean(par,2),std(par,[],2)/sqrt(size(par,2))); hold on
-plot(log10(freqs(find(p<0.05))),mean(par(find(p<0.05),:),2),'k.','markersize',8)
-plot(log10(freqs(find(p<0.01))),mean(par(find(p<0.01),:),2),'r.','markersize',8)
-
-tp_editplots
-line([log10(freqs(1)) log10(freqs(end))], [0 0])
-set(gca,'xtick',log10(freqs(1:4:end)),'xticklabels',freqs(1:4:end))
-axis([log10(freqs(1)) log10(freqs(end)) -0.004 0.004])
+% ppp = p_low11(:,:,1,:);
+% 
+% subplot(2,2,4)
+% par = squeeze(mean(ppp,2));
+% [h,p]=ttest(par,zeros(size(par)),'dim',2)
+% 
+% shadedErrorBar(log10(freqs),mean(par,2),std(par,[],2)/sqrt(size(par,2))); hold on
+% plot(log10(freqs(find(p<0.05))),mean(par(find(p<0.05),:),2),'k.','markersize',8)
+% plot(log10(freqs(find(p<0.01))),mean(par(find(p<0.01),:),2),'r.','markersize',8)
+% 
+% tp_editplots
+% line([log10(freqs(1)) log10(freqs(end))], [0 0])
+% set(gca,'xtick',log10(freqs(1:4:end)),'xticklabels',freqs(1:4:end))
+% axis([log10(freqs(1)) log10(freqs(end)) -0.004 0.004])
 
 
 load ~/pp/proc/pp_atlas_BNA.mat
@@ -304,7 +306,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_ROIs_invertedU_dt%d_v%d.pdf',0,v))
 % tmp22 = squeeze(mean(mean(pooled22,4),2));
 % tmp11 = squeeze(mean(mean(pooled11,4),2));
 
-for i=1:81
+for i=1:22
   i
   for ii=1:246
 fxx = 2:0.5:128;
@@ -317,9 +319,9 @@ m22(1,ii,i,:)=mean(mean_dat22(idx_low,ii,:,i),1);
 m22(2,ii,i,:)=mean(mean_dat22(idx_alpha,ii,:,i),1);
 m22(3,ii,i,:)=mean(mean_dat22(idx_high,ii,:,i),1);
 
-m11(1,ii,i,:)=mean(mean_dat11(idx_low,ii,:,i),1);
-m11(2,ii,i,:)=mean(mean_dat11(idx_alpha,ii,:,i),1);
-m11(3,ii,i,:)=mean(mean_dat11(idx_high,ii,:,i),1);
+% m11(1,ii,i,:)=mean(mean_dat11(idx_low,ii,:,i),1);
+% m11(2,ii,i,:)=mean(mean_dat11(idx_alpha,ii,:,i),1);
+% m11(3,ii,i,:)=mean(mean_dat11(idx_high,ii,:,i),1);
 % poly_par11(1,:) = polyfit(1:20,squeeze(zscore(mean(tmp11(idx_low,:),1))),2);
 % poly_par11(2,:) = polyfit(1:20,squeeze(zscore(mean(tmp11(idx_alpha,:),1))),2);
 % poly_par11(3,:) = polyfit(1:20,squeeze(zscore(mean(tmp11(idx_high,:),1))),2);
@@ -330,9 +332,9 @@ poly_par22(1,:) = polyfit(1:20,squeeze(mean(mean(m22(1,:,:,:),2),3)),2);
 poly_par22(2,:) = polyfit(1:20,squeeze(mean(mean(m22(2,:,:,:),2),3)),2);
 poly_par22(3,:) = polyfit(1:20,squeeze(mean(mean(m22(3,:,:,:),2),3)),2);
   
-poly_par11(1,:) = polyfit(1:20,squeeze(mean(mean(m11(1,:,:,:),2),3)),2);
-poly_par11(2,:) = polyfit(1:20,squeeze(mean(mean(m11(2,:,:,:),2),3)),2);
-poly_par11(3,:) = polyfit(1:20,squeeze(mean(mean(m11(3,:,:,:),2),3)),2);
+% poly_par11(1,:) = polyfit(1:20,squeeze(mean(mean(m11(1,:,:,:),2),3)),2);
+% poly_par11(2,:) = polyfit(1:20,squeeze(mean(mean(m11(2,:,:,:),2),3)),2);
+% poly_par11(3,:) = polyfit(1:20,squeeze(mean(mean(m11(3,:,:,:),2),3)),2);
  
 figure_w
 subplot(3,3,1); hold on

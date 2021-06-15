@@ -10,6 +10,7 @@ restoredefaultpath
 % freqoi    = 2.^(1:(1/4):7);
 % win_len = 800;
 % lag = 0;
+% overlap = 0.5;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
@@ -17,6 +18,7 @@ v = 2;
 freqoi    = 2.^(1:(1/4):7);
 win_len = 800;
 lag = 1;
+overlap = 0.5;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -89,7 +91,8 @@ for isubj = 1 : size(SUBJLIST,1)
     [bhil, ahil] = butter(k, hil_Wn);
     
     pupil = filtfilt(bhil, ahil, pupil);
-    
+    pupil = resample(pupil,400,600);
+
     if lag
       pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
       pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
@@ -132,11 +135,11 @@ for isubj = 1 : size(SUBJLIST,1)
 %     clear data
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len; % no overlap
+    opt.n_shift = win_len*(1-overlap); % no overlap
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 3:1/(opt.n_win/400):50;
+    ff = 2:1/(opt.n_win/400):128;
     
     pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
@@ -169,11 +172,11 @@ for isubj = 1 : size(SUBJLIST,1)
     end
     
 %     pxx=single(pxx);
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','-v7.3')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     
     tp_parallel(fn,outdir,0)
     
-    clear outp
+    clear outp csd
     
   end
 end

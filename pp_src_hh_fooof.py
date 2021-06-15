@@ -3,8 +3,9 @@ import numpy as np
 import scipy.io
 import os
 import time
+import h5py
 
-v=22
+v=1
 
 SUBJLIST = [4,5,6,7,8,9,10,11,12,13,15,16,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]
 
@@ -17,17 +18,17 @@ for isubj in SUBJLIST:
         os.system('touch /home/tpfeffer/pp/proc/src/pp_hh_fooof_s%d_b%d_v%d_proc.txt' % (isubj,iblock,v))
         try:
             dat = scipy.io.loadmat('/home/tpfeffer/pp/proc/src/pp_hh_src_powerspectra_s%d_b%d_v%d.mat' % (isubj,iblock,v))
+
         except:
             print("Error: File not found!")
             continue
 
         print('Processing S%d B%d ...' % (isubj,iblock))
         
-        
         not_nan_idx  = np.isnan(dat['pxx'][1,1,:])==False
 
         dat['pxx'] = dat['pxx'][:,:,not_nan_idx]
-        pup = dat['pup'][:,not_nan_idx]
+        pup = dat['pup'][:,not_nan_idx]; 
         pup_df = dat['pup_df'][:,not_nan_idx]
 
         if v >33:

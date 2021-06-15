@@ -7,19 +7,21 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-SUBJLIST  = 1:24;
-freqoi    = 2.^(1:(1/4):7);
-win_len = 800;
-lag = 0;
-% -------------------------
-% VERSION 2: with pupil lag
-% -------------------------
-% v = 2;
+% v = 1;
 % SUBJLIST  = 1:24;
 % freqoi    = 2.^(1:(1/4):7);
 % win_len = 800;
-% lag = 1;
+% lag = 0;
+% overlap = 0.5;
+% -------------------------
+% VERSION 2: with pupil lag
+% -------------------------
+v = 2;
+SUBJLIST  = 1:24;
+freqoi    = 2.^(1:(1/4):7);
+win_len = 800;
+lag = 1;
+overlap = 0.5;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -30,6 +32,8 @@ ft_defaults
 
 outdir = '~/pp/proc/src/';
 ord    = pconn_randomization;
+
+trans = pp_transfer_gla2hh;
 
 %%
 % -------------------------
@@ -74,13 +78,7 @@ for isubj = 1:24
       
       chanidx = outp.chanidx;
       save(sprintf('~/pp/proc/src/chanidx_s%d.mat',isubj),'chanidx')
-      
-%       
-%       [outp.pxx,outp.fxx]=pwelch(data.trial{1}',hanning(400),0,1:1:200,400);
-%             
-%       outp.tp_sens_pow = nan(248,25);
-%       outp.sens_r      = nan(248,25);
-%       outp.sens_r_sp   = nan(248,25);
+
     catch me
       src_r = nan(246,25);
       save([outdir fn '.mat'],'src_r')
@@ -101,11 +99,7 @@ for isubj = 1:24
         pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     end
     
-%     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));
-    
-%     tmp = data;
-    data.avg = data.trial{1}'; %data.trial{1} = [];
-%     clear data
+    data.avg = data.trial{1}'; 
 
     if isubj < 10
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/leadfields/sub0%d_gla_lf_BNA5mm.mat',isubj))
@@ -119,6 +113,7 @@ for isubj = 1:24
     end
 
     clear tp_csd
+    
     for ifreq=1:numel(freqoi)
       
       fprintf('Freq: %d\n',ifreq)
@@ -146,11 +141,11 @@ for isubj = 1:24
     % -------------------------------
     
     opt.n_win = win_len; % 10s segment length, i.e., 0.1:0.1:100
-    opt.n_shift = win_len; % no overlap
+    opt.n_shift = win_len*(1-overlap); % no overlap
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 3:1/(opt.n_win/400):50;
+    ff = 2:1/(opt.n_win/400):128;
     
     pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
@@ -159,9 +154,12 @@ for isubj = 1:24
     data.avg(pup_nanidx,:)=nan;
      
     pxx = nan(size(ff,2),max(BNA.tissue_5mm(:)),nseg);
+    
     for iseg = 1 : nseg
         fprintf('%d / %d\n',iseg,nseg)
         seg_dat = data.avg((iseg-1)*opt.n_shift+1:(iseg-1)*opt.n_shift+opt.n_win,:)*filt;
+        
+        seg_dat = seg_dat(:,trans);
         
         if any(isnan(seg_dat(:,1)))
 %             pxx(:,:,iseg) = nan(size(fxx,1),size(tp_filt,2));
@@ -183,7 +181,7 @@ for isubj = 1:24
         end
     end
 %     pxx=single(pxx);
-    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df','-v7.3')
+    save([outdir fn '.mat'],'pxx','fxx','pup','pup_df')
     tp_parallel(fn,outdir,0)
     
     clear pxx fxx pup pup_df
