@@ -14,11 +14,29 @@ restoredefaultpath
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-v = 2;
-freqoi    = 2.^(1:(1/4):7);
-win_len = 800;
+% v = 2;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 800;
+% lag = 1;
+% overlap = 0.5;
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+% v = 22;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 1;
+% win_len = 1600;
+% overlap = 0.5;
+% freqoi    = 2.^(1:(1/4):7);
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+v = 222;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 lag = 1;
+win_len = 1600;
 overlap = 0.5;
+freqoi    = 2.^(1:(1/4):7);
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -139,7 +157,11 @@ for isubj = 1 : size(SUBJLIST,1)
     
     nseg=floor((size(data.avg,1)-opt.n_win)/opt.n_shift+1);
     clear pxx fxx pup pup_df
-    ff = 2:1/(opt.n_win/400):128;
+    if v<222
+      ff = 2:1/(opt.n_win/400):128;
+    else
+      ff = 2:1/(800/400):128;  
+    end
     
     pupil = pupil(1:size(data.avg,1));
     pup_nanidx = isnan(pupil);
@@ -158,7 +180,11 @@ for isubj = 1 : size(SUBJLIST,1)
         continue
       end
       
-      [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0,ff,400,'power');
+      if v<222
+          [tmp_pxx,fxx]=pwelch(seg_dat,hanning(opt.n_win),0,ff,400,'power');
+        else
+          [tmp_pxx,fxx]=pwelch(seg_dat,hanning(800),0.5,ff,400,'power');  
+        end
       for igrid = 1 : max(BNA.tissue_5mm(:))
         pxx(:,igrid,iseg) = mean(tmp_pxx(:,BNA.tissue_5mm == igrid),2);
       end

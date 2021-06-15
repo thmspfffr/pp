@@ -29,8 +29,8 @@ for isubj = 1: length(SUBJLIST)
       fooof.psfit_df_hh(:,:,isubj,iblock)=nan(246,75);
       fooof.offset_df_hh(:,isubj,iblock)=nan(246,1);
       fooof.slope_df_hh(:,isubj,iblock)=nan(246,1);
-      fooof.pxx_seg_hh(:,:,:,isubj,iblock) = nan(253,246,25);
-      fooof.pxx_seg_dt_hh(:,:,:,isubj,iblock) = nan(253,246,25);
+      fooof.pxx_seg_hh(:,:,:,isubj,iblock) = nan(size(fooof.pxx_seg_hh,1),246,25);
+      fooof.pxx_seg_dt_hh(:,:,:,isubj,iblock) = nan(size(fooof.pxx_seg_hh,1),246,25);
       
       continue
     end
