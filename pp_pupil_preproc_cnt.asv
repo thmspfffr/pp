@@ -45,10 +45,10 @@ for isubj = 4
       if isempty(blinksmp)
         blinksmp = [10000 10010];
       end
-    [newpupil, ~, ~, dat] = blink_interpolate(pupil, blinksmp, fsample, 0);
+    [newpupil, ~, ~, dat] = blink_interpolate(pupil, blinksmp, fsample, 0); ;
      pupil(:,4) = newpupil; 
-%      pupil(:,3) = dat.gazey;
-%      pupil(:,2) = dat.gazex;
+     pupil(:,3) = dat.gazey;
+     pupil(:,2) = dat.gazex;
 %      [pupil(:,4),newblinksmp,~,dat] = blink_interpolate(pupil, blinksmp, fsample, 0); 
      
      pupil(:,4) = blink_regressout(pupil(:,4), fsample, blinksmp, saccsmp, 0, 1);

@@ -5,7 +5,7 @@ import scipy.io
 import os
 import time
 
-v=1
+v=2
 
 for isubj in range(1,25):
     for iblock in range(1,2):

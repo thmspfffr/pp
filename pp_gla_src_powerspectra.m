@@ -7,12 +7,12 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% SUBJLIST  = 1:24;
-% freqoi    = 2.^(1:(1/4):7);
-% win_len = 800;
-% lag = 0;
-% overlap = 0.5;
+v = 1;
+SUBJLIST  = 1:24;
+freqoi    = 2.^(1:(1/4):7);
+win_len = 800;
+lag = 0;
+overlap = 0.5;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
@@ -25,23 +25,13 @@ restoredefaultpath
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
-% v = 22;
+% v = 222;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 1;
 % win_len = 1600;
 % overlap = 0.5;
 % freqoi    = 2.^(1:(1/4):7);
 % -------------------------
-% VERSION 3: with pupil lag
-% -------------------------
-v = 222;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 1;
-win_len = 1600;
-overlap = 0.5;
-freqoi    = 2.^(1:(1/4):7);
-% -------------------------
-
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
 addpath ~/pconn/matlab/
