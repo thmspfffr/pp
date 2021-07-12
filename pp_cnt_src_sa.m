@@ -1,5 +1,5 @@
 %% PREPARE HEAD MODEL FOR SOURCE ANALYSIS
-% pp_src_sa
+% pp_cnt_src_sa
 
 clear
 

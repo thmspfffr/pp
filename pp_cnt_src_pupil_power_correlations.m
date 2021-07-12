@@ -17,18 +17,6 @@ v = 2;
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 lag = 1;
 % -------------------------
-% VERSION 3: with pupil lag
-% -------------------------
-% v = 3;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 1;
-% -------------------------
-% VERSION 3: with pupil lag
-% -------------------------
-% v = 4;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
-% -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
 addpath ~/pconn/matlab/
@@ -42,6 +30,12 @@ ord    = pconn_randomization;
 freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 
 %%
+
+% obtained from pp_task_lag_pupil_meg.m
+% two entries are determined manually
+
+load ~/pp/proc/pp_task_lag_pupil_meg.mat
+
 % -------------------------
 for isubj = SUBJLIST
   
@@ -58,7 +52,7 @@ for isubj = SUBJLIST
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
     try
-              load(sprintf('~/pp/data/ham/pp_task_s%d_b%d_v%d.mat',isubj,iblock,1))
+    	load(sprintf('~/pp/data/ham/pp_task_s%d_b%d_v%d.mat',isubj,iblock,1))
 
       % load cleaned meg data
 %       load(sprintf('~/pp/data/ham/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
@@ -66,11 +60,17 @@ for isubj = SUBJLIST
       continue
     end
     
+    if isnan(pup_meg_lag(isubj,iblock)) 
+      pup_meg_lag(isubj,iblock)=-10000;
+    end
+    
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
     [~, outp.chanidx] = ismember(lay.label(1:275),label(startsWith(label,'M')));
     
+    pupil = pupil(abs(pup_meg_lag(isubj,iblock)):end,4);
+
     % bp-filter and resample pupil
     % ------
     k = 2; f_sample = 1000;
@@ -86,8 +86,7 @@ for isubj = SUBJLIST
     % align pupil and meg (at signal offset)
     % ------
     
-    pupil = pupil(end:-1:1,end);
-    dat = dat(:,end:-1:1);
+%     dat = dat(:,end:-1:1);
     
     len = min([size(pupil,1) size(dat,2)]);
     if len/400 > 600
@@ -97,8 +96,6 @@ for isubj = SUBJLIST
     dat = dat(:,1:len);
     pupil = pupil(1:len);
     
-    dat = dat(:,end:-1:1);
-    pupil = pupil(end:-1:1);
     % ------
     
     % pupil shift: 930 ms from hoeks & levelt (1992)
