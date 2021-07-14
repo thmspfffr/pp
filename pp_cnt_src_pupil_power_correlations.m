@@ -7,15 +7,15 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
+v = 1;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-v = 2;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 1;
+% v = 2;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 1;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -35,10 +35,10 @@ freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 % two entries are determined manually
 
 load ~/pp/proc/pp_task_lag_pupil_meg.mat
-
+cnt = 0;
 % -------------------------
 for isubj = SUBJLIST
-  
+  cnt = cnt+1;
   % identify placebo condition (ord==1)
   im = find(ord(isubj,:)==1);
   
@@ -60,8 +60,8 @@ for isubj = SUBJLIST
       continue
     end
     
-    if isnan(pup_meg_lag(isubj,iblock)) 
-      pup_meg_lag(isubj,iblock)=-10000;
+    if isnan(pup_meg_lag(cnt,iblock)) 
+      pup_meg_lag(cnt,iblock)=-10000;
     end
     
     cfg=[];
@@ -69,7 +69,7 @@ for isubj = SUBJLIST
     lay = ft_prepare_layout(cfg);
     [~, outp.chanidx] = ismember(lay.label(1:275),label(startsWith(label,'M')));
     
-    pupil = pupil(abs(pup_meg_lag(isubj,iblock)):end,4);
+    pupil = pupil(abs(pup_meg_lag(cnt,iblock)):end,4);
 
     % bp-filter and resample pupil
     % ------

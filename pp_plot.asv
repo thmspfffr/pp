@@ -490,6 +490,25 @@ M1_l = find(BNA.tissue_5mm==160);
 ACC_l= find(BNA.tissue_5mm==179);
 ACC_r= find(BNA.tissue_5mm==180);
 
+
+% for i= 1 : size(BNA.grid_5mm,1)
+%   
+%   d_A1_l(i) = sqrt((BNA.grid_5mm(i,1)-A1(1,1))^2 + (BNA.grid_5mm(i,2)-A1(1,2))^2 + (BNA.grid_5mm(i,3)-A1(1,3))^2);
+%   d_A1_r(i) = sqrt((BNA.grid_5mm(i,1)-A1(2,1))^2 + (BNA.grid_5mm(i,2)-A1(2,2))^2 + (BNA.grid_5mm(i,3)-A1(2,3))^2);
+%   d_V1_l(i) = sqrt((BNA.grid_5mm(i,1)-V1(1,1))^2 + (BNA.grid_5mm(i,2)-V1(1,2))^2 + (BNA.grid_5mm(i,3)-V1(1,3))^2);
+%   d_V1_r(i) = sqrt((BNA.grid_5mm(i,1)-V1(2,1))^2 + (BNA.grid_5mm(i,2)-V1(2,2))^2 + (BNA.grid_5mm(i,3)-V1(2,3))^2);
+%   d_M1_l(i) = sqrt((BNA.grid_5mm(i,1)-M1(1,1))^2 + (BNA.grid_5mm(i,2)-M1(1,2))^2 + (BNA.grid_5mm(i,3)-M1(1,3))^2);
+%   d_M1_r(i) = sqrt((BNA.grid_5mm(i,1)-M1(2,1))^2 + (BNA.grid_5mm(i,2)-M1(2,2))^2 + (BNA.grid_5mm(i,3)-M1(2,3))^2);
+%   
+% end
+% 
+% [~,A1_l]=min(d_A1_l);
+% [~,A1_r]=min(d_A1_r);
+% [~,V1_l]=min(d_V1_l);
+% [~,V1_r]=min(d_V1_r);
+% [~,M1_l]=min(d_M1_l);
+% [~,M1_r]=min(d_M1_r);
+
 figure_w;
 
 subplot(4,3,1); hold on; box off
