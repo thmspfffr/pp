@@ -47,8 +47,8 @@ for isubj = SUBJLIST
     
     try
       % load cleaned meg data
+      % data from 'pp_prepare_data.m'
         load(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1))
-
 %       load(sprintf('~/pp/data/ham/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
     catch me
       continue

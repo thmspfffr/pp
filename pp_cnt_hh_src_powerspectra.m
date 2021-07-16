@@ -1,3 +1,4 @@
+
 %% pp_hh_src_powerspectra
 % correlate bandpass filtered (or via wavelets) pupil and MEG signals
 
@@ -5,15 +6,15 @@ clear
 % restoredefaultpath
 
 % -------------------------
-% VERSION 1: no pupil lag (used to be v11, re-named manually to v1)
+% VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
-% win_len = 800;
-% overlap = 0.5;
+v = 1;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 0;
+win_len = 800;
+overlap = 0.5;
 % -------------------------
-% VERSION 3: with pupil lag (used to be v22, re-named manually to v2)
+% VERSION 3: with pupil lag
 % -------------------------
 % v = 2;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
@@ -21,6 +22,32 @@ clear
 % win_len = 800;
 % overlap = 0.5;
 % -------------------------
+% VERSION 11: no pupil lag
+% -------------------------
+% v = 1;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 0;
+% win_len = 800;
+% overlap = 0.5;
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+% v = 22;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 1;
+% win_len = 1600;
+% overlap = 0.5;
+% -------------------------
+% VERSION 3: with pupil lag
+% -------------------------
+% v = 222;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 1;
+% win_len = 1600;
+% overlap = 0.5;
+% freqoi    = 2.^(1:(1/4):7);
+% -------------------------
+
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
 addpath ~/pconn/matlab/
@@ -42,7 +69,7 @@ for isubj = SUBJLIST
   
   for iblock = 1:2
     %
-    fn = sprintf('pp_hh_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
+    fn = sprintf('pp_cnt_hh_src_powerspectra_s%d_b%d_v%d',isubj,iblock,v);
     if tp_parallel(fn,outdir,1,0)
       continue
    	end
@@ -51,8 +78,7 @@ for isubj = SUBJLIST
     
     try
       % load cleaned meg data
-%       load(sprintf('~/pp/data/ham/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
-      load(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1))
+      load(sprintf('~/pp/data/ham/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
     catch me
       continue
     end
@@ -73,7 +99,6 @@ for isubj = SUBJLIST
     pupil = filtfilt(bhil, ahil, pupil);
     pupil = resample(pupil,400,1000);
 
-    pupil = pupil(end:-1:1,4);
     dat = dat(:,end:-1:1);
     
     len = min([size(pupil,1) size(dat,2)]);

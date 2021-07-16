@@ -17,11 +17,10 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 v = 2
 
-[plt_gla,plt_hh,plt_mue]=pp_load_results(v);
+[plt_gla,plt_hh,plt_mue,plt_hh_cnt,plt_all]=pp_load_results(v);
 
 colors = cbrewer('qual', 'Set3', 10,'pchip');
 colors = colors(4:6,:);
-
 
 %% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
 freqoi=2.^(1:(1/4):7);
@@ -101,7 +100,6 @@ xlabel('Frequency [Hz]')
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_task_sens_anterior_post_v%d.pdf',v))
 
-
 %% PLOT AVERAGES ACROSS SPACE, HAMBURG, GLASGOW, ALL
 
 % -----------------
@@ -161,12 +159,6 @@ imagesc(corr(all_pow,all_pow),[0.7 1])
 tp_editplots; axis square; colormap(plasma)
 set(gca,'xtick',[22 50],'xticklabel',{'HH';'MUE'})
 set(gca,'ytick',[22 50],'yticklabel',{'HH';'MUE'})
-% subplot(4,3,5)
-% shadedErrorBar(log10(freqoi),par_cnt,std_cnt,{'color',colors(2,:)})
-% axis([.3 2.11 -24 -21])
-% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Log-Power')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_pow_lineplots_v%d.pdf',v))
 
@@ -273,7 +265,6 @@ axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-
 
 tmp = squeeze(mean(cat(3,plt_gla.corr_src,plt_hh.corr_src,plt_mue.corr_src),1));
 [c,p]=permutest(tmp,zeros(size(squeeze(tmp))),1,0.01,1000,2); h=[c{p<0.05}];
@@ -416,9 +407,18 @@ if v == 2
   xlabel('Frequency [Hz]'); ylabel('Brain region')
   
   figure_w
-  subplot(2,4,4)
+  subplot(2,4,1)
   pooled= plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
   [~,p]=ttest(pooled,zeros(size(pooled)),'dim',3); h = p<fdr1(p(:),0.1,0);
+  imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
+  tp_editplots; colormap(cmap)
+  set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+  xlabel('Frequency [Hz]'); ylabel('Brain region')
+  
+  subplot(2,4,2)
+  cnt = plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
+  rest = plt_hh.corr_src_BNA(idx_sorted,:,:);
+  [~,p]=ttest(cnt,rest,'dim',3); h = p<fdr1(p(:),0.1,0);
   imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
   tp_editplots; colormap(cmap)
   set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
@@ -646,16 +646,16 @@ addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 
 % cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 if v==2
-is_dt = 0; 
-is_task = 0;
+ is_dt = 0; 
+ is_task = 1;
 else
  is_dt = 1; 
-is_task = 0; 
+ is_task = 0; 
 end
 
 cmap = redblue;
 
-for ifoi = 14
+for ifoi = 22
   
   figure_w
   

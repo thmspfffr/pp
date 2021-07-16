@@ -64,7 +64,7 @@ for isubj = SUBJLIST
     load(sprintf('~/pconn_cnt/proc/preproc/pconn_cnt_preproc_data_count_s%d_m%d_b%d_v1.mat',isubj,im,iblock))
     label = data.label;
     
-    pupil = pupil(1:end-lag(isubj,iblock),:);
+%     pupil = pupil(1:end-lag(isubj,iblock),:);
     
     save(sprintf('~/pp/data/ham/pp_task_s%d_b%d_v%d.mat',isubj,iblock,1),'dat','pupil','label')
     
