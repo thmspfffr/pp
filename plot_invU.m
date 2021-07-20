@@ -220,7 +220,7 @@ tp_plot_surface(par1,para)
 
 %%
 
-v = 1;
+v = 2;
 freqs = 2.^(1:0.25:7);
 
 figure_w
