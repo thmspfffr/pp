@@ -7,9 +7,9 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 0;
+% v = 1;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 0;
 % -------------------------
 % VERSION 3: with pupil lag
 % -------------------------
@@ -29,9 +29,10 @@ ord    = pconn_randomization;
 
 freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 
+freqoi = 2:0.5:128;
 %%
 % -------------------------
-for isubj = 25:34
+for isubj = SUBJLIST
   
   % identify placebo condition (ord==1)
   im = find(ord(isubj,:)==1);
@@ -39,9 +40,9 @@ for isubj = 25:34
   for iblock = 1:2
     %
     fn = sprintf('pp_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -54,7 +55,6 @@ for isubj = 25:34
       continue
     end
     
-
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
@@ -68,8 +68,7 @@ for isubj = 25:34
     hil_Wn = [hil_hi/fnq hil_lo/fnq];
     [bhil, ahil] = butter(k, hil_Wn);
     
-    tmp = filtfilt(bhil, ahil, pupil(:,[1 end]));
-    pupil(:,[1 4])=tmp;
+    pupil = filtfilt(bhil, ahil, pupil(:,end));
     pupil = resample(pupil,400,1000);
     % ------
     f_sample = 400;
@@ -85,43 +84,12 @@ for isubj = 25:34
     end
     
     dat = dat(:,1:len);
-    pupil = pupil(1:len,:);
+    pupil = pupil(1:len);
     
     dat = dat(:,end:-1:1);
-    pupil = pupil(end:-1:1,:);
+    pupil = pupil(end:-1:1);
     % ------
-    saccs=tp_detect_microsaccades(pupil(:,2:3),400,20);
-    pupil = pupil(:,end);
     
-%     loc_pup = [];  sacc_rate = [];
-%     segleng = 20*400;
-%     segshift = segleng;
-%     
-%     nseg=floor((size(pupil,1)-segleng)/segshift+1);
-%         
-%     for iseg = 1 : nseg
-% 
-%       loc_pup(iseg)=mean(pupil((iseg-1)*segleng+1:(iseg-1)*segshift+segleng));
-%       sacc_rate(iseg) = sum(saccs(:,1)>=(iseg-1)*segleng+1 & saccs(:,1)<= (iseg-1)*segshift+segleng);
-% 
-%     end
-    tmp = []
-    for i = 1 : size(saccs,1)
-      tmp(:,i) = pupil(saccs(:,1):saccs(:,1)+1600);
-    end
-    
-    all_tmp(:,isubj,iblock)=mean(tmp,2);
-
-    if isubj ~= 34
-    continue
-    else
-      figure; hold on
-      s = std(nanmean(all_tmp(:,25:34,:),3),[],2);
-      shadedErrorBar(1:1601,mean(nanmean(all_tmp(:,25:34,:),3),2),s)
-      line([0 1601],[0 0],'color','k','linestyle','--')
-      
-      
-    end
     % pupil shift: 930 ms from hoeks & levelt (1992)
     if lag
       pup_shift = round(400*0.93);

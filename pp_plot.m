@@ -15,9 +15,9 @@ ft_defaults
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 2
+v = 1
 
-[plt_gla,plt_hh,plt_mue,plt_hh_cnt,plt_all]=pp_load_results(v);
+[plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results(v);
 
 colors = cbrewer('qual', 'Set3', 10,'pchip');
 colors = colors(4:6,:);

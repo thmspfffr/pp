@@ -90,7 +90,7 @@ for isubj = 25:34
     dat = dat(:,end:-1:1);
     pupil = pupil(end:-1:1,:);
     % ------
-    saccs=tp_detect_microsaccades(pupil(:,2:3),400,20);
+    saccs=tp_detect_microsaccades(pupil(:,2:3),1000);
     pupil = pupil(:,end);
     
 %     loc_pup = [];  sacc_rate = [];

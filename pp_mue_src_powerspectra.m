@@ -6,38 +6,21 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-v = 1;
-freqoi    = 2.^(1:(1/4):7);
-win_len = 800;
-lag = 0;
-overlap = 0.5;
+% v = 1;
+% freqoi    = 2.^(1:(1/4):7);
+% win_len = 800;
+% lag = 0;
+% overlap = 0.5;
 % -------------------------
 % VERSION 2: with pupil lag
 % -------------------------
-% v = 2;
-% freqoi    = 2.^(1:(1/4):7);
-% win_len = 800;
-% lag = 1;
-% overlap = 0.5;
+v = 2;
+freqoi    = 2.^(1:(1/4):7);
+win_len = 800;
+lag = 1;
+overlap = 0.5;
 % -------------------------
-% VERSION 3: with pupil lag
-% -------------------------
-% v = 22;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 1;
-% win_len = 1600;
-% overlap = 0.5;
-% freqoi    = 2.^(1:(1/4):7);
-% -------------------------
-% VERSION 3: with pupil lag
-% -------------------------
-% v = 222;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 1;
-% win_len = 1600;
-% overlap = 0.5;
-% freqoi    = 2.^(1:(1/4):7);
-% -------------------------
+
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
 addpath ~/pconn/matlab/
@@ -76,9 +59,12 @@ for isubj = 1 : size(SUBJLIST,1)
     
     try
       % load pupil data
-      load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/rawpupil_%s.mat',SUBJLIST(isubj,:)))
+      load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/%s_pupil_preproc_lp4.mat',SUBJLIST(isubj,:)))
+      pupil = reshape(data.trial{1}(4,:),[size(data.trial{1}(4,:),2) 1]);
       
-      pupil = puptc(:);
+%       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/rawpupil_%s.mat',SUBJLIST(isubj,:)))
+      
+%       pupil = tmp(:,4);
       
       % load meg data
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/cleanmeg_%s.mat',SUBJLIST(isubj,:)))
