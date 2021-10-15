@@ -10,7 +10,7 @@ ft_defaults
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 fsample         = 1000;
 
-for isubj = 22
+for isubj = SUBJLIST
   for m = 1:3
     
     fprintf('Processing subject %d, session%d ...\n',isubj,m)
@@ -42,6 +42,8 @@ for isubj = 22
      [pupil(:,4),newblinksmp,~,dat] = blink_interpolate(pupil, blinksmp, fsample, 0); 
      
      pupil(:,4) = blink_regressout(pupil(:,4), fsample, blinksmp, saccsmp, 0, 1);
+     pupil(:,2) = dat.gazex; % return the interpolated x gaze time series
+     pupil(:,3) = dat.gazey; % return the interpolated y gaze time series
      
      if length(pupil) < 200000
        pupil=resample(pupil,4,1);

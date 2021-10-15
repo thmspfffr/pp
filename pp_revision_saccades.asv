@@ -204,6 +204,15 @@ for isubj = 1:24
 %     fix(:,isubj) = [nanmean(pupil(:,1)),nanmean(pupil(:,2))];
     dist = sqrt(((pupil(:,1)-fix(1,isubj)).^2) + ((pupil(:,2)-fix(2,isubj)).^2) );
     
+    figure_w; hold on
+    for ii = 1 : size(saccs,1)
+      
+      line([saccs(ii,1) saccs(ii,1)],[0 max(dist)],'color',[0.7 0.7 0.7])
+      
+      
+    end
+    plot(dist); 
+    
     rExc(isubj) = corr(dist,pupil(:,4));
     
     tmp = []

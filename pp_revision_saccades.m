@@ -31,6 +31,8 @@ freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 
 %% START WITH HAMBURG DATA
 % -------------------------
+all_tmp = [];
+
 for isubj = 25:34
   
   % identify placebo condition (ord==1)
@@ -143,7 +145,7 @@ line([0 901],[0 0],'color','k','linestyle','--')
 %% GLASGOW DATA
 % -------------------------
 
-
+rExc = []
 
 for isubj = 1:24
   
@@ -202,6 +204,15 @@ for isubj = 1:24
 %     fix(:,isubj) = [nanmean(pupil(:,1)),nanmean(pupil(:,2))];
     dist = sqrt(((pupil(:,1)-fix(1,isubj)).^2) + ((pupil(:,2)-fix(2,isubj)).^2) );
     
+    figure_w; hold on
+    for ii = 1 : size(saccs,1)
+      
+      line([saccs(ii,1) saccs(ii,1)],[0 max(dist)],'color',[0.7 0.7 0.7])
+      
+      
+    end
+    plot(dist); 
+    
     rExc(isubj) = corr(dist,pupil(:,4));
     
     tmp = []
@@ -258,11 +269,10 @@ for isubj = 1:size(SUBJLIST,1)
     
 %     try
       % load pupil data
-      if isubj < 10
-        load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/pupil/sub0%d_gla_pp.mat',isubj));
-      else
-        load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/pupil/sub%d_gla_pp.mat',isubj));
-      end
+      load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/pupchans_%s.mat',SUBJLIST(isubj,:)))
+      load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/rawpupil_%s.mat',SUBJLIST(isubj,:)))
+      
+%       pupil(:,1:2) = 
       
       pupil = data.trial{1}';
       f_sample = data.fsample;
@@ -283,7 +293,7 @@ for isubj = 1:size(SUBJLIST,1)
     tmp = filtfilt(bhil, ahil, pupil(:,4));
     
     pupil(:,4)=tmp;
-    pupil = resample(pupil,400,1000);
+    pupil = resample(pupil,400,600);
     % ------
     f_sample = 400;
     % align pupil and meg (at signal offset)
