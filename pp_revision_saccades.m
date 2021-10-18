@@ -94,14 +94,17 @@ for isubj = 25:34
     % ------
     saccs=tp_detect_microsaccades(pupil(:,2:3),400,5);
     
-    rH(isubj) = corr(pupil(:,2),pupil(:,4));
-    rV(isubj) = corr(pupil(:,3),pupil(:,4));
+    rH(isubj, iblock) = corr(pupil(:,2),pupil(:,4));
+    rV(isubj, iblock) = corr(pupil(:,3),pupil(:,4));
     
     [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(1,isubj) = k(i);
     [n,k]=hist(pupil(:,3),200); [~,i]=max(n); fix(2,isubj) = k(i);
 
 %     fix(:,isubj) = [nanmean(pupil(:,1)),nanmean(pupil(:,2))];
     dist = sqrt(((pupil(:,2)-fix(1,isubj)).^2) + ((pupil(:,3)-fix(2,isubj)).^2) );
+    
+    corr(dist,abs(pupil(:,2)))
+    corr(dist,abs(pupil(:,3)))
     
     rExc(isubj,iblock) = corr(dist(~isnan(pupil(:,3))),pupil(~isnan(pupil(:,3)),4));
 

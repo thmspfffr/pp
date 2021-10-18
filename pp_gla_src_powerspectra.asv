@@ -189,8 +189,6 @@ for isubj = 1:24
         end
     end
     
-    % Compute correlation
-    
     
 %     pxx=single(pxx);
     save([outdir fn '.mat'],'pxx_8799','','fxx','pup','pup_df')
