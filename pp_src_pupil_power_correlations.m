@@ -89,23 +89,8 @@ for isubj = SUBJLIST
     dat = dat(:,end:-1:1);
     pupil = pupil(end:-1:1,:);
     % ------
-    saccs=tp_detect_microsaccades(pupil(:,2:3),400,20);
     pupil = pupil(:,end);
 
-    tmp = [];
-    for i = 1 : size(saccs,1)
-      tmp(:,i) = pupil(saccs(:,1):saccs(:,1)+1600);
-    end
-    
-    all_tmp(:,isubj,iblock)=mean(tmp,2);
-
-    if isubj ~= 34
-    continue
-    else
-      figure; hold on
-      s = std(nanmean(all_tmp(:,25:34,:),3),[],2);
-      shadedErrorBar(1:1601,mean(nanmean(all_tmp(:,25:34,:),3),2),s)   
-    end
     % pupil shift: 930 ms from hoeks & levelt (1992)
     if lag
       pup_shift = round(400*0.93);
