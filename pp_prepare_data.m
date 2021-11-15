@@ -37,11 +37,13 @@ for isubj = SUBJLIST
     label = data.label;
     
     pupil = pupil(1:end-200,:);
-    
-    save(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1),'dat','pupil','label')
+    save(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1),'dat','pupil','label','art')
 
   end
 end
+
+
+error('!!!')
 %%
 
 for isubj = SUBJLIST

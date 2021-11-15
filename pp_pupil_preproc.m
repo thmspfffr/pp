@@ -39,17 +39,22 @@ for isubj = SUBJLIST
        fsample = 1000;
      end
      
+     tmp = pupil;
+
      [pupil(:,4),newblinksmp,~,dat] = blink_interpolate(pupil, blinksmp, fsample, 0); 
      
+     pupil(:,5) = tmp(:,4);
      pupil(:,4) = blink_regressout(pupil(:,4), fsample, blinksmp, saccsmp, 0, 1);
      pupil(:,2) = dat.gazex; % return the interpolated x gaze time series
      pupil(:,3) = dat.gazey; % return the interpolated y gaze time series
+     art.saccs_ts = saccsmp;
+     art.blinks_ts = blinksmp;
      
      if length(pupil) < 200000
        pupil=resample(pupil,4,1);
      end
      
-     save(sprintf('~/pp/proc/pup/pp_pupil_diameter_cleaned_s%d_m%d_b%d.mat',isubj,m,block),'pupil')
+     save(sprintf('~/pp/proc/pup/pp_pupil_diameter_cleaned_s%d_m%d_b%d.mat',isubj,m,block),'art','pupil')
      clear pupil
    end
   end

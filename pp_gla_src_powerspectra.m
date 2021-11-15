@@ -67,8 +67,7 @@ for isubj = 1:24
       else
         load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/gla01/meg/sub%d_gla_meg.mat',isubj));
       end
-      
-      
+
       artifPnts=data.cfg.artfctdef.visual.artifact;
       
       cfg=[];
@@ -191,6 +190,16 @@ for isubj = 1:24
     
     % Compute correlation
     
+    nan_idx = isnan(pup);
+    
+    for ifreq = 1 : size(pxx_246,1)
+      for ireg = 1 : size(pxx_246,2)
+        
+        src_r(ireg,ifreq) = corr(squeeze(pxx_246(ifreq,ireg,~nan_idx)),pup(~nan_idx)');
+        
+      end
+    end
+
     
 %     pxx=single(pxx);
     save([outdir fn '.mat'],'pxx_8799','','fxx','pup','pup_df')

@@ -31,7 +31,7 @@ freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 
 %%
 % -------------------------
-for isubj = 25:34
+for isubj = SUBJLIST
   
   % identify placebo condition (ord==1)
   im = find(ord(isubj,:)==1);
@@ -39,9 +39,9 @@ for isubj = 25:34
   for iblock = 1:2
     %
     fn = sprintf('pp_src_pupil_power_correlations_s%d_b%d_v%d',isubj,iblock,v);
-%     if tp_parallel(fn,outdir,1,0)
-%       continue
-%     end
+    if tp_parallel(fn,outdir,1,0)
+      continue
+    end
     %
     fprintf('Processing subj%d block%d ...\n',isubj,iblock);
     
@@ -53,7 +53,6 @@ for isubj = 25:34
     catch me
       continue
     end
-    
 
     cfg=[];
     cfg.layout='CTF275.lay';
@@ -92,20 +91,8 @@ for isubj = 25:34
     % ------
     saccs=tp_detect_microsaccades(pupil(:,2:3),400,20);
     pupil = pupil(:,end);
-    
-%     loc_pup = [];  sacc_rate = [];
-%     segleng = 20*400;
-%     segshift = segleng;
-%     
-%     nseg=floor((size(pupil,1)-segleng)/segshift+1);
-%         
-%     for iseg = 1 : nseg
-% 
-%       loc_pup(iseg)=mean(pupil((iseg-1)*segleng+1:(iseg-1)*segshift+segleng));
-%       sacc_rate(iseg) = sum(saccs(:,1)>=(iseg-1)*segleng+1 & saccs(:,1)<= (iseg-1)*segshift+segleng);
-% 
-%     end
-    tmp = []
+
+    tmp = [];
     for i = 1 : size(saccs,1)
       tmp(:,i) = pupil(saccs(:,1):saccs(:,1)+1600);
     end
@@ -117,10 +104,7 @@ for isubj = 25:34
     else
       figure; hold on
       s = std(nanmean(all_tmp(:,25:34,:),3),[],2);
-      shadedErrorBar(1:1601,mean(nanmean(all_tmp(:,25:34,:),3),2),s)
-      line([0 1601],[0 0],'color','k','linestyle','--')
-      
-      
+      shadedErrorBar(1:1601,mean(nanmean(all_tmp(:,25:34,:),3),2),s)   
     end
     % pupil shift: 930 ms from hoeks & levelt (1992)
     if lag
@@ -231,6 +215,8 @@ for isubj = 25:34
       para          = [];
       para.reg      = 0.05;
       [filt,pow] = tp_beamformer(real(csd),sa.L_genemaps_aal,para);
+      save(sprintf('~/pp/proc/sens/pp_meg_pupil_spatfilt_s%d_b%d.mat',isubj,iblock),'filt');
+      
       % --------------
       % beamform again with noise to compute "NAI"
       % --------------
@@ -247,14 +233,14 @@ for isubj = 25:34
       outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Spearman');
       
       % mutual information
-      cnpup     = copnorm(pup(idx));
-      cnpup_df  = copnorm(pup_df(idx));
-      cnpow     = copnorm(src_pow)';
-      for isrc = 1 : size(src_pow,1)
-        outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
-        outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
-      end
-      
+%       cnpup     = copnorm(pup(idx));
+%       cnpup_df  = copnorm(pup_df(idx));
+%       cnpow     = copnorm(src_pow)';
+%       for isrc = 1 : size(src_pow,1)
+%         outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+%         outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+%       end
+%       
       % -------------------------------
       % source-level cross correlation
       % -------------------------------
