@@ -33,7 +33,7 @@ freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 % -------------------------
 subj_counter = 0;
 
-for isubj = 25:34
+for isubj = SUBJLIST(1:18)
   subj_counter=subj_counter+1;
   % identify placebo condition (ord==1)
   im = find(ord(isubj,:)==1);
@@ -52,11 +52,14 @@ for isubj = 25:34
       continue
     end
     
+    saccs=round(art.saccs_ts./2.5)
+    
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
     [~, outp.chanidx] = ismember(lay.label(1:275),label(startsWith(label,'M')));
-    
+%     size(dat)
+
     % bp-filter and resample pupil
     % ------
     k = 2; f_sample = 1000;
@@ -91,7 +94,7 @@ for isubj = 25:34
     %     art_idx = [find(diff(art_idx)==1) find(diff(art_idx)==-1)];
     %     blink_idx = [find(diff(blink_idx)==1) find(diff(blink_idx)==-1)];
     % ------
-    saccs=tp_detect_microsaccades(pupil(:,2:3),400,5,6);
+%     saccs=tp_detect_microsaccades(pupil(:,2:3),400,5,6);
     
     %     rH(isubj, iblock) = corr(pupil(:,2),pupil(:,4));
     %     rV(isubj, iblock) = corr(pupil(:,3),pupil(:,4));
@@ -159,6 +162,8 @@ for isubj = 25:34
     for ifreq = 1 : size(pxx,1)
     	csd(:,:,ifreq) = sqrt(squeeze(pxx(ifreq,:,:)))*sqrt(squeeze(pxx(ifreq,:,:)))';
     end
+    
+%     load(sprintf('~/pp/proc/sens/pp_meg_pupil_spatfilt_f%d_s%d_b%d.mat',ifreq,isubj,iblock));
   
 %     
     pxx_src = zeros(nseg,8799,101); 
@@ -197,10 +202,10 @@ pxx_all(:,:,subj_counter,iblock)=100*(squeeze(nanmean(pxx(2:end,:,:),2))-squeeze
 pxx_src_all(:,:,subj_counter,iblock)=squeeze(100.*(nanmean(pxx_src(:,:,2:end),2)-nanmean(pxx_src(1,:,2:end),2))./nanmean(pxx_src(1,:,2:end),2));
 
 end
-
+%%
 figure_w;
 
-imagesc(nanmean(nanmean(pxx_all,3),4),[-2.5 2.5]); set(gca,'ydir','normal')
+imagesc(nanmean(nanmean(pxx_src_all(:,:,4,:),3),4),[-2.5 2.5]); set(gca,'ydir','normal')
 tp_editplots
 line([6 6],[0 101],'color','k','linestyle','--')
 set(gca,'xtick',1:5:41,'xticklabel',t(1:5:end))
@@ -415,12 +420,7 @@ for isubj = 1:24
     for ifreq = 1 : size(pxx,1)
     	csd(:,:,ifreq) = sqrt(squeeze(pxx(ifreq,:,:)))*sqrt(squeeze(pxx(ifreq,:,:)))';
     end
-  
-%     pxx=nanmean(pxx,4);
-%     pxx=(pxx-pxx(:,:,1))./pxx(:,:,1);
-%     all_pxx(:,:,subj_counter) = squeeze(nanmean(pxx,2));
-    
-
+ 
     n_saccs(subj_counter) = size(saccs,1);
     
     save([outdir sprintf('pp_revision_saccades_TFR_gla_isubj%d_iblock%d.mat',isubj,iblock)],'pup_seg','fxx','pupil_locked','pxx','-v7.3')
@@ -478,19 +478,19 @@ conc_dat = cat(2,conc_dat,all_tmp);
 
 %%
 
-
-clear all_tmp pup_seg all_pxx
-
-d=dir('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/*pupil_preproc_lp4.mat');
+d=dir('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/*mat');
 
 SUBJLIST = [];
-for i = 1 : length(d)
-  SUBJLIST = [SUBJLIST; d(i).name(1:4)];
-end 
+for i = 1 : length(d) 
+    SUBJLIST = [SUBJLIST; d(i).name(end-7:end-4)];  
+end
 
+rExc = []; clear all_tmp all_pxx n_saccs
+
+subj_counter = 0;  
 
 for isubj = 1:size(SUBJLIST,1)
-  
+  subj_counter = subj_counter + 1;
   clear data dat pupil pup dataf src_r 
   
   for iblock = 1:1
@@ -536,8 +536,22 @@ for isubj = 1:size(SUBJLIST,1)
     % align pupil and meg (at signal offset)
     % ------
     
+%     while any(pupil(:,3)<1.5)
+%       idx=find(pupil(:,3)<1.5,1,'first');
+%       pupil(idx-300:idx+300,:)=nan;
+%     end
+%     pupil=interp1(pupil,1:size(pupil,1),'pchip');
     saccs=tp_detect_microsaccades(pupil(:,1:2),f_sample,5,6);
+   
     
+    figure_w; hold on
+    for ii = 1 : size(saccs,1)
+      line([saccs(ii,1) saccs(ii,1)],[-5 5],'linestyle','-','color','k')
+    end
+    plot(pupil(:,3)); 
+    
+      
+        
     rH(isubj) = corr(pupil(:,1),pupil(:,4));
     rV(isubj) = corr(pupil(:,2),pupil(:,4));
     
@@ -552,99 +566,157 @@ for isubj = 1:size(SUBJLIST,1)
     
     tmp = []; meg = []; k = 0;
     for i = 1 : size(saccs,1)
-      if (saccs(i,1)+800)>size(pupil,1)
+      if (saccs(i,1)+800)>size(dat,2)
         tmp(1:1001,i)=nan;
-        continue
       elseif (saccs(i,1)-200)<1
         tmp(1:1001,i)=nan;
-        continue
-      elseif (saccs(i,1)+800)>size(dat,2)
-        tmp(1:1001,i)=nan;
-        continue
       else
         k = k +1;
         tmp(:,i) = pupil(saccs(i,1)-200:saccs(i,1)+800);
         meg(:,:,k) = dat(:,saccs(i,1)-200:saccs(i,1)+800);
       end
     end
-    all_tmp(:,isubj,iblock)=nanmean(tmp,2);
+    pupil_locked=nanmean(tmp,2);
     
     % COMPUTE FFT
     % ------------
     segleng = 200;
     segshift = 20;
     nseg=floor((size(meg,2)-segleng)/segshift+1);
-    t = -100:100:1900
-    pxx = nan(101,size(meg,1),nseg,size(meg,3),'single');
+    t = -100:20:1001;
+    pxx = zeros(101,size(meg,1),nseg,'single');
+    tmp_csd = zeros(size(meg,1),size(meg,1),101);
+    pupil_count = 0; csd_count = 0; pxx_counter = 0;
+    pup_seg = zeros(41,1);
     for isacc = 1 : size(meg,3)
+      pupil_count = pupil_count+1; 
       isacc
+      tmp_pxx = nan(101,size(meg,1),nseg);
       for iseg = 1 : nseg
         meg_seg  = squeeze(meg(:,(iseg-1)*segshift+1:(iseg-1)*segshift+segleng,isacc));
-        pup_seg(:,iseg,isubj,iblock)  = squeeze(pupil((iseg-1)*segshift+1:(iseg-1)*segshift+segleng));
-
+        win = (hanning(200)./sum(hanning(200)));
+        tmp_pup = squeeze(pupil((iseg-1)*segshift+1:(iseg-1)*segshift+segleng));
+        pup_seg(iseg)  = pup_seg(iseg)+sum(win.*tmp_pup);
+        
         if any(isnan(squeeze(meg_seg(1,:))))
-          pxx(:,:,iseg,isacc) = nan(101,size(meg_seg,1));
           continue
         else
-          [pxx(:,:,iseg,isacc),fxx] = pwelch(meg_seg',hanning(200),[],200,400,'power');
+          [tmp_pxx(:,:,iseg),fxx] = pwelch(meg_seg',hanning(200),[],200,400,'power'); 
         end
       end
+      if any(isnan(tmp_pxx(1,1,:)))
+        continue
+      else
+        pxx_counter=pxx_counter+1;
+        pxx = pxx + tmp_pxx;
+      end
     end
-    pxx=nanmean(pxx,4);
-    pxx=(pxx-pxx(:,:,1))./pxx(:,:,1);
-    all_pxx(:,:,isubj) = squeeze(nanmean(pxx,2));
     
-    n_saccs(isubj) = size(saccs,1);
+    pup_seg = pup_seg ./ pupil_count; 
+    
+    for ifreq = 1 : size(pxx,1)
+    	csd(:,:,ifreq) = sqrt(squeeze(pxx(ifreq,:,:)))*sqrt(squeeze(pxx(ifreq,:,:)))';
+    end
+    
+    save([outdir sprintf('pp_revision_saccades_TFR_mue_isubj%d_iblock%d.mat',isubj,iblock)],'pup_seg','fxx','pupil_locked','pxx','-v7.3')
+    clear pxx_src csd nai_src  pup_seg csd
     
   end
 end
-% 
-% figure_w; hold on
-% % all_tmp = zscore(all_tmp);
-% all_tmp = all_tmp-nanmean(all_tmp(1:100,:),1);
-% s = std(all_tmp,[],2)/sqrt(size(all_tmp,2));
-% shadedErrorBar(1:901,nanmean(all_tmp,2),s)
-% line([0 901],[0 0],'color','k','linestyle',':')
-% line([100 100],[-2 2],'color','k','linestyle',':')
-% xlabel('Time [ms]'); ylabel('Pupil size')
-% tp_editplots; axis([0 800 -2 2])
-% set(gcf,'color','w')
-% set(gca,'xtick',[100 300 500 700 901],'xticklabel',[0 500 1000 1500 2000])
-% 
-% print(gcf,'-dpdf',sprintf('~/pp/plots/pp_revision_saccades_muenster.pdf'))
-% 
-% conc_dat = cat(2,conc_dat,all_tmp);
-% 
-% figure_w; hold on
-% % all_tmp = 100*(all_tmp-nanmean(all_tmp(1:100,:),1))./nanmean(all_tmp(1:100,:),1);
-% s = std(conc_dat,[],2)/sqrt(size(conc_dat,2));
-% shadedErrorBar(1:901,nanmean(conc_dat,2),s)
-% line([0 901],[0 0],'color','k','linestyle',':')
-% line([100 100],[-2 2],'color','k','linestyle',':')
-% xlabel('Time [ms]'); ylabel('Pupil size')
-% tp_editplots; axis([0 800 -.1 .1])
-% set(gcf,'color','w')
-% set(gca,'xtick',[100 300 500 700 901],'xticklabel',[0 500 1000 1500 2000])
-% 
-% print(gcf,'-dpdf',sprintf('~/pp/plots/pp_revision_saccades_all.pdf'))
+%% PLOT MUENSTER
+clear pxx_all
+d=dir('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/*pupil_preproc_lp4.mat');
 
-save([outdir 'pp_revision_saccades_TFR_mue.mat'],'pup_seg','fxx','all_pxx','all_tmp')
+SUBJLIST = [];
+for i = 1 : length(d)
+  SUBJLIST = [SUBJLIST; d(i).name(1:4)];
+end 
+
+subj_counter = 0;  
+
+for isubj = 1:size(SUBJLIST,1)
+  subj_counter = subj_counter + 1;
+  load([outdir sprintf('pp_revision_saccades_TFR_mue_isubj%d_iblock%d.mat',isubj,iblock)])
+  pxx_all(:,:,subj_counter,iblock)=100*(squeeze(nanmean(pxx(2:end,:,:),2))-squeeze(nanmean(pxx(2:end,:,1),2)))./squeeze(nanmean(pxx(2:end,:,1),2));
+end
+pxx_all(:,:,23)=[];
 
 %%
-load([outdir 'pp_revision_saccades_TFR_mue.mat'])
-
 figure_w;
-
-imagesc(nanmean(nanmean(all_pxx(:,:,:,:),3),4),[-0.025 0.025]); set(gca,'ydir','normal')
+imagesc(nanmean(nanmean(pxx_all(:,:,:),3),4),[-2.5 2.5]); set(gca,'ydir','normal')
 tp_editplots
 line([6 6],[0 101],'color','k','linestyle','--')
 set(gca,'xtick',1:5:41,'xticklabel',t(1:5:end))
-set(gca,'ytick',1:5:101,'yticklabel',fxx(1:5:end))
-colormap(redblue)
-% conc_dat = all_tmp;
-
+set(gca,'ytick',1:5:100,'yticklabel',fxx(2:5:end))
+colormap(redblue); axis([1 41 1 101])
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_revision_saccades_TFR_hh.pdf'))
 
-pup_seg = all_tmp;
 
-pxx = nanmean(nanmean(all_pxx(:,:,:,:),3),4);
+%% PLOT ALL DATA POOLED
+% -----------------------------
+ 
+subj_counter = 0; clear pxx_all pxx_src_all
+for isubj = SUBJLIST
+  block_counter = 0;
+  subj_counter=subj_counter+1
+  for iblock = 1 : 2
+    try
+      load([outdir sprintf('pp_revision_saccades_TFR_hh_isubj%d_iblock%d.mat',isubj,iblock)])
+      block_counter = block_counter + 1;
+      pxx_all(:,:,subj_counter,iblock)=100*(squeeze(nanmean(pxx(2:end,:,:),2))-squeeze(nanmean(pxx(2:end,:,1),2)))./squeeze(nanmean(pxx(2:end,:,1),2));
+    catch me
+      pxx_all(:,:,subj_counter,iblock)= nan(size(nanmean(pxx(2:end,:,:),2)));
+    end
+  end
+end
+pxx_all = nanmean(pxx_all,4);
+
+for isubj = 1:24
+%   if any(isubj==[2,3,5,6,21,9])
+  if any(isubj==[5,9])
+    continue
+  else
+    subj_counter = subj_counter + 1;
+  end
+  load([outdir sprintf('pp_revision_saccades_TFR_gla_isubj%d_iblock%d.mat',isubj,1)])
+
+  pxx_all(:,:,subj_counter)=100*(squeeze(nanmean(pxx(2:end,:,:),2))-squeeze(nanmean(pxx(2:end,:,1),2)))./squeeze(nanmean(pxx(2:end,:,1),2));
+
+end
+
+% SUBJECTS: CHECK MUE
+d=dir('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/*pupil_preproc_lp4.mat');
+
+SUBJLIST = []; %SUBJLIST=1:41; SUBJLIST([10,12,17,19,22,27,35,38,39,40])=[];
+
+for i = 1 : length(d)
+  SUBJLIST = [SUBJLIST; d(i).name(1:4)];
+end 
+
+for isubj = 1:size(SUBJLIST,1)
+  subj_counter = subj_counter + 1;
+  load([outdir sprintf('pp_revision_saccades_TFR_mue_isubj%d_iblock%d.mat',isubj,1)])
+  pxx_all(:,:,subj_counter,iblock)=100*(squeeze(nanmean(pxx(2:end,:,:),2))-squeeze(nanmean(pxx(2:end,:,1),2)))./squeeze(nanmean(pxx(2:end,:,1),2));
+end
+pxx_all(:,:,51)=[];
+%%
+close
+figure_w; subplot(2,2,1);
+imagesc(nanmean(nanmean(pxx_all(:,:,:),3),4),[-2.5 2.5]); set(gca,'ydir','normal')
+tp_editplots
+line([6 6],[0 101],'color','k','linestyle','--')
+
+set(gca,'xtick',1:5:41,'xticklabel',t(1:5:end))
+set(gca,'ytick',1:5:100,'yticklabel',fxx(2:5:end))
+colormap(redblue); axis([1 31 1 101])
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_revision_saccades_TFR_all.pdf'))
+
+[h,p] = ttest(pxx_all,zeros(size(pxx_all)),'dim',3); h=p<fdr1(p(:),0.05,1);
+subplot(2,2,2);
+imagesc(nanmean(nanmean(pxx_all(:,:,:),3),4).*h,[-2.5 2.5]); set(gca,'ydir','normal')
+tp_editplots
+line([6 6],[0 101],'color','k','linestyle','--')
+set(gca,'xtick',1:5:41,'xticklabel',t(1:5:end))
+set(gca,'ytick',1:5:100,'yticklabel',fxx(2:5:end))
+colormap(redblue); axis([1 31 1 101])
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_revision_saccades_TFR_all.pdf'))

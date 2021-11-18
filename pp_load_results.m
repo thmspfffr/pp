@@ -104,57 +104,6 @@ for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_hh.src_mi_BNA(igrid,:,:)    = mean(plt_hh.src_mi(BNA.tissue_5mm == igrid,:,:));
 end
 
-% for isubj = SUBJLIST
-%   fprintf('Hamburg CNT: Subj%d\n',isubj)
-%   for iblock = 1 : 2
-%     try
-%       load(sprintf([outdir 'pp_cnt_src_pupil_power_correlations_s%d_b%d_v%d.mat'],isubj,iblock,v));
-%       plt_hh_cnt.pow_sens(:,:,isubj,iblock)     = outp.sens_pow;
-%       plt_hh_cnt.corr_sens(:,:,isubj,iblock)    = outp.sens_r;
-%       plt_hh_cnt.corr_src(:,:,isubj,iblock)     = outp.src_r;
-%       plt_hh_cnt.corr_src_df(:,:,isubj,iblock)  = outp.src_r_df;
-% %       plt_hh_cnt.sens_mi(:,:,isubj,iblock)      = outp.sens_mi;
-% %       plt_hh_cnt.sens_mi0(:,:,isubj,iblock)     = outp.sens_mi0;
-% %       plt_hh_cnt.src_mi(:,:,isubj,iblock)       = outp.src_mi;
-%       for ifreq = 1 : 25
-%         plt_hh_cnt.xcorr{ifreq}(:,:,isubj,iblock)       = outp.xcorr{ifreq};
-%         plt_hh_cnt.xcorr_df{ifreq}(:,:,isubj,iblock)    = outp.xcorr_df{ifreq};
-%         plt_hh_cnt.xcorr_lags{ifreq}                    = outp.xcorr_lags{ifreq};
-%       end
-%       clear outp
-%     catch me
-%       warning('!!!')
-%       plt_hh_cnt.pow_sens(:,:,isubj,iblock)     = nan(275,25,1,1);
-%       plt_hh_cnt.corr_sens(:,:,isubj,iblock)    = nan(275,25,1,1);
-%       plt_hh_cnt.corr_src(:,:,isubj,iblock)     = nan(8799,25);
-%       plt_hh_cnt.corr_src_df(:,:,isubj)         = nan(8799,25);
-% %       plt_hh_cnt.sens_mi(:,:,isubj,iblock)      = nan(275,25,1,1);
-% %       plt_hh_cnt.sens_mi0(:,:,isubj,iblock)     = nan(275,25,1,1);
-% %       plt_hh_cnt.src_mi(:,:,isubj,iblock)       = nan(8799,25);
-%       continue
-%     end
-%   end
-% end
-
-% for ifreq = 1: length(freqoi)
-%   plt_hh_cnt.xcorr{ifreq} = nanmean(plt_hh_cnt.xcorr{ifreq}(:,:,SUBJLIST,:),4);
-%   plt_hh_cnt.xcorr_df{ifreq} = nanmean(plt_hh_cnt.xcorr_df{ifreq}(:,:,SUBJLIST,:),4);
-% end
-% 
-% plt_hh_cnt.pow_sens     = nanmean(plt_hh_cnt.pow_sens(:,:,SUBJLIST,:),4);
-% % plt_hh_cnt.sens_mi      = nanmean(plt_hh_cnt.sens_mi(:,:,SUBJLIST,:),4);
-% % plt_hh_cnt.sens_mi0     = nanmean(plt_hh_cnt.sens_mi0(:,:,SUBJLIST,:),4);
-% plt_hh_cnt.corr_sens    = nanmean(plt_hh_cnt.corr_sens(:,:,SUBJLIST,:),4);
-% plt_hh_cnt.corr_src     = nanmean(plt_hh_cnt.corr_src(:,:,SUBJLIST,:),4);
-% plt_hh_cnt.corr_src_df  = nanmean(plt_hh_cnt.corr_src_df(:,:,SUBJLIST,:),4);
-% % plt_hh_cnt.src_mi       = nanmean(plt_hh_cnt.src_mi(:,:,SUBJLIST,:),4);
-
-% 
-% for igrid = 1 : max(BNA.tissue_5mm(:))
-%   plt_hh_cnt.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_hh_cnt.corr_src(BNA.tissue_5mm == igrid,:,:))));
-%   plt_hh_cnt.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_hh_cnt.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
-% %   plt_hh_cnt.src_mi_BNA(igrid,:,:)    = mean(plt_hh_cnt.src_mi(BNA.tissue_5mm == igrid,:,:));
-% end
 
 % LOAD MUENSTER DATA
 % ----------------------------
@@ -173,9 +122,7 @@ for n_subj = 1:length(SUBJLIST)
   plt_mue.corr_sens(:,:,n_subj)    = outp.sens_r;
   plt_mue.corr_src(:,:,n_subj)     = outp.src_r;
   plt_mue.corr_src_df(:,:,n_subj)  = outp.src_r_df;
-  %       plt_mue.sens_mi(:,:,n_subj)      = outp.sens_mi;
-  %       plt_mue.src_mi(:,:,n_subj)       = outp.src_mi;
-  %       plt_mue.sens_mi0(:,:,n_subj)     = outp.sens_mi0;
+  
   for ifreq = 1 : 25
     plt_mue.xcorr{ifreq}(:,:,n_subj)       = outp.xcorr{ifreq};
     plt_mue.xcorr_df{ifreq}(:,:,n_subj)    = outp.xcorr_df{ifreq};
@@ -202,8 +149,7 @@ ser_gla = linspace(minmax_gla(1),minmax_gla(2),40);
 for i = 1 : size(ser_gla,2)-1
   idx = lay.pos(:,2)<ser_gla(i+1) & lay.pos(:,2)>ser_gla(i);
   plt_gla.corr_sens_ord(i,:,:) = nanmean(plt_gla.corr_sens(idx,:,:),1);
-%   plt_gla.sens_mi_ord(i,:,:) = nanmean(plt_gla.sens_mi(idx,:,:),1);
-%   plt_gla.sens_mi_ord0(i,:,:) = nanmean(plt_gla.sens_mi0(idx,:,:),1);
+
   for ifreq = 1: length(freqoi)
     plt_gla.xcorr_ord{ifreq}(:,i,:) = nanmean(plt_gla.xcorr{ifreq}(:,idx,:),2);
     plt_gla.xcorr_df_ord{ifreq}(:,i,:) = nanmean(plt_gla.xcorr_df{ifreq}(:,idx,:),2);
@@ -221,16 +167,12 @@ ser_hh = linspace(minmax_hh(1),minmax_hh(2),40);
 
 for i = 1 : size(ser_hh,2)-1
   idx = lay.pos(:,2)>=ser_hh(i) & lay.pos(:,2)<=ser_hh(i+1);
-%   plt_hh_cnt.corr_sens_ord(i,:,:)   = nanmean(plt_hh_cnt.corr_sens(idx,:,:),1);
   plt_mue.corr_sens_ord(i,:,:)      = nanmean(plt_mue.corr_sens(idx,:,:),1);
   plt_hh.corr_sens_ord(i,:,:)       = nanmean(plt_hh.corr_sens(idx,:,:),1);
-%   plt_hh_cnt.sens_mi_ord(i,:,:)     = nanmean(plt_hh_cnt.sens_mi(idx,:,:),1);
-%   plt_hh_cnt.sens_mi_ord0(i,:,:)    = nanmean(plt_hh_cnt.sens_mi0(idx,:,:),1);
+
   for ifreq = 1: length(freqoi)
     plt_hh.xcorr_ord{ifreq}(:,i,:)        = nanmean(plt_hh.xcorr{ifreq}(:,idx,:),2);
     plt_hh.xcorr_df_ord{ifreq}(:,i,:)     = nanmean(plt_hh.xcorr_df{ifreq}(:,idx,:),2);
-%     plt_hh_cnt.xcorr_ord{ifreq}(:,i,:)    = nanmean(plt_hh_cnt.xcorr{ifreq}(:,idx,:),2);
-%     plt_hh_cnt.xcorr_df_ord{ifreq}(:,i,:) = nanmean(plt_hh_cnt.xcorr_df{ifreq}(:,idx,:),2);
     plt_mue.xcorr_ord{ifreq}(:,i,:)       = nanmean(plt_mue.xcorr{ifreq}(:,idx,:),2);
     plt_mue.xcorr_df_ord{ifreq}(:,i,:)    = nanmean(plt_mue.xcorr_df{ifreq}(:,idx,:),2);
   end

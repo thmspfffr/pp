@@ -77,6 +77,8 @@ for isubj = SUBJLIST
     
     pupil = pupil(end:-1:1,:);
     dat = dat(:,end:-1:1);
+sudo killall AppleCameraAssistant
+
     
     len = min([size(pupil,1) size(dat,2)]);
     if len/400 > 600
@@ -200,7 +202,7 @@ for isubj = SUBJLIST
       para          = [];
       para.reg      = 0.05;
       [filt,pow] = tp_beamformer(real(csd),sa.L_genemaps_aal,para);
-      save(sprintf('~/pp/proc/sens/pp_meg_pupil_spatfilt_s%d_b%d.mat',isubj,iblock),'filt');
+      save(sprintf('~/pp/proc/sens/pp_meg_pupil_spatfilt_f%d_s%d_b%d.mat',ifreq,isubj,iblock),'filt');
       
       % --------------
       % beamform again with noise to compute "NAI"
