@@ -65,7 +65,9 @@ for isubj = 1:size(SUBJLIST,1)
       cfg.layout='CTF275.lay';
       lay = ft_prepare_layout(cfg);
       [~, outp.chanidx] = ismember(lay.label(1:275),data.label);
-    
+      chanidx = outp.chanidx;
+     	save(sprintf('~/pp/proc/src/chanidx_mue_s%d.mat',isubj),'chanidx')
+
     catch me
       src_r = nan(246,25);
       save([outdir fn '.mat'],'src_r')

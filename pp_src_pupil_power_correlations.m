@@ -77,7 +77,6 @@ for isubj = SUBJLIST
     
     pupil = pupil(end:-1:1,:);
     dat = dat(:,end:-1:1);
-sudo killall AppleCameraAssistant
 
     
     len = min([size(pupil,1) size(dat,2)]);
