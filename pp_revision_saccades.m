@@ -190,16 +190,6 @@ end
 
 error('!')
 
- 
-subj_counter = 0; clear pxx_all pxx_src_all
-for isubj = 25 : 34
-subj_counter=subj_counter+1
-load([outdir sprintf('pp_revision_saccades_TFR_hh_isubj%d_iblock%d.mat',isubj,iblock)])
-
-pxx_all(:,:,subj_counter,iblock)=100*(squeeze(nanmean(pxx(2:end,:,:),2))-squeeze(nanmean(pxx(2:end,:,1),2)))./squeeze(nanmean(pxx(2:end,:,1),2));
-pxx_src_all(:,:,subj_counter,iblock)=squeeze(100.*(nanmean(pxx_src(:,:,2:end),2)-nanmean(pxx_src(1,:,2:end),2))./nanmean(pxx_src(1,:,2:end),2));
-
-end
 %%
 figure_w;
 

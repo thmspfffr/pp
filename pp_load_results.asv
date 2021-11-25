@@ -101,7 +101,7 @@ end
 for igrid = 1 : max(BNA.tissue_5mm(:))
   plt_hh.corr_src_BNA(igrid,:,:) = tanh(mean(atanh(plt_hh.corr_src(BNA.tissue_5mm == igrid,:,:))));
   plt_hh.corr_src_df_BNA(igrid,:,:) = tanh(mean(atanh(plt_hh.corr_src_df(BNA.tissue_5mm == igrid,:,:))));
-%   plt_hh.src_mi_BNA(igrid,:,:)    = mean(plt_hh.src_mi(BNA.tissue_5mm == igrid,:,:));
+  plt_hh.src_mi_BNA(igrid,:,:)    = mean(plt_hh.src_mi(BNA.tissue_5mm == igrid,:,:));
 end
 
 

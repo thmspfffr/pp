@@ -61,11 +61,7 @@ for isubj = 1 : size(SUBJLIST,1)
       % load pupil data
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/%s_pupil_preproc_lp4.mat',SUBJLIST(isubj,:)))
       pupil = reshape(data.trial{1}(4,:),[size(data.trial{1}(4,:),2) 1]);
-      
-%       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/pupil/rawpupil_%s.mat',SUBJLIST(isubj,:)))
-      
-%       pupil = tmp(:,4);
-      
+                  
       % load meg data
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/cleanmeg_%s.mat',SUBJLIST(isubj,:)))
       data = cleanmeg; clear cleanmeg

@@ -97,7 +97,7 @@ end
 %%
 close
 
-v=1;
+v=2;
 conjunction = 0;
 for ifoi = [11 14]
  
@@ -220,7 +220,7 @@ tp_plot_surface(par1,para)
 
 %%
 
-v = 2;
+v = 1;
 freqs = 2.^(1:0.25:7);
 
 figure_w
