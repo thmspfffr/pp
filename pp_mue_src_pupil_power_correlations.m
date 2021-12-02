@@ -8,14 +8,17 @@ restoredefaultpath
 % VERSION 1: no pupil lag
 % -------------------------
 % v = 1;
-% freqoi    = 2.^(1:(1/4):7);
 % lag = 0;
 % -------------------------
-% VERSION 3: with pupil lag
+% VERSION 2: with pupil lag (930 ms)
 % -------------------------
-v = 2;
-freqoi    = 2.^(1:(1/4):7);
-lag = 1;
+% v = 2;
+% lag = 1;
+% -------------------------
+% VERSION 3: with pupil lag (500 ms)
+% -------------------------
+v = 3;
+lag = 2;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -28,6 +31,7 @@ outdir = '~/pp/proc/src/';
 ord    = pconn_randomization;
 
 addpath /home/gnolte/meth/highlevel/
+freqoi    = 2.^(1:(1/4):7);
 
 d=dir('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/*mat');
 
@@ -89,10 +93,15 @@ for isubj = 1:size(SUBJLIST,1)
     pupil = filtfilt(bhil, ahil, pupil);
     pupil = resample(pupil,400,600);
     
-    if lag
-        pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
-        pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    % pupil shift: 930 ms from hoeks & levelt (1992)
+    if lag==1 % 930 ms lag
+      pup_shift = round(f_sample*0.93);
+      pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    elseif lag == 2 % 500 ms lag
+      pup_shift = round(f_sample*0.5);
+      pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     end
+    
     pupil_df = diff(pupil);
     
     data.trial{1}(:,isnan(pupil))=nan(size(data.trial{1},1),sum(isnan(pupil)));

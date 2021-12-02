@@ -5,17 +5,23 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 1: no pupil lag
+% VERSION 1: no pupil lag (0 ms)
 % -------------------------
-v = 1;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 0;
+% v = 1;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 0;
 % -------------------------
-% VERSION 3: with pupil lag
+% VERSION 2: with pupil lag (930 ms)
 % -------------------------
 % v = 2;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 1;
+% -------------------------
+% VERSION 3: with pupil lag (500 ms)
+% -------------------------
+v = 3;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 2;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -93,8 +99,11 @@ for isubj = SUBJLIST
     pupil = pupil(:,end);
 
     % pupil shift: 930 ms from hoeks & levelt (1992)
-    if lag
+    if lag==1 % 930 ms lag
       pup_shift = round(400*0.93);
+      pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    elseif lag == 2 % 500 ms lag
+      pup_shift = round(400*0.5);
       pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     end
     

@@ -5,24 +5,27 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 1: no pupil lag
+% VERSION 1: no pupil lag (0 ms)
 % -------------------------
 % v = 1;
-% SUBJLIST  = 1:24;
-% freqoi    = 2.^(1:(1/4):7);
 % lag = 0;
 % -------------------------
-% VERSION 3: with pupil lag
+% VERSION 2: with pupil lag (930 ms)
 % -------------------------
-v = 2;
-SUBJLIST  = 1:24;
-freqoi    = 2.^(1:(1/4):7);
-lag = 1;
+% v = 2;
+% lag = 1;
+% -------------------------
+% VERSION 3: with pupil lag (500 ms)
+% -------------------------
+v = 3;
+lag = 2;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
 addpath ~/pconn/matlab/
 load(sprintf('~/pp/proc/pp_atlas_BNA.mat'))
+freqoi    = 2.^(1:(1/4):7);
+SUBJLIST  = 1:24;
 
 ft_defaults
 
@@ -99,10 +102,13 @@ for isubj = SUBJLIST
     
     pupil = filtfilt(bhil, ahil, pupil(:,4));
     
-    
-    if lag
-        pup_shift = round(f_sample*0.93); % 930s from hoeks and levelt (1992?)
-        pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    % pupil shift: 930 ms from hoeks & levelt (1992)
+    if lag==1 % 930 ms lag
+      pup_shift = round(f_sample*0.93);
+      pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
+    elseif lag == 2 % 500 ms lag
+      pup_shift = round(f_sample*0.5);
+      pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     end
     
     pupil_df = diff(pupil);

@@ -33,7 +33,7 @@ freqoi=2.^(1:(1/4):7); % 2-128 Hz as per Hipp et al. (2012) Nat Neurosci
 % -------------------------
 subj_counter = 0;
 
-for isubj = 25:34
+for isubj = SUBJLIST
   subj_counter=subj_counter+1;
   % identify placebo condition (ord==1)
   im = find(ord(isubj,:)==1);
@@ -49,6 +49,7 @@ for isubj = 25:34
       load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');
     catch me
       disp('Sth went wrong')
+      percent_rejected(subj_counter,iblock) =nan;
       continue
     end
         
@@ -57,6 +58,18 @@ for isubj = 25:34
     lay = ft_prepare_layout(cfg);
     [~, outp.chanidx] = ismember(lay.label(1:275),label(startsWith(label,'M')));
 %     size(dat)
+
+    idx=zeros(size(pupil,1),1);
+    for iart = 1 : size(art.blinks_ts,1)
+      if (art.blinks_ts(iart,1)-200)<=0
+        idx(1:art.blinks_ts(iart,1)+200)=1;
+      elseif art.blinks_ts(iart,2)+200>size(pupil,1)
+        idx(art.blinks_ts(iart,1):end)=1;
+      else
+        idx(art.blinks_ts(iart,1)-200:art.blinks_ts(iart,2)+200)=1;
+      end
+    end
+    pupil(:,6)=idx;
 
     % bp-filter and resample pupil
     % ------
@@ -87,22 +100,22 @@ for isubj = 25:34
     
     dat = dat(:,end:-1:1);
     pupil = pupil(end:-1:1,:);
-    % ------
+   
+    percent_rejected(subj_counter,iblock) = 100*sum(pupil(:,6))/size(pupil,1);
+%     % ------
     saccs=tp_detect_microsaccades(pupil(:,2:3),400,5,6);
     
-
-
-    %     rH(isubj, iblock) = corr(pupil(:,2),pupil(:,4));
-    %     rV(isubj, iblock) = corr(pupil(:,3),pupil(:,4));
-    %
-    %     [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(1,isubj) = k(i);
-    %     [n,k]=hist(pupil(:,3),200); [~,i]=max(n); fix(2,isubj) = k(i);
-    %
-    %     fix(:,isubj) = [nanmean(pupil(:,1)),nanmean(pupil(:,2))];
-    %     dist = sqrt(((pupil(:,2)-fix(1,isubj)).^2) + ((pupil(:,3)-fix(2,isubj)).^2) );
-    %
-    %     rExc(isubj,iblock) = corr(dist(~isnan(pupil(:,3))),pupil(~isnan(pupil(:,3)),4));
-    %
+%     rH(isubj, iblock) = corr(pupil(:,2),pupil(:,4));
+%     rV(isubj, iblock) = corr(pupil(:,3),pupil(:,4));
+%     
+%     [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(1,isubj) = k(i);
+%     [n,k]=hist(pupil(:,3),200); [~,i]=max(n); fix(2,isubj) = k(i);
+%     
+%     fix(:,isubj) = [nanmean(pupil(:,1)),nanmean(pupil(:,2))];
+%     dist = sqrt(((pupil(:,2)-fix(1,isubj)).^2) + ((pupil(:,3)-fix(2,isubj)).^2) );
+%     
+%     rExc(isubj,iblock) = corr(dist(~isnan(pupil(:,3))),pupil(~isnan(pupil(:,3)),4));
+%     
    pupil1 = zscore(pupil(:,5));
     pupil = zscore(pupil(:,4));
     
@@ -157,29 +170,26 @@ for isubj = 25:34
     
     pup_seg = pup_seg ./ pupil_count; 
     
-    for ifreq = 1 : size(pxx,1)
-    	csd(:,:,ifreq) = sqrt(squeeze(pxx(ifreq,:,:)))*sqrt(squeeze(pxx(ifreq,:,:)))';
-    end
-    
-%     load(sprintf('~/pp/proc/sens/pp_meg_pupil_spatfilt_f%d_s%d_b%d.mat',ifreq,isubj,iblock));
-  
-%     
-    pxx_src = zeros(nseg,8799,101); 
-    nai_src = zeros(nseg,8799,101); 
-    for ifreq = 1 : 101
-      ifreq
-      para          = [];
-      para.reg      = 0.05;
-      filt = tp_beamformer(csd(:,:,ifreq),sa.L_genemaps_aal,para);
-      tmp_pxx = sqrt(squeeze(pxx(ifreq,:,:)));
-      pxx_src(:,:,ifreq) = (tmp_pxx'*filt).^2;
-      
-      para          = [];
-      para.reg      = 0.05;
-      Lr = reshape(sa.L_genemaps_aal,[size(sa.L_genemaps_aal,1) 8799*3]); csd_noise = Lr*Lr';
-      [~,noise]      = tp_beamformer(real(csd_noise),sa.L_genemaps_aal,para);
-      nai_src(:,:,ifreq) =  pxx_src(:,:,ifreq)./repmat(noise,[1 size(pxx_src,1)])';
-    end
+%     for ifreq = 1 : size(pxx,1)
+%     	csd(:,:,ifreq) = sqrt(squeeze(pxx(ifreq,:,:)))*sqrt(squeeze(pxx(ifreq,:,:)))';
+%     end
+   
+%     pxx_src = zeros(nseg,8799,101); 
+%     nai_src = zeros(nseg,8799,101); 
+%     for ifreq = 1 : 101
+%       ifreq
+%       para          = [];
+%       para.reg      = 0.05;
+%       filt = tp_beamformer(csd(:,:,ifreq),sa.L_genemaps_aal,para);
+%       tmp_pxx = sqrt(squeeze(pxx(ifreq,:,:)));
+%       pxx_src(:,:,ifreq) = (tmp_pxx'*filt).^2;
+%       
+%       para          = [];
+%       para.reg      = 0.05;
+%       Lr = reshape(sa.L_genemaps_aal,[size(sa.L_genemaps_aal,1) 8799*3]); csd_noise = Lr*Lr';
+%       [~,noise]      = tp_beamformer(real(csd_noise),sa.L_genemaps_aal,para);
+%       nai_src(:,:,ifreq) =  pxx_src(:,:,ifreq)./repmat(noise,[1 size(pxx_src,1)])';
+%     end
     
     save([outdir sprintf('pp_revision_saccades_TFR_hh_isubj%d_iblock%d.mat',isubj,iblock)],'pup_seg','fxx','pxx_src','pupil_locked','pupil_locked_noregression','nai_src','pxx','-v7.3')
 
@@ -269,10 +279,10 @@ pxx = nanmean(nanmean(all_pxx(:,:,25:34,:),3),4);
 % -------------------------
 % subj2,3,5, 21: impossible
     % subj6,, doable?
-rExc = []; clear all_tmp all_pxx n_saccs
+rExc = []; clear all_tmp all_pxx n_saccs percent_rejected
 
 subj_counter = 0;
-for isubj = 1:24
+for isubj = 21
   if any(isubj==[5,9])
     continue
   else
@@ -297,9 +307,25 @@ for isubj = 1:24
       data.trial{1}(1:2,data.cfg.artfctdef.blink.artifact(ii,1)-150:data.cfg.artfctdef.blink.artifact(ii,2)+150) = nan;
     end
     
-    saccs = data.cfg.artfctdef.sacc.artifact;
+    
+%     saccs = data.cfg.artfctdef.sacc.artifact;
     pupil = data.trial{1}';
     f_sample = data.fsample;
+    
+    art.blinks_ts=data.cfg.artfctdef.blink.artifact;
+    idx=zeros(size(pupil,1),1);
+    for iart = 1 : size(art.blinks_ts,1)
+      if (art.blinks_ts(iart,1)-200)<=0
+        idx(1:art.blinks_ts(iart,1)+200)=1;
+      elseif art.blinks_ts(iart,2)+200>size(pupil,1)
+        idx(art.blinks_ts(iart,1):end)=1;
+      else
+        idx(art.blinks_ts(iart,1)-200:art.blinks_ts(iart,2)+200)=1;
+      end
+    end
+    pupil(:,6)=idx;
+    
+    size(art.blinks_ts)
     
     % load meg data
     if isubj < 10
@@ -352,7 +378,8 @@ for isubj = 1:24
 %     dist = sqrt(((pupil(:,1)-fix(1,subj_counter)).^2) + ((pupil(:,2)-fix(2,subj_counter)).^2) );
 %     
 %     rExc(subj_counter) = corr(dist,pupil(:,4));
-    
+    percent_rejected(subj_counter,iblock) = 100*sum(pupil(:,6))/size(pupil,1);
+
     pupil = zscore(pupil(:,4));
     
     tmp = []; meg = []; k = 0;
@@ -473,7 +500,7 @@ for i = 1 : length(d)
     SUBJLIST = [SUBJLIST; d(i).name(end-7:end-4)];  
 end
 
-rExc = []; clear all_tmp all_pxx n_saccs
+rExc = []; clear all_tmp all_pxx n_saccs percent_rejected
 
 subj_counter = 0;  
 
@@ -496,6 +523,20 @@ for isubj = 1:size(SUBJLIST,1)
     catch me
       continue
     end
+    
+    
+    art.blinks_ts=data.cfg.artfctdef.blink.artifact;
+    idx=zeros(size(pupil,1),1);
+    for iart = 1 : size(art.blinks_ts,1)
+      if (art.blinks_ts(iart,1)-200)<=0
+        idx(1:art.blinks_ts(iart,1)+200)=1;
+      elseif art.blinks_ts(iart,2)+200>size(pupil,1)
+        idx(art.blinks_ts(iart,1):end)=1;
+      else
+        idx(art.blinks_ts(iart,1)-200:art.blinks_ts(iart,2)+200)=1;
+      end
+    end
+    pupil(:,6)=idx;
     
     load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/cleanmeg_%s.mat',SUBJLIST(isubj,:)))
     data = cleanmeg; clear cleanmeg
@@ -550,6 +591,9 @@ for isubj = 1:size(SUBJLIST,1)
     dist = sqrt(((pupil(:,1)-fix(1,isubj)).^2) + ((pupil(:,2)-fix(2,isubj)).^2) );
     
     rExc(isubj) = corr(dist,pupil(:,4));
+    
+        percent_rejected(subj_counter,iblock) = 100*sum(pupil(:,6))/size(pupil,1);
+% 
     pupil = zscore(pupil(:,4));
     
     tmp = []; meg = []; k = 0;
