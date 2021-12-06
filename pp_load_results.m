@@ -30,6 +30,8 @@ for n_subj = 1: length(SUBJ)
   plt_gla.corr_sens(:,:,n_subj)     = outp.sens_r;
   plt_gla.corr_src(:,:,n_subj)      = outp.src_r(trans,:);
   plt_gla.corr_src_df(:,:,n_subj)   = outp.src_r_df(trans,:);
+  plt_gla.nai_src(:,:,n_subj)       = outp.src_nai(trans,:);
+%   plt
   %       plt_gla.sens_mi(:,:,n_subj)       = outp.sens_mi;
   %       plt_gla.sens_mi0(:,:,n_subj)      = outp.sens_mi0;
   plt_gla.src_mi(:,:,n_subj)        = outp.src_mi;
@@ -62,6 +64,8 @@ for isubj = SUBJLIST
       plt_hh.corr_sens(:,:,isubj,iblock)    = outp.sens_r;
       plt_hh.corr_src(:,:,isubj,iblock)     = outp.src_r;
       plt_hh.corr_src_df(:,:,isubj,iblock)  = outp.src_r_df;
+      plt_hh.nai_src(:,:,isubj,iblock)      = outp.src_nai;
+
 %       plt_hh.sens_mi(:,:,isubj,iblock)      = outp.sens_mi;
 %       plt_hh.sens_mi0(:,:,isubj,iblock)     = outp.sens_mi0;
 %       plt_hh.src_mi(:,:,isubj,iblock)       = outp.src_mi;
@@ -73,6 +77,7 @@ for isubj = SUBJLIST
       clear outp
     catch me
       warning('!!!')
+      plt_hh.nai_src(:,:,isubj,iblock)      = nan(8799,25);
       plt_hh.pow_sens(:,:,isubj,iblock)     = nan(275,25,1,1);
       plt_hh.corr_sens(:,:,isubj,iblock)    = nan(275,25,1,1);
       plt_hh.corr_src(:,:,isubj,iblock)     = nan(8799,25);
@@ -85,6 +90,7 @@ for isubj = SUBJLIST
   end
 end
 
+plt_hh.nai_src     = nanmean(plt_hh.nai_src(:,:,SUBJLIST,:),4);
 plt_hh.pow_sens     = nanmean(plt_hh.pow_sens(:,:,SUBJLIST,:),4);
 % plt_hh.sens_mi      = nanmean(plt_hh.sens_mi(:,:,SUBJLIST,:),4);
 % plt_hh.sens_mi0     = nanmean(plt_hh.sens_mi0(:,:,SUBJLIST,:),4);
@@ -122,7 +128,8 @@ for n_subj = 1:length(SUBJLIST)
   plt_mue.corr_sens(:,:,n_subj)    = outp.sens_r;
   plt_mue.corr_src(:,:,n_subj)     = outp.src_r;
   plt_mue.corr_src_df(:,:,n_subj)  = outp.src_r_df;
-  
+  plt_mue.nai_src(:,:,n_subj)      = outp.src_nai;
+
   for ifreq = 1 : 25
     plt_mue.xcorr{ifreq}(:,:,n_subj)       = outp.xcorr{ifreq};
     plt_mue.xcorr_df{ifreq}(:,:,n_subj)    = outp.xcorr_df{ifreq};

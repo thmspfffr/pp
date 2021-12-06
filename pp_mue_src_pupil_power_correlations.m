@@ -12,13 +12,13 @@ restoredefaultpath
 % -------------------------
 % VERSION 2: with pupil lag (930 ms)
 % -------------------------
-% v = 2;
-% lag = 1;
+v = 2;
+lag = 1;
 % -------------------------
 % VERSION 3: with pupil lag (500 ms)
 % -------------------------
-v = 3;
-lag = 2;
+% v = 3;
+% lag = 2;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -161,8 +161,13 @@ for isubj = 1:size(SUBJLIST,1)
       para      = [];
       para.iscs = 1;
       para.reg  = 0.05;
-      tp_filt   = tp_beamformer(real(csd),lf,para);
+      [filt,pow] = tp_beamformer(real(csd),lf,para);
       % -------------------------------
+      % Project noise
+      % -------------------------------
+      Lr = reshape(lf,[size(lf,1) 8799*3]); csd_noise = Lr*Lr';
+      [~,noise]             = tp_beamformer(real(csd_noise),lf,para);
+      outp.src_nai(:,ifreq) = pow./noise;
       % identify artifactual segments
       idx = find(~isnan(dataf(1,:))'&~isnan(pup)&~isnan(pup_df));
       % -------------------------------
@@ -211,7 +216,7 @@ for isubj = 1:size(SUBJLIST,1)
       % -------------------------------
       % correlate power with pupil
       % -------------------------------
-      src_pow = abs(tp_filt'*dataf(:,idx)).^2; % source level power fluct
+      src_pow = abs(filt'*dataf(:,idx)).^2; % source level power fluct
       outp.src_r(:,ifreq) = corr(pup(idx),src_pow','type','spearman');
       outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','spearman');
       % -------------------------------

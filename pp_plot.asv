@@ -15,7 +15,7 @@ ft_defaults
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 2
+v = 3
 
 [plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results(v);
 
@@ -32,7 +32,7 @@ imagesc(nanmean(plt_gla.corr_sens_ord,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square
 set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
 xlabel('Frequency [Hz]')
-However, it is difficult to assess to what extent pupil dilations are a direct consequence of serotonergic or dopaminergic activity or merely a consequence of strong interconnectivity between neuromodulatory nuclei, especially by projections from locus coeruleus. 
+
 subplot(2,3,2);
 imagesc(nanmean(plt_hh.corr_sens_ord,3),[-0.03 0.03])
 colormap(cmap); tp_editplots; axis square
@@ -365,7 +365,7 @@ load ~/pp/proc/pp_atlas_BNA.mat
 cmap = redblue;
 [~,idx_sorted] = sort(BNA.centroids(:,2),'descend');
 
-if v==2 
+if v==2
   is_dt = 0;
 else
   is_dt = 1;
@@ -373,7 +373,7 @@ end
 
 figure_w
 
-if v == 2 
+if v == 2
 
   subplot(2,4,1)
   [h,p]=ttest(plt_gla.corr_src_BNA(idx_sorted,:,:),zeros(size(plt_gla.corr_src_BNA)),'dim',3);
@@ -406,23 +406,23 @@ if v == 2
   set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
   xlabel('Frequency [Hz]'); ylabel('Brain region')
   
-%   figure_w
-%   subplot(2,4,1)
-%   pooled= plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
-%   [~,p]=ttest(pooled,zeros(size(pooled)),'dim',3); h = p<fdr1(p(:),0.1,0);
-%   imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
-%   tp_editplots; colormap(cmap)
-%   set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-%   xlabel('Frequency [Hz]'); ylabel('Brain region')
+  figure_w
+  subplot(2,4,1)
+  pooled= plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
+  [~,p]=ttest(pooled,zeros(size(pooled)),'dim',3); h = p<fdr1(p(:),0.1,0);
+  imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
+  tp_editplots; colormap(cmap)
+  set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+  xlabel('Frequency [Hz]'); ylabel('Brain region')
   
-%   subplot(2,4,2)
-%   cnt = plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
-%   rest = plt_hh.corr_src_BNA(idx_sorted,:,:);
-%   [~,p]=ttest(cnt,rest,'dim',3); h = p<fdr1(p(:),0.1,0);
-%   imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
-%   tp_editplots; colormap(cmap)
-%   set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-%   xlabel('Frequency [Hz]'); ylabel('Brain region')
+  subplot(2,4,2)
+  cnt = plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
+  rest = plt_hh.corr_src_BNA(idx_sorted,:,:);
+  [~,p]=ttest(cnt,rest,'dim',3); h = p<fdr1(p(:),0.1,0);
+  imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
+  tp_editplots; colormap(cmap)
+  set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
+  xlabel('Frequency [Hz]'); ylabel('Brain region')
   
 else
   
@@ -465,7 +465,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_correlations_BNA_dt%d_v%d.pdf',is_d
 %% PLOT REGIONS OF INTEREST, SENSORY AREAS
 load ~/pp/proc/pp_atlas_BNA.mat
 
-if v == 2 || v==3 
+if v == 2
 is_dt = 0; 
 is_task = 0;
 else
@@ -645,9 +645,9 @@ addpath /home/gnolte/meth/highlevel/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 
 % cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-if v==2 || v==3 
+if v==2
  is_dt = 0; 
- is_task = 0;
+ is_task = 1;
 else
  is_dt = 1; 
  is_task = 0; 
@@ -655,7 +655,7 @@ end
 
 cmap = redblue;
 
-for ifoi = [5 11 14 22]
+for ifoi = 22
   
   figure_w
   
@@ -724,8 +724,8 @@ end
 % analysis. In v2, pupils are already shifted with respect to MEG
 % !!!!!!!!!
 
-if v == 2 || v == 3
-  error('Makes no sense for v2/v3')
+if v == 2
+  error('Makes no sense for v2')
 end
 
 is_dt = 0;
