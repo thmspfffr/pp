@@ -2,6 +2,7 @@
 
 clear
 restoredefaultpath
+load ~/pp/proc/pp_atlas_BNA.mat
 
 addpath ~/pconn/matlab/
 addpath ~/pp/matlab/
@@ -11,6 +12,7 @@ addpath ~/Documents/MATLAB/fieldtrip-20190224/
 ft_defaults
 
 
+addpath /home/gnolte/meth/highlevel/
 
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
@@ -22,52 +24,172 @@ v = 2
 colors = cbrewer('qual', 'Set3', 10,'pchip');
 colors = colors(4:6,:);
 
-%% PLOT CORRELATION IN SENSOR SPACE - SORTED FROM ANTERIOR TO POSTERIOR
-freqoi=2.^(1:(1/4):7);
+%% CORRELATION BETWEEN QUADRATIC PARAMETER AND CORR COEFF. - SOURCE SPAC
+% REVISION % REVISION % REVISION % REVISION % REVISION % REVISION
+% ------------------------------------------
 
-figure_w
+% load results from polynomial fit
+load ~/pp/proc/src/pp_invU.mat
+freqoi    = 2.^(1:(1/4):7);
+pooled_nai = cat(3,zscore(plt_gla.nai_src,1),zscore(plt_hh.nai_src,1),zscore(plt_mue.nai_src,1));
 
-subplot(2,3,1);
-imagesc(nanmean(plt_gla.corr_sens_ord,3),[-0.03 0.03])
-colormap(cmap); tp_editplots; axis square
-set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]')
-However, it is difficult to assess to what extent pupil dilations are a direct consequence of serotonergic or dopaminergic activity or merely a consequence of strong interconnectivity between neuromodulatory nuclei, especially by projections from locus coeruleus. 
-subplot(2,3,2);
-imagesc(nanmean(plt_hh.corr_sens_ord,3),[-0.03 0.03])
-colormap(cmap); tp_editplots; axis square
-set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]')
+idx = 1:246;
 
-subplot(2,3,3);
-imagesc(nanmean(plt_mue.corr_sens_ord,3),[-0.03 0.03])
-colormap(cmap); tp_editplots; axis square
-set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]')
-% 
-% subplot(2,3,4);
-% imagesc(nanmean(plt_hh_cnt.corr_sens_ord,3),[-0.03 0.03])
-% colormap(cmap); tp_editplots; axis square
-% set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-% xlabel('Frequency [Hz]')
+par = zeros(8799,25,81);
+for ifreq = 1 : 25
+  ifreq
+  for isubj = 1 : 81
+    for i = 1:246
+      par(BNA.tissue_5mm == idx(i),ifreq,isubj) = repmat(p_low22(ifreq,idx(i),1,isubj),[sum(BNA.tissue_5mm == idx(i)), 1]);
+    end
+  end
+end
 
-pooled = cat(3,plt_hh.corr_sens_ord,plt_gla.corr_sens_ord,plt_mue.corr_sens_ord);
+clear rrr
+for ifreq=1:25
+  for isubj = 1 : 81
+    
+    [rrr(ifreq,isubj)]=corr(squeeze(par(:,ifreq,isubj)),squeeze(pooled_nai(:,ifreq,isubj)));
+  end
+end
 
-subplot(2,3,5);
-imagesc(nanmean(pooled,3),[-0.03 0.03])
-colormap(cmap); tp_editplots; axis square;
-set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]')
+rrr = rrr';
+[h,p] = ttest(rrr',zeros(size(rrr')),'dim',2); h=p<fdr1(p(:),0.05,1);
+s = std(rrr,[],1)/sqrt(size(rrr,1));
+figure_w; hold on
+shadedErrorBar([],mean(rrr,1),s);
+line([0 25],[0 0],'color','k','linestyle',':')
+for ii = 1 : max(bwlabel(h)) 
+  plot(find(bwlabel(h)==ii),0.1*ones(sum(bwlabel(h)==ii),1),'color',[0.8 0.8 0.8],'linewidth',4);
+end
+axis([0 25 -0.2 0.1])
+tp_editplots
+set(gca,'xtick',1:4:25,'xticklabel',freqoi(1:4:end))
 
-[~,p]=ttest(pooled,zeros(size(pooled)),'dim',3);
-h = p<fdr1(p(:),0.05,1);
-subplot(2,3,6);
-imagesc(nanmean(pooled,3).*h,[-0.03 0.03])
-colormap(cmap); tp_editplots; axis square;
-set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-xlabel('Frequency [Hz]')
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_with_invU_v%d.pdf',v))
+clear rrr
 
-print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_anterior_post_v%d.pdf',v))
+%% CORRELATION BETWEEN POWER AND CORR COEFF. - SOURCE SPACE
+% REVISION % REVISION % REVISION % REVISION % REVISION % REVISION
+% ------------------------------------------
+
+freqoi    = 2.^(1:(1/4):7);
+pooled_nai = cat(3,zscore(plt_gla.nai_src,1),zscore(plt_hh.nai_src,1),zscore(plt_mue.nai_src,1));
+pooled_corr = cat(3,plt_gla.corr_src,plt_hh.corr_src,plt_mue.corr_src);
+
+for isubj=1:81
+  for ifreq = 1 : 25
+    
+    rrr(isubj,ifreq)=corr(pooled_nai(:,ifreq,isubj),pooled_corr(:,ifreq,isubj));
+    
+  end
+end
+
+[h,p] = ttest(rrr',zeros(size(rrr')),'dim',2); h=p<fdr1(p(:),0.05,1);
+s = std(rrr,[],1)/sqrt(size(rrr,1));
+figure_w; hold on
+shadedErrorBar([],mean(rrr,1),s);
+line([0 25],[0 0],'color','k','linestyle',':')
+for ii = 1 : max(bwlabel(h)) 
+  plot(find(bwlabel(h)==ii),0.2*ones(sum(bwlabel(h)==ii),1),'color',[0.8 0.8 0.8],'linewidth',4);
+end
+tp_editplots
+set(gca,'xtick',1:4:25,'xticklabel',freqoi(1:4:end))
+
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_with_power_v%d.pdf',v))
+
+% REGRESS OUT POWER MAP FROM CORRELATIONS
+% --------------
+
+for ifreq = 1 : 25
+  ifreq
+  for isubj = 1 : 81
+  [~,~,pooled_corr_res(:,ifreq,isubj)]=regress(squeeze(pooled_corr(:,ifreq,isubj)),squeeze(pooled_nai(:,ifreq,isubj)));
+  end
+end
+
+% PLOT IN SOURCE SPACE
+% ---------------------------
+
+ifoi = 22;
+
+[h,p]=ttest(pooled_corr_res(:,ifoi,:),zeros(size(pooled_corr_res(:,ifoi,:))),'dim',3); h = p<fdr1(p(:),0.05,1);
+par = mean(pooled_corr_res(:,ifoi,:),3).*h;
+par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
+
+clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
+
+para = [];
+para.colorlimits = clim;
+para.colormaps{1} = cmap;
+para.orientation = 'axial';
+
+para.dslice_shown = 0.95;
+para.colorbar= 0;
+
+tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
+
+move_x = [0:0.08:0.32];
+move_y = [0.08:-0.02:0];
+
+for i=4:-1:1
+  for j = 0:3
+    if j ~= 4
+      f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+    end
+    f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
+  end
+end
+
+text(1,1,sprintf('[%.3f %.3f]\n [%.3f Hz]',clim(1),clim(2),ifoi))
+
+set(gcf,'renderer','painters')
+  
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_residual_task0_dt0_f%d_v%d.tiff',ifoi,v))
+
+
+%% PLOT POWER SOURCE MAPS
+% REVISION % REVISION % REVISION % REVISION % REVISION % REVISION
+% ------------------------------------------
+
+ifoi = 22;
+
+% [h,p]=ttest(pooled_nai(:,ifoi,:),zeros(size(pooled_nai(:,ifoi,:))),'dim',3); h = p<fdr1(p(:),0.05,1);
+par = mean(pooled_nai(:,ifoi,:),3);
+par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
+
+clim = [min(par) max(par)];
+
+para = [];
+para.colorlimits = clim;
+para.colormaps{1} = plasma;
+para.orientation = 'axial';
+
+para.dslice_shown = 0.95;
+para.colorbar= 0;
+
+tp_showmri_transp(mri,para,[sa_template.grid_fine par]); f=get(gcf)
+
+move_x = [0:0.08:0.32];
+move_y = [0.08:-0.02:0];
+
+for i=4:-1:1
+  for j = 0:3
+    if j ~= 4
+      f.Children(i*4-j).Position(1)=f.Children(i*4-j).Position(1)-move_x(j+1);
+    end
+    f.Children(i*4-j).Position(2)=f.Children(i*4-j).Position(2)+move_y(i);
+  end
+end
+
+text(1,1,sprintf('[%.3f %.3f]\n [%.3f Hz]',clim(1),clim(2),ifoi))
+
+set(gcf,'renderer','painters')
+  
+print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_power_task0_dt0_f%d_v%d.tiff',ifoi,v))
+% -------------------------------
+
+
 
 % figure_w;
 % % TASK VS REST
@@ -100,7 +222,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_anterior_post_v%d.pdf',v))
 
 % print(gcf,'-dpdf',sprintf('~/pp/plots/pp_task_sens_anterior_post_v%d.pdf',v))
 
-%% PLOT AVERAGES ACROSS SPACE, HAMBURG, GLASGOW, ALL
+%% PLOT SENSOR LEVEL POWER
 
 % -----------------
 % SENSOR SPACE - POWER
@@ -209,23 +331,6 @@ line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 % 
-% subplot(4,3,5)
-% shadedErrorBar(log10(freqoi),par_cnt,std_cnt,{'color',colors(2,:)})
-% axis([.3 2.11 -0.05 0.05])
-% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-
-% d_cnt_rest = mean(nanmean(plt_hh_cnt.corr_sens-plt_hh.corr_sens,1),3);
-% d_cnt_rest_std = std(nanmean(plt_hh_cnt.corr_sens-plt_hh.corr_sens,1),[],3)/sqrt(size(plt_hh_cnt.corr_sens-plt_hh.corr_sens,3));
-% 
-% subplot(4,3,6)
-% shadedErrorBar(log10(freqoi),d_cnt_rest,d_cnt_rest_std,{'color',colors(2,:)})
-% axis([.3 2.11 -0.05 0.05])
-% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_sens_corr_lineplots_v%d.pdf',v))
 
 % -----------------
@@ -276,19 +381,6 @@ axis([.3 2.11 -0.05 0.05])
 line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
 tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-
-
-% par_cnt = mean(nanmean(plt_hh_cnt.corr_src,1),3);
-% std_cnt = std(nanmean(plt_hh_cnt.corr_src,1),[],3)/sqrt(size(plt_hh_cnt.corr_src,3));
-% [c,p]=permutest(squeeze(nanmean(plt_hh_cnt.corr_src,1)),zeros(size(squeeze(nanmean(plt_hh_cnt.corr_src,1)))),1,0.01,1000,2); h=[c{p<0.05}];
-% 
-% subplot(4,3,5); hold on; box on
-% shadedErrorBar(log10(freqoi),par_cnt,std_cnt,{'color',colors(2,:)})
-% plot(log10(freqoi(h)),par_cnt(h),'k.','markersize',8)
-% axis([.3 2.11 -0.05 0.05])
-% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_lineplots_v%d.pdf',v))
 
@@ -343,19 +435,6 @@ tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
 % title('Derivative: POOLED')
 
-% par_cnt = mean(nanmean(plt_hh_cnt.corr_src_df,1),3);
-% std_cnt = std(nanmean(plt_hh_cnt.corr_src_df,1),[],3)/sqrt(size(plt_hh_cnt.corr_src_df,3));
-% [c,p]=permutest(squeeze(nanmean(plt_hh_cnt.corr_src_df,1)),zeros(size(squeeze(nanmean(plt_hh_cnt.corr_src_df,1)))),1,0.01,1000,2); h=[c{p<0.05}];
-
-% subplot(4,3,5); hold on; box on
-% shadedErrorBar(log10(freqoi),par_cnt,std_cnt,{'color',colors(2,:)})
-% plot(log10(freqoi(h)),par_cnt(h),'k.','markersize',8)
-% axis([.3 2.11 -0.05 0.05])
-% line([.3 2.11], [0 0],'color',[.7 .7 .7],'linestyle',':')
-% tp_editplots; xlabel('Frequency [Hz]');ylabel('Mean corr.')
-% set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25)))
-
-
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_derivative_lineplots_v%d.pdf',v))
 
 %% PLOT SOURCE SPACE
@@ -405,25 +484,7 @@ if v == 2
   tp_editplots; colormap(cmap)
   set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
   xlabel('Frequency [Hz]'); ylabel('Brain region')
-  
-%   figure_w
-%   subplot(2,4,1)
-%   pooled= plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
-%   [~,p]=ttest(pooled,zeros(size(pooled)),'dim',3); h = p<fdr1(p(:),0.1,0);
-%   imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
-%   tp_editplots; colormap(cmap)
-%   set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-%   xlabel('Frequency [Hz]'); ylabel('Brain region')
-  
-%   subplot(2,4,2)
-%   cnt = plt_hh_cnt.corr_src_BNA(idx_sorted,:,:);
-%   rest = plt_hh.corr_src_BNA(idx_sorted,:,:);
-%   [~,p]=ttest(cnt,rest,'dim',3); h = p<fdr1(p(:),0.1,0);
-%   imagesc(nanmean(pooled,3).*h,[-0.05 0.05])
-%   tp_editplots; colormap(cmap)
-%   set(gca,'xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-%   xlabel('Frequency [Hz]'); ylabel('Brain region')
-  
+ 
 else
   
   subplot(2,4,1)
@@ -676,10 +737,6 @@ for ifoi = [5 11 14 22]
     h=p<(fdr1(p(:),0.1,0));
     par=nanmean(plt_hh_cnt.corr_src(:,ifoi,:),3).*h;
   end  
-%     par(BNA.tissue_5mm>=163 & BNA.tissue_5mm<=174)=0;
-%     par(BNA.tissue_5mm>=211 & BNA.tissue_5mm<=214)=0;
-%   par(mask) = 1;
-
   % project onto fine grid
   par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
   
@@ -957,71 +1014,6 @@ end
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task%d_pooledfreqs_v%d.pdf',is_dt,is_task,v))
 
 
-
-
-%% XCORR: find peak lag and plot spatial distribution
-
-% ifreq = 5;
-% % plt_hh.xcorr{ifreq}
-% idx = plt_hh.xcorr_lags{ifreq}>=-2 & plt_hh.xcorr_lags{ifreq}<=2;
-% lags = plt_hh.xcorr_lags{ifreq}(idx);
-% for i =1  : 275
-%    for j = 1 : 28
-%         [~,max_lag(i,j)] = max(smooth(plt_hh.xcorr{ifreq}(idx,i,j),10));
-%         [~,min_lag(i,j)] = min(smooth(nanmean(plt_hh.xcorr{ifreq}(idx,i,j),3),10));
-%   end
-% end
-% para = [];
-% para.scale = [-2 2];
-% para.cbar = 0;
-% figure_w;
-% subplot(2,2,1);
-% showfield(lags(round(mean(min_lag,2))),[transpose(1:275) lay.pos(1:275,:)],para)
-% subplot(2,2,2);
-% showfield(lags(round(mean(max_lag,2))),[transpose(1:275) lay.pos(1:275,:)],para)
-
-%% IMGAESC IN HEAD PLOT
-
-task = 0
-i = 0; clear sig
-for ifreq = 1 : 25
-  ifreq
-  i = i + 1;
-  if task
-    sig(:,:,ifreq) = interp1(1:size(hh_cnt.xcorr{ifreq},1),hh_cnt.xcorr{ifreq},linspace(1,size(hh_cnt.xcorr{ifreq},1),size(hh_cnt.xcorr{25},1)));
-  else
-    if is_dt==0
-      sig(:,:,:,ifreq) = interp1(1:size(plt_hh.xcorr{ifreq},1),plt_hh.xcorr{ifreq},linspace(1,size(plt_hh.xcorr{ifreq},1),size(plt_hh.xcorr{25},1)));
-    else
-      sig(:,:,:,ifreq) = interp1(1:size(plt_hh.xcorr_df{ifreq},1),plt_hh.xcorr_df{ifreq},linspace(1,size(plt_hh.xcorr_df{ifreq},1),size(plt_hh.xcorr_df{25},1)));
-    end
-  end
-end
-
-sig = permute(sig,[2 1 3]);
-
-
-R=find(startsWith(lay.label(1:275),'MR')); R = R(1:2:end);
-L=find(startsWith(lay.label(1:275),'ML')); L = L(1:2:end);
-[~,i1]=min(abs(plt_hh.xcorr_lags{25}-(-2)))
-[~,i2]=min(abs(plt_hh.xcorr_lags{25}-(2)))
-[~,z0] = min(abs(plt_hh.xcorr_lags{25}));
-
-cfg.channel = lay.label([R,L])
-
-sig(:,z0,:)=0;
-dummy_freq.powspctrm = sig(:,i1:i2,:);
-dummy_freq.time = i1:i2;
-% dummy_freq
-
-pars =[];
-pars.resolution= 50;
-% pars.scale  = [-0.08 0.08];
-idx = zeros(275,1); idx(1:4:end)=1;
-chan_idx =-1*ones(275,1); chan_idx(2:60:end)=5;
-tp_showtfinhead(sig,[chan_idx,lay.pos(1:275,:),10*ones(275,1),ones(275,1)],pars)
-
-
 %% PLOT SCALING EXPONENTS
 v_fooof = 2;
 % load fooof results and power spectra
@@ -1029,10 +1021,6 @@ fooof = pp_load_fooof_results(v_fooof);
 % fooof.ps_* = power spectra
 % fooof.psfit_* = fooof fits of spectra
 % fooof.aper_* = offset and slope of 1/f component
-
-% ----------------------------------------
-% PLOT OFFSET AND SLOPE OF FOOOF FITS
-% ----------------------------------------
 
 [~,idx_sorted] = sort(BNA.centroids(:,2),'descend');
 %%
