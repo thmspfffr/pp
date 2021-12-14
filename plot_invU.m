@@ -94,7 +94,7 @@ for isubj = 1  : size(pooled_f22,4)
   end
 end
 
-save('~/pp/proc/src/pp_invU.mat','p_low11','p_low22')
+save(['~/pp/proc/src/pp_invU.mat'],'p_low11','p_low22')
 %%
 close
 

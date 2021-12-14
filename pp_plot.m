@@ -54,7 +54,7 @@ for ifreq=1:25
 end
 
 rrr = rrr';
-[h,p] = ttest(rrr',zeros(size(rrr')),'dim',2); h=p<fdr1(p(:),0.05,1);
+[h,p] = ttest(rrr',zeros(size(rrr')),'dim',2); h=p<fdr1(p(:),0.1,0);
 s = std(rrr,[],1)/sqrt(size(rrr,1));
 figure_w; hold on
 shadedErrorBar([],mean(rrr,1),s);
@@ -85,7 +85,8 @@ for isubj=1:81
   end
 end
 
-[h,p] = ttest(rrr',zeros(size(rrr')),'dim',2); h=p<fdr1(p(:),0.05,1);
+[h,p] = ttest(rrr',zeros(size(rrr')),'dim',2); h=p<fdr1(p(:),0.1,1);
+
 s = std(rrr,[],1)/sqrt(size(rrr,1));
 figure_w; hold on
 shadedErrorBar([],mean(rrr,1),s);
@@ -98,6 +99,7 @@ set(gca,'xtick',1:4:25,'xticklabel',freqoi(1:4:end))
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_with_power_v%d.pdf',v))
 
+%%
 % REGRESS OUT POWER MAP FROM CORRELATIONS
 % --------------
 
@@ -113,7 +115,7 @@ end
 
 ifoi = 22;
 
-[h,p]=ttest(pooled_corr_res(:,ifoi,:),zeros(size(pooled_corr_res(:,ifoi,:))),'dim',3); h = p<fdr1(p(:),0.05,1);
+[h,p]=ttest(pooled_corr_res(:,ifoi,:),zeros(size(pooled_corr_res(:,ifoi,:))),'dim',3); h = p<fdr1(p(:),0.1,0);
 par = mean(pooled_corr_res(:,ifoi,:),3).*h;
 par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
 
@@ -188,39 +190,6 @@ set(gcf,'renderer','painters')
   
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_power_task0_dt0_f%d_v%d.tiff',ifoi,v))
 % -------------------------------
-
-
-
-% figure_w;
-% % TASK VS REST
-% 
-% [h,p]=ttest(plt_hh_cnt.corr_sens_ord,zeros(size(plt_hh_cnt.corr_sens_ord)),'dim',3);
-% h = p<fdr1(p(:),0.05,1); 
-% % h = p < 0.01;
-% par = nanmean(plt_hh_cnt.corr_sens_ord,3);
-% subplot(2,3,4);
-% imagesc(par.*h,[-0.03 0.03])
-% colormap(cmap); tp_editplots; axis square;
-% set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-% xlabel('Frequency [Hz]')
-
-% [h,p]=ttest(plt_hh_cnt.corr_sens_ord,plt_hh.corr_sens_ord,'dim',3);
-% h = p<fdr1(p(:),0.05,1); 
-% h = p < 0.01;
-% par = nanmean(plt_hh_cnt.corr_sens_ord-plt_hh.corr_sens_ord,3);
-% subplot(2,3,5);
-% imagesc(par,[-0.03 0.03])
-% colormap(cmap); tp_editplots; axis square;
-% set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-% xlabel('Frequency [Hz]')
-% 
-% subplot(2,3,6);
-% imagesc(par.*h,[-0.03 0.03])
-% colormap(cmap); tp_editplots; axis square;
-% set(gca,'ydir','normal','xtick',1:4:25,'xticklabel',round(freqoi(1:4:25)))
-% xlabel('Frequency [Hz]')
-
-% print(gcf,'-dpdf',sprintf('~/pp/plots/pp_task_sens_anterior_post_v%d.pdf',v))
 
 %% PLOT SENSOR LEVEL POWER
 
@@ -558,15 +527,11 @@ if ~is_dt && ~is_task
   sig_pooled = mean(plt_all.corr_src(:,:,:),1);
 elseif is_dt && ~is_task
   sig_pooled = mean(plt_all.corr_src_df(:,:,:),1);
-elseif ~is_dt && is_task
-  sig_pooled = mean(plt_hh_cnt.corr_src_df(:,:,:),1);
-elseif is_dt && is_task
-  sig_pooled = mean(plt_hh_cnt.corr_src_df(:,:,:),1);
 end
 
 [c,p]=ttest(squeeze(sig_pooled),zeros(size(squeeze(sig_pooled))),'dim',2); h=p<fdr1(p(:),0.1,0);
 
-% [c,p]=permutest(squeeze(sig_pooled),zeros(size(squeeze(sig_pooled))),1,0.01,10000,1); h=[c{p<0.05}];
+% [c,p]=permutest(squeeze(sig_pooled),zeros(size(squeeze(sig_pooled))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_pooled,3),std(sig_pooled,[],3)/sqrt(size(sig_pooled,3)),'k')
 if sum(h)>0
   plot(log10(freqoi(h)),nanmean(sig_pooled(:,h,:),3),'k.','markersize',8)
@@ -581,15 +546,11 @@ if ~is_dt && ~is_task
   sig_V1_lr = mean(plt_all.corr_src([V1_l V1_r],:,:),1);
 elseif is_dt && ~is_task
   sig_V1_lr = mean(plt_all.corr_src_df([V1_l V1_r],:,:),1);
-elseif ~is_dt && is_task
-  sig_V1_lr = mean(plt_hh_cnt.corr_src_df([V1_l V1_r],:,:),1);
-elseif is_dt && is_task
-  sig_V1_lr = mean(plt_hh_cnt.corr_src_df([V1_l V1_r],:,:),1);
 end
 
 [c,p]=ttest(squeeze(sig_V1_lr),zeros(size(squeeze(sig_V1_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
 
-% [c,p]=permutest(squeeze(sig_V1_lr),zeros(size(squeeze(sig_V1_lr))),1,0.01,10000,1); h=[c{p<0.05}];
+% [c,p]=permutest(squeeze(sig_V1_lr),zeros(size(squeeze(sig_V1_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_V1_lr,3),std(sig_V1_lr,[],3)/sqrt(size(sig_V1_lr,3)),'k')
 if sum(h)>0
   plot(log10(freqoi(h)),nanmean(sig_V1_lr(:,h,:),3),'k.','markersize',8)
@@ -604,15 +565,11 @@ if ~is_dt && ~is_task
   sig_A1_lr = mean(plt_all.corr_src([A1_l A1_r],:,:),1);
 elseif is_dt && ~is_task
   sig_A1_lr = mean(plt_all.corr_src_df([A1_l A1_r],:,:),1);
-elseif ~is_dt && is_task
-  sig_A1_lr = mean(plt_hh_cnt.corr_src_df([A1_l A1_r],:,:),1);
-elseif is_dt && is_task
-  sig_A1_lr = mean(plt_hh_cnt.corr_src_df([A1_l A1_r],:,:),1);
 end
 
 [c,p]=ttest(squeeze(sig_A1_lr),zeros(size(squeeze(sig_A1_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
 
-% [c,p]=permutest(squeeze(sig_A1_lr),zeros(size(squeeze(sig_A1_lr))),1,0.05,10000,1); h=[c{p<0.05}];
+% [c,p]=permutest(squeeze(sig_A1_lr),zeros(size(squeeze(sig_A1_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_A1_lr,3),std(sig_A1_lr,[],3)/sqrt(size(sig_A1_lr,3)),'k')
 if sum(h)>0
   plot(log10(freqoi(h)),nanmean(sig_A1_lr(:,h,:),3),'k.','markersize',8)
@@ -628,15 +585,11 @@ if ~is_dt && ~is_task
   sig_M1_lr = mean(plt_all.corr_src([M1_l M1_r],:,:),1);
 elseif is_dt && ~is_task
   sig_M1_lr = mean(plt_all.corr_src_df([M1_l M1_r],:,:),1);  
-elseif ~is_dt && is_task
-  sig_M1_lr = mean(plt_hh_cnt.corr_src_df([M1_l M1_r],:,:),1);
-elseif is_dt && is_task
-  sig_M1_lr = mean(plt_hh_cnt.corr_src_df([M1_l M1_r],:,:),1);
 end
 
 [c,p]=ttest(squeeze(sig_M1_lr),zeros(size(squeeze(sig_M1_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
 
-% [c,p]=permutest(squeeze(sig_M1_lr),zeros(size(squeeze(sig_M1_lr))),1,0.01,10000,1); h=[c{p<0.05}];
+% [c,p]=permutest(squeeze(sig_M1_lr),zeros(size(squeeze(sig_M1_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_M1_lr,3),std(sig_M1_lr,[],3)/sqrt(size(sig_M1_lr,3)),'k')
 if sum(h)>0
   plot(log10(freqoi(h)),nanmean(sig_M1_lr(:,h,:),3),'k.','markersize',8)
@@ -652,15 +605,11 @@ if ~is_dt && ~is_task
   sig_dlpfc_lr = mean(plt_all.corr_src([ACC_l ACC_r],:,:),1);
 elseif is_dt && ~is_task
   sig_dlpfc_lr = mean(plt_all.corr_src_df(find([ACC_l ACC_r]),:,:),1);
-elseif ~is_dt && is_task
-  sig_dlpfc_lr = mean(plt_hh_cnt.corr_src_df(find([ACC_l ACC_r]),:,:),1);
-elseif is_dt && is_task
-  sig_dlpfc_lr = mean(plt_hh_cnt.corr_src_df(find([ACC_l ACC_r]),:,:),1);
 end
-
+% 
 [c,p]=ttest(squeeze(sig_dlpfc_lr),zeros(size(squeeze(sig_dlpfc_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
 
-% [c,p]=permutest(squeeze(sig_dlpfc_lr),zeros(size(squeeze(sig_dlpfc_lr))),1,0.01,10000,1); h=[c{p<0.05}];
+% [c,p]=permutest(squeeze(sig_dlpfc_lr),zeros(size(squeeze(sig_dlpfc_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_dlpfc_lr,3),std(sig_dlpfc_lr,[],3)/sqrt(size(sig_dlpfc_lr,3)),'k')
 if sum(h)>0
   plot(log10(freqoi(h)),nanmean(sig_dlpfc_lr(:,h,:),3),'k.','markersize',8)
@@ -672,33 +621,6 @@ axis([.3 2.11 -0.05 0.05]);% title(sprintf('V1: r = %.3f',r_V1_lr))
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_ROIs_task%d_dt%d_v%d.pdf',is_task,is_dt,v))
 
-%% PLOT SURFACES
-
-% close
-% 
-par = zeros(8799,1);
-% 
-% 
-% par([M1_l M1_r]) = 100;
-% par([V1_l V1_r]) = 100;
-% par([A1_l A1_r]) = 100;
-par([ACC_l ACC_r]) = 100;
-
-ACC_l
-
-% [h,p]=ttest(pooled,zeros(size(pooled)),'dim',3);
-
-ifoi = 23;
-% par = mean(pooled(:,ifoi,:),3).*(p(:,ifoi)<0.0005);
-
-cmap      = redblue;
-para      = [];
-para.clim = [-0.03 0.03];
-para.cmap = cmap;
-para.grid = BNA.grid_5mm/10;
-para.dd   = 0.1;
-para.fn   = sprintf('~/test_ACC.png');
-tp_plot_surface(par,para)
 
 %% PLOT SOURCE MAPS: PUPIL
 % load /home/gnolte/meth/templates/mri.mat
@@ -716,26 +638,21 @@ end
 
 cmap = redblue;
 
+
 for ifoi = [5 11 14 22]
   
   figure_w
   
   if is_dt && ~is_task
     [h,p] = ttest(plt_all.corr_src_df(:,ifoi,:),zeros(size(plt_all.corr_src_df(:,ifoi,:))),'dim',3);
+    p_adj=(fdr1(p(:),0.1,0));
     h=p<(fdr1(p(:),0.1,0));
     par=nanmean(plt_all.corr_src_df(:,ifoi,:),3).*h;
   elseif ~is_dt && ~is_task
     [h,p] = ttest(plt_all.corr_src(:,ifoi,:),zeros(size(plt_all.corr_src(:,ifoi,:))),'dim',3);
     h=p<(fdr1(p(:),0.1,0));
+    p_adj=(fdr1(p(:),0.1,0));
     par=nanmean(plt_all.corr_src(:,ifoi,:),3).*h;
-  elseif is_dt && is_task
-    [h,p] = ttest(plt_hh_cnt.corr_src_df(:,ifoi,:),zeros(size(plt_hh_cnt.corr_src_df(:,ifoi,:))),'dim',3);
-    h=p<(fdr1(p(:),0.1,0));
-    par=nanmean(plt_hh_cnt.corr_src_df(:,ifoi,:),3).*h;
-  elseif ~is_dt && is_task
-    [h,p] = ttest(plt_hh_cnt.corr_src(:,ifoi,:),zeros(size(plt_hh_cnt.corr_src(:,ifoi,:))),'dim',3);
-    h=p<(fdr1(p(:),0.1,0));
-    par=nanmean(plt_hh_cnt.corr_src(:,ifoi,:),3).*h;
   end  
   % project onto fine grid
   par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
@@ -768,7 +685,7 @@ for ifoi = [5 11 14 22]
     end
   end
   
-  text(1,1,sprintf('[%.3f %.3f]\n [%.3f Hz]',clim(1),clim(2),ifoi))  
+  text(1,1,sprintf('[%.3f %.3f]\n [%.3f Hz] | p_adj = %.4f',clim(1),clim(2),ifoi,p_adj))  
 
   set(gcf,'renderer','painters')
   print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_corr_sourcemap_avg_task%d_dt%d_f%d_v%d.tiff',is_task,is_dt,ifoi,v))
@@ -902,7 +819,7 @@ end
 is_task = 0;
 is_dt = 1;
 
-to_plot = 'hh';
+to_plot = 'all';
 
 if is_dt==1
   line_x = 0;

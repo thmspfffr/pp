@@ -7,9 +7,9 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag (0 ms)
 % -------------------------
-% v = 1;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 0;
+v = 1;
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag (930 ms)
 % -------------------------
@@ -19,9 +19,9 @@ restoredefaultpath
 % -------------------------
 % VERSION 3: with pupil lag (500 ms)
 % -------------------------
-v = 3;
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-lag = 2;
+% v = 3;
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% lag = 2;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -226,6 +226,8 @@ for isubj = SUBJLIST
       % correlate with pupil
       outp.src_r(:,ifreq) = corr(pup(idx),src_pow','type','Spearman');
       outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Spearman');
+      outp.src_r_pearson(:,ifreq) = corr(pup(idx),src_pow','type','Pearson');
+      outp.src_r_pearson_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Pearson');
       
       % mutual information
 %       cnpup     = copnorm(pup(idx));

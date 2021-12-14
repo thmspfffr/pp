@@ -7,13 +7,13 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag
 % -------------------------
-% v = 1;
-% lag = 0;
+v = 1;
+lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag (930 ms)
 % -------------------------
-v = 2;
-lag = 1;
+% v = 2;
+% lag = 1;
 % -------------------------
 % VERSION 3: with pupil lag (500 ms)
 % -------------------------
@@ -176,6 +176,9 @@ for isubj = 1:size(SUBJLIST,1)
       env = (abs(dataf(outp.chanidx(outp.chanidx>0),idx)).^2)';
       outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env,'type','spearman');
       outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),env,'type','spearman');
+            
+      outp.src_r_pearson(:,ifreq) = corr(pup(idx),src_pow','type','Pearson');
+      outp.src_r_pearson_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Pearson');
       % -------------------------------
       % sensor-level mutual information
       % -------------------------------

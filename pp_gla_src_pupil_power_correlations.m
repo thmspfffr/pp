@@ -7,8 +7,8 @@ restoredefaultpath
 % -------------------------
 % VERSION 1: no pupil lag (0 ms)
 % -------------------------
-% v = 1;
-% lag = 0;
+v = 1;
+lag = 0;
 % -------------------------
 % VERSION 2: with pupil lag (930 ms)
 % -------------------------
@@ -17,8 +17,8 @@ restoredefaultpath
 % -------------------------
 % VERSION 3: with pupil lag (500 ms)
 % -------------------------
-v = 3;
-lag = 2;
+% v = 3;
+% lag = 2;
 % -------------------------
 
 addpath('~/Documents/MATLAB/fieldtrip-20181231/')
@@ -231,6 +231,10 @@ for isubj = SUBJLIST
       % -------------------------------
       outp.src_r(:,ifreq) = corr(pup(idx),src_pow','type','spearman');
       outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','spearman');
+           
+      outp.src_r_pearson(:,ifreq) = corr(pup(idx),src_pow','type','Pearson');
+      outp.src_r_pearson_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Pearson');
+      
       cnpup     = copnorm(pup(idx));
       cnpup_df  = copnorm(pup_df(idx));
       cnpow     = copnorm(src_pow)';

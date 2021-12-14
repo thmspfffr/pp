@@ -15,15 +15,29 @@ colors = colors(4:6,:);
 pooled22 = squeeze(cat(5,nanmean(fooof22.slopes_seg_hh,6),fooof22.slopes_seg_gla,fooof22.slopes_seg_mue));
 pooled11 = squeeze(cat(5,nanmean(fooof11.slopes_seg_hh_dt,6),fooof11.slopes_seg_gla_dt,fooof11.slopes_seg_mue_dt));
 
+r22 = corr((1:14)',mean(nanmean(pooled22,3),1)');
+r11 = corr((1:14)',mean(nanmean(pooled11,3),1)');
+
 figure_w;
 
 subplot(3,4,1); hold on
-
 plot(1:14,squeeze(mean(nanmean(pooled22,3),1)),'.','markersize',20)
 lsline
-
 tp_editplots; xlabel('Pupil bin'); ylabel('Spectral exponent')
 axis([-1 15 0.90 0.98])
+text(0,0.91,sprintf('r=%.4f',r22),'fontsize',6)
+
+% GLASGOW
+% --------
+subplot(3,4,2); hold on
+plot(1:14,squeeze(mean(nanmean(fooof22.slopes_seg_gla,5),1)),'.','markersize',20,'color',colors(1,:))
+plot(1:14,squeeze(mean(nanmean(nanmean(fooof22.slopes_seg_hh,6),5),1)),'.','markersize',20,'color',colors(2,:))
+plot(1:14,squeeze(mean(nanmean(fooof22.slopes_seg_mue,5),1)),'r.','markersize',20,'color',colors(3,:))
+
+lsline
+tp_editplots; xlabel('Pupil bin'); ylabel('Spectral exponent')
+axis([-1 15 0.82 1.02])
+
 
 subplot(3,4,5); hold on
 
@@ -32,6 +46,7 @@ lsline
 
 tp_editplots; xlabel('Pupil bin'); ylabel('Spectral exponent')
 axis([-1 15 0.92 1])
+text(0,0.925,sprintf('r=%.4f',r11),'fontsize',6)
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_slope_vs_pupil.pdf'))
 
