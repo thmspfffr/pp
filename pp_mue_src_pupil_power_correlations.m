@@ -64,7 +64,7 @@ for isubj = 1:size(SUBJLIST,1)
       load(sprintf('~/pp/data_gla/fw4bt/osfstorage/data/ms01/meg/cleanmeg_%s.mat',SUBJLIST(isubj,:)))
       data = cleanmeg; clear cleanmeg
       f_sample = data.fsample;
-   
+         
       cfg=[];
       cfg.layout='CTF275.lay';
       lay = ft_prepare_layout(cfg);
@@ -92,7 +92,7 @@ for isubj = 1:size(SUBJLIST,1)
     
     pupil = filtfilt(bhil, ahil, pupil);
     pupil = resample(pupil,400,600);
-    
+                
     % pupil shift: 930 ms from hoeks & levelt (1992)
     if lag==1 % 930 ms lag
       pup_shift = round(f_sample*0.93);
@@ -176,9 +176,7 @@ for isubj = 1:size(SUBJLIST,1)
       env = (abs(dataf(outp.chanidx(outp.chanidx>0),idx)).^2)';
       outp.sens_r(outp.chanidx>0,ifreq) = corr(pup(idx),env,'type','spearman');
       outp.sens_r_df(outp.chanidx>0,ifreq) = corr(pup_df(idx),env,'type','spearman');
-            
-      outp.src_r_pearson(:,ifreq) = corr(pup(idx),src_pow','type','Pearson');
-      outp.src_r_pearson_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Pearson');
+
       % -------------------------------
       % sensor-level mutual information
       % -------------------------------
@@ -222,6 +220,9 @@ for isubj = 1:size(SUBJLIST,1)
       src_pow = abs(filt'*dataf(:,idx)).^2; % source level power fluct
       outp.src_r(:,ifreq) = corr(pup(idx),src_pow','type','spearman');
       outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','spearman');
+      
+      outp.src_r_pearson(:,ifreq) = corr(pup(idx),src_pow','type','Pearson');
+      outp.src_r_pearson_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Pearson');
       % -------------------------------
       % source level mutual information
       % -------------------------------

@@ -104,13 +104,19 @@ for isubj = 25:34
     percent_rejected(subj_counter,iblock) = 100*sum(pupil(:,6))/size(pupil,1);
 %     % ------
     saccs=tp_detect_microsaccades(pupil(:,2:3),400,5,6);
-        
-    [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(1,subj_counter) = k(i);
-    [n,k]=hist(pupil(:,3),200); [~,i]=max(n); fix(2,subj_counter) = k(i);
+    
+    rH(isubj, iblock) = corr(pupil(:,2),pupil(:,4));
+    rV(isubj, iblock) = corr(pupil(:,3),pupil(:,4));
+    
+    [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(1,isubj) = k(i);
+    [n,k]=hist(pupil(:,3),200); [~,i]=max(n); fix(2,isubj) = k(i);
 %     
-    dist = sqrt(((pupil(:,2)-fix(1,subj_counter)).^2) + ((pupil(:,3)-fix(2,subj_counter)).^2) );
+      figure_w; hold on
+      plot(pupil(:,2),pupil(:,3),'.');
+      plot(fix(1,isubj),fix(2,isubj),'r.','markersize',30)
+    dist = sqrt(((pupil(:,2)-fix(1,isubj)).^2) + ((pupil(:,3)-fix(2,isubj)).^2) );
 %     
-    rExc(subj_counter,iblock) = corr(dist(~isnan(pupil(:,3))),pupil(~isnan(pupil(:,3)),4));
+    rExc(isubj,iblock) = corr(dist(~isnan(pupil(:,3))),pupil(~isnan(pupil(:,3)),4));
 %     
     pupil1 = zscore(pupil(:,5));
     pupil = zscore(pupil(:,4));
@@ -172,7 +178,7 @@ for isubj = 25:34
     
   end
 end
-rExc = mean(rExc,2);
+rExc = mean(rExc(25:34,:),2);
 save('~/pp/proc/src/pp_hh_rexc.mat','rExc')
 
 error('!')
@@ -181,7 +187,7 @@ error('!')
 % -------------------------
 % subj2,3,5, 21: impossible
     % subj6,, doable?
-rExc = []; clear all_tmp all_pxx n_saccs percent_rejected rExc fix
+rExc = []; clear all_tmp all_pxx n_saccs percent_rejected rExc
 
 subj_counter = 0;
 for isubj = 1:24
@@ -269,12 +275,14 @@ for isubj = 1:24
     clear tp_csd
     pupil(:,1:2)=interp1(1:size(pupil(:,1),1),pupil(:,1:2),1:size(pupil(:,1),1),'pchip');
     saccs=tp_detect_microsaccades(pupil(:,1:2),f_sample,5,6);
+
+    rH(subj_counter) = corr(pupil(:,1),pupil(:,4));
+    rV(subj_counter) = corr(pupil(:,2),pupil(:,4));
     
     [n,k]=hist(pupil(:,1),200); [~,i]=max(n); fix(1,subj_counter) = k(i);
     [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(2,subj_counter) = k(i);
-    figure_w; hold on
-    plot(pupil(:,1),pupil(:,2),'.');
-    plot(fix(1,subj_counter),fix(2,subj_counter),'r.','markersize',30)
+    
+%         fix(:,isubj) = [nanmean(pupil(:,1)),nanmean(pupil(:,2))];
     dist = sqrt(((pupil(:,1)-fix(1,subj_counter)).^2) + ((pupil(:,2)-fix(2,subj_counter)).^2) );
     
     rExc(subj_counter) = corr(dist,pupil(:,4));
@@ -402,7 +410,7 @@ for i = 1 : length(d)
     SUBJLIST = [SUBJLIST; d(i).name(end-7:end-4)];  
 end
 
-rExc = []; clear all_tmp all_pxx n_saccs percent_rejected fix rExc
+rExc = []; clear all_tmp all_pxx n_saccs percent_rejected
 
 subj_counter = 0;  
 
@@ -468,16 +476,15 @@ for isubj = 1:size(SUBJLIST,1)
     % ------
     
     saccs=tp_detect_microsaccades(pupil(:,1:2),f_sample,5,6);
-       
-    [n,k]=hist(pupil(:,1),200); [~,i]=max(n); fix(1,subj_counter) = k(i);
-    [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(2,subj_counter) = k(i);
-    
-    figure_w; hold on
-    plot(pupil(:,1),pupil(:,2),'.');
-    plot(fix(1,subj_counter),fix(2,subj_counter),'r.','markersize',30)
    
+    rH(isubj) = corr(pupil(:,1),pupil(:,4));
+    rV(isubj) = corr(pupil(:,2),pupil(:,4));
+    
+    [n,k]=hist(pupil(:,1),200); [~,i]=max(n); fix(1,isubj) = k(i);
+    [n,k]=hist(pupil(:,2),200); [~,i]=max(n); fix(2,isubj) = k(i);
+    
 %     fix(:,isubj) = [nanmean(pupil(:,1)),nanmean(pupil(:,2))];
-    dist = sqrt(((pupil(:,1)-fix(1,subj_counter)).^2) + ((pupil(:,2)-fix(2,subj_counter)).^2) );
+    dist = sqrt(((pupil(:,1)-fix(1,isubj)).^2) + ((pupil(:,2)-fix(2,isubj)).^2) );
     
     rExc(subj_counter) = corr(dist,pupil(:,4));
     

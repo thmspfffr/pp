@@ -375,7 +375,7 @@ elseif is_dt && ~is_task
 end
 
 [c,p]=ttest(squeeze(sig_pooled),zeros(size(squeeze(sig_pooled))),'dim',2); h=p<fdr1(p(:),0.1,0);
-
+fprintf('Adjusted P: %.3f\n',fdr1(p(:),0.1,0))
 % [c,p]=permutest(squeeze(sig_pooled),zeros(size(squeeze(sig_pooled))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_pooled,3),std(sig_pooled,[],3)/sqrt(size(sig_pooled,3)),'k')
 if sum(h)>0
@@ -394,6 +394,7 @@ elseif is_dt && ~is_task
 end
 
 [c,p]=ttest(squeeze(sig_V1_lr),zeros(size(squeeze(sig_V1_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',fdr1(p(:),0.1,0))
 
 % [c,p]=permutest(squeeze(sig_V1_lr),zeros(size(squeeze(sig_V1_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_V1_lr,3),std(sig_V1_lr,[],3)/sqrt(size(sig_V1_lr,3)),'k')
@@ -413,6 +414,7 @@ elseif is_dt && ~is_task
 end
 
 [c,p]=ttest(squeeze(sig_A1_lr),zeros(size(squeeze(sig_A1_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',fdr1(p(:),0.1,0))
 
 % [c,p]=permutest(squeeze(sig_A1_lr),zeros(size(squeeze(sig_A1_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_A1_lr,3),std(sig_A1_lr,[],3)/sqrt(size(sig_A1_lr,3)),'k')
@@ -433,6 +435,7 @@ elseif is_dt && ~is_task
 end
 
 [c,p]=ttest(squeeze(sig_M1_lr),zeros(size(squeeze(sig_M1_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',fdr1(p(:),0.1,0))
 
 % [c,p]=permutest(squeeze(sig_M1_lr),zeros(size(squeeze(sig_M1_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_M1_lr,3),std(sig_M1_lr,[],3)/sqrt(size(sig_M1_lr,3)),'k')
@@ -453,6 +456,7 @@ elseif is_dt && ~is_task
 end
 % 
 [c,p]=ttest(squeeze(sig_dlpfc_lr),zeros(size(squeeze(sig_dlpfc_lr))),'dim',2); h=p<fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',fdr1(p(:),0.1,0))
 
 % [c,p]=permutest(squeeze(sig_dlpfc_lr),zeros(size(squeeze(sig_dlpfc_lr))),1,0.01,1000,1); h=[c{p<0.05}];
 shadedErrorBar(log10(freqoi),nanmean(sig_dlpfc_lr,3),std(sig_dlpfc_lr,[],3)/sqrt(size(sig_dlpfc_lr,3)),'k')
@@ -472,7 +476,7 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_src_ROIs_task%d_dt%d_v%d.pdf',is_task,i
 % --------------------------------------------------
 
 % pooled / gla (glasgow) / hh (hamburg)  / mue (muenster)
-site_to_plot = 'gla';
+site_to_plot = 'pooled';
 
 % load /home/gnolte/meth/templates/mri.mat
 addpath /home/gnolte/meth/highlevel/
@@ -1621,47 +1625,6 @@ text(1,1,sprintf('[%.3f %.3f]',clim(1),clim(2)))
 set(gcf,'renderer','painters')
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_fooof_sourcemap_dt%d_slp%d_v%d.tiff',is_dt,is_slope,v))
 
-
-%% EXAMPLE FOOOF
-close
-SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-isubj = 16;
-iblock = 1;
-v = 1;
-
-load(sprintf('~/pp/proc/src/pp_gla_collected_fooof_s%d_b%d_v%d.mat',isubj,iblock,v))
-load(sprintf('~/pp/proc/src/pp_gla_src_powerspectra_s%d_b%d_v%d.mat',isubj,iblock,v))
- 
-pup = pup(~isnan(pxx(1,1,:)));
-pxx=pxx(:,:,~isnan(pxx(1,1,:)));
-
-[r,i]=min(corr(squeeze(aper(2,:,:))',pup(~isnan(pup))'));
-
-pxx = pxx(:,:,~isnan(pup));
-% 
-[idx1] = pup>prctile(pup,75);
-[idx2] = pup<prctile(pup,25);
-
-% idx1 = 3;
-% idx2 = 100;
-
-ap1 = aper(:,i,idx1);
-aper1 = (-ap1(2,:)'.*log10(3:0.5:40)+repmat(ap1(1),[75 1])')';
-aper1 = mean(aper1,2);
-
-gg1 = squeeze(mean(gg(i,:,idx1),3));
-
-ap2 = aper(:,i,idx2);
-aper2 = (-ap2(2,:)'.*log10(3:0.5:40)+repmat(ap2(1),[75 1])')';
-aper2 = mean(aper2,2);
-
-figure_w; hold on
-% plot(3:0.5:40,gg1,'k'); hold on;
-% plot(3:0.5:40,gg2);
-% plot(log10(3:0.5:40),aper1,'k:')
-plot(log10(3:0.5:40),mean(mean(pxx(3:77,:,idx1),2),3),'k:')
-% plot(log10(3:0.5:40),aper2,'r-')
-plot(log10(3:0.5:40),mean(mean(pxx(3:77,:,idx2),2),3),'r-')
 
 %% TAKE fitted 1/f distribution out of empirical spectra
 freqoi=2.^(1:(1/4):7); ffx = 2:0.5:128;
