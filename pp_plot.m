@@ -17,7 +17,7 @@ addpath /home/gnolte/meth/highlevel/
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-v = 2
+v = 1;
 
 [plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results(v);
 
@@ -674,33 +674,9 @@ line([line_x line_x],[-0.06 0.04],'color','k')
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task0_allfreqs_v%d.pdf',is_dt,v))
 
 
-figure_w
-
-subplot(2,2,2); hold on; title('Hamburg')
-
-for ifreq = 1 : 25
-  lags = squeeze(plt_hh_cnt.xcorr_lags{ifreq});
-  if is_dt == 0
-    plot(lags,nanmean(nanmean(plt_hh_cnt.xcorr{ifreq},2),3),'color',cols(ifreq,:))
-  else
-    plot(lags,nanmean(nanmean(plt_hh_cnt.xcorr_df{ifreq},2),3),'color',cols(ifreq,:))
-  end
-end
-axis([-5 5 -0.06 0.04]); xlabel('Lag [s]'); ylabel('Correlation coeff.');
-tp_editplots; h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];
-line([line_x line_x],[-0.06 0.04],'color','k')
-
-cols = cbrewer('seq', 'Greys', 35,'pchip');
-cols = cols(3:end-3,:); cols=cols(end:-1:1,:);
-for ifreq = 1 : 25
-  all.xcorr{ifreq}=cat(2,squeeze(nanmean(plt_gla.xcorr{ifreq},2)),squeeze(nanmean(plt_mue.xcorr{ifreq},2)),squeeze(nanmean(plt_hh.xcorr{ifreq},2)));
-  all.xcorr_df{ifreq}=cat(2,squeeze(nanmean(plt_gla.xcorr_df{ifreq},2)),squeeze(nanmean(plt_mue.xcorr_df{ifreq},2)),squeeze(nanmean(plt_hh.xcorr_df{ifreq},2)));
-end
-
-
 %% ORDERED XCORR (FRON ANTERIOR TO POSTERIOR)
 is_task = 0;
-is_dt = 1;
+is_dt = 0;
 
 to_plot = 'all';
 
@@ -745,7 +721,7 @@ for iff = 1 : size(ff,1)
   
   [h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); 
   if strcmp(to_plot,'all')
-    h = p<fdr1(p(:),0.1,0);
+    h = p<fdr1(p(:),0.1,1);
   end
   imagesc(plt_hh.xcorr_lags{ff(iff,2)},1:39,nanmean(nanmean(sig,4),3)'.*h',clims(iff,:))
   set(gca,'ydir','normal','ytick',[],'yticklabels',[]);
@@ -1157,7 +1133,7 @@ for ifoi = [11 14]
   % mm = h; clear h
   [h,p]=ttest(ppp(ifoi,:,:,:),zeros(size(ppp(ifoi,:,:,:))),'dim',4);
   h = p<fdr1(p(:),0.1,0);
-  
+  fdr1(p(:),0.1,0)
   masked = 1;
   % prc_max = mean(abs(10.5-idx_max),3);
   if masked == 1
@@ -1224,35 +1200,10 @@ for ifoi = [11 14]
   end
 end
 
-%%
-
-ifoi = 22;
-
-[h,p]=ttest(squeeze(p_low22(ifoi,:,1,:)),zeros(size(squeeze(p_low22(ifoi,:,1,:)))),'dim',2);
-h=p<fdr1(p,0.1,0);
-% h = p<0.01;
-par = squeeze(mean(p_low22(ifoi,:,1,:),4));
-idx = 1:246;
-par1 = zeros(8799,1);
-for i = 1:246
-  par1(BNA.tissue_5mm == idx(i)) = repmat(par(:,idx(i)).*h(idx(i)),[sum(BNA.tissue_5mm == idx(i)), 1]);
-end
-
-% [h,p]=ttest(pooled,zeros(size(pooled)),'dim',3);
-% par = mean(pooled(:,ifoi,:),3).*(p(:,ifoi)<0.0005);
-
-cmap      = redblue;
-para      = [];
-para.clim = [-max([abs([min(par1(:)) max(par1(:))])]) max([abs([min(par1(:)) max(par1(:))])])];
-para.cmap = cmap;
-para.grid = BNA.grid_5mm/10;
-para.dd   = 0.5;
-para.fn   = sprintf('~/test_ACC.png');
-tp_plot_surface(par1,para)
 
 %%
 
-v = 1;
+v = 2;
 freqs = 2.^(1:0.25:7);
 
 figure_w
@@ -1290,6 +1241,7 @@ end
 par = squeeze(mean(ppp,2));
 [h,p]=ttest(par,zeros(size(par)),'dim',2)
 p_fdr = fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',p_fdr)
 
 shadedErrorBar(log10(freqs),mean(par,2),std(par,[],2)/sqrt(size(par,2)))
 plot(log10(freqs(find(p<0.05))),mean(par(find(p<0.05),:),2),'k.','markersize',8)
@@ -1305,6 +1257,7 @@ set(gca,'xtick',log10(freqs(1:4:end)),'xticklabels',freqs(1:4:end))
 subplot(4,3,2); hold on; box off
 [h,p]=ttest(sig_V1,zeros(size(sig_V1)),'dim',2);
 p_fdr = fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',p_fdr)
 
 shadedErrorBar(log10(freqs),mean(sig_V1,2),std(par,[],2)/sqrt(size(sig_V1,2)))
 plot(log10(freqs(find(p<0.05))),mean(sig_V1(find(p<0.05),:),2),'k.','markersize',8)
@@ -1319,6 +1272,7 @@ axis([.3 2.11 -0.013 0.013])
 subplot(4,3,5); hold on; box off
 [h,p]=ttest(sig_A1,zeros(size(sig_A1)),'dim',2);
 p_fdr = fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',p_fdr)
 
 shadedErrorBar(log10(freqs),mean(sig_A1,2),std(par,[],2)/sqrt(size(sig_A1,2)))
 plot(log10(freqs(find(p<0.05))),mean(sig_A1(find(p<0.05),:),2),'k.','markersize',8)
@@ -1333,6 +1287,7 @@ axis([.3 2.11 -0.013 0.013])
 subplot(4,3,8); hold on; box off
 [h,p]=ttest(sig_M1,zeros(size(sig_M1)),'dim',2);
 p_fdr = fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',p_fdr)
 
 shadedErrorBar(log10(freqs),mean(sig_M1,2),std(par,[],2)/sqrt(size(sig_M1,2)))
 plot(log10(freqs(find(p<0.05))),mean(sig_M1(find(p<0.05),:),2),'k.','markersize',8)
@@ -1347,6 +1302,7 @@ axis([.3 2.11 -0.013 0.013])
 subplot(4,3,11);hold on; box off
 [h,p]=ttest(sig_ACC,zeros(size(sig_ACC)),'dim',2);
 p_fdr = fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',p_fdr)
 
 shadedErrorBar(log10(freqs),mean(sig_ACC,2),std(par,[],2)/sqrt(size(sig_ACC,2)))
 plot(log10(freqs(find(p<0.05))),mean(sig_ACC(find(p<0.05),:),2),'k.','markersize',8)
@@ -1566,21 +1522,15 @@ load /home/gnolte/meth/templates/sa_template;
 
 load /home/gnolte/meth/templates/mri.mat
 figure_w
-is_slope = 1; is_dt = 1;
+is_slope = 1; is_dt = 0;
 
 
 if is_slope && ~is_dt
   v = 2;
   pooled = cat(2,fooof22.slope_gla,fooof22.slope_hh,fooof22.slope_mue);
-elseif ~is_slope && ~is_dt
-  v = 2;
-  pooled = cat(2,fooof22.offset_gla,fooof22.offset_hh,fooof22.offset_mue);
 elseif is_slope && is_dt
   v = 1;
   pooled = cat(2,fooof11.slope_df_gla,fooof11.slope_df_hh,fooof11.slope_df_mue);
-elseif ~is_slope && is_dt
-  v = 1;
-  pooled = cat(2,fooof11.offset_df_gla,fooof11.offset_df_hh,fooof11.offset_df_mue);
 end
 
 cmap = redblue;
@@ -1591,6 +1541,7 @@ for i = 1 : size(pooled,1)
 end
 
 [h,p]=ttest(par,zeros(size(par)),'dim',2); h = p < fdr1(p(:),0.1,0);
+fprintf('Adjusted P: %.3f\n',fdr1(p(:),0.1,0))
 
 par = nanmean(par,2).*h;
 % project onto fine grid
@@ -1682,6 +1633,7 @@ subplot(4,4,[4]); hold on
 par = squeeze(nanmean(cat(3,ps_gla,ps_hh,ps_mue),1));
 par_std = std(par,[],2)/sqrt(size(par,2));
 [~,p]=ttest(par,zeros(size(squeeze(par))),'dim',2); h = p<fdr1(p(:),0.1,0);
+fdr1(p(:),0.1,0)
 shadedErrorBar(log10(freqoi),nanmean(par,2),par_std,{'color','k'})
 plot(log10(freqoi(h)),nanmean(par(h,:),2),'.','markersize',8,'color','k')
 set(gca,'xtick',log10(freqoi(1:4:25)),'xticklabel',round(freqoi(1:4:25))); tp_editplots

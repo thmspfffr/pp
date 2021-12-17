@@ -5,23 +5,17 @@ clear
 restoredefaultpath
 
 % -------------------------
-% VERSION 1: no pupil lag (0 ms)
+% VERSION 1: no pupil lag
 % -------------------------
 v = 1;
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 lag = 0;
 % -------------------------
-% VERSION 2: with pupil lag (930 ms)
+% VERSION 3: with pupil lag
 % -------------------------
 % v = 2;
 % SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % lag = 1;
-% -------------------------
-% VERSION 3: with pupil lag (500 ms)
-% -------------------------
-% v = 3;
-% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% lag = 2;
 % -------------------------
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -53,55 +47,48 @@ for isubj = SUBJLIST
     
     try
       % load cleaned meg data
-      % data from 'pp_prepare_data.m'
-        load(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1))
-%       load(sprintf('~/pp/data/ham/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
+      load(sprintf('~/pp/data/ham/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1))
     catch me
       continue
     end
-
+    
     cfg=[];
     cfg.layout='CTF275.lay';
     lay = ft_prepare_layout(cfg);
-    [~, outp.chanidx] = ismember(lay.label(1:275),label(startsWith(label,'M')));
+    [~, outp.chanidx] = ismember(lay.label(1:275),label);
     
     % bp-filter and resample pupil
     % ------
     k = 2; f_sample = 1000;
     fnq = f_sample/2;
     hil_hi = 0.005; hil_lo = 2;
-    hil_Wn = [hil_hi/fnq hil_lo/fnq];
+    hil_Wn=[hil_hi/fnq hil_lo/fnq];
     [bhil, ahil] = butter(k, hil_Wn);
     
-    pupil = filtfilt(bhil, ahil, pupil(:,[1 end]));
+    pupil = filtfilt(bhil, ahil, pupil);
     pupil = resample(pupil,400,1000);
     % ------
     f_sample = 400;
     % align pupil and meg (at signal offset)
     % ------
-    
-    pupil = pupil(end:-1:1,:);
-    dat = dat(:,end:-1:1);
 
+    dat = dat(:,end:-1:1);
+    
     len = min([size(pupil,1) size(dat,2)]);
     if len/400 > 600
       len = 400*600;
     end
     
     dat = dat(:,1:len);
-    pupil = pupil(1:len,:);
+    pupil = pupil(1:len);
     
     dat = dat(:,end:-1:1);
-    pupil = pupil(end:-1:1,:);
+    pupil = pupil(end:-1:1);
     % ------
-    pupil = pupil(:,end);
-
+    
     % pupil shift: 930 ms from hoeks & levelt (1992)
-    if lag==1 % 930 ms lag
+    if lag
       pup_shift = round(400*0.93);
-      pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
-    elseif lag == 2 % 500 ms lag
-      pup_shift = round(400*0.5);
       pupil = pupil(pup_shift:end); pupil(end+1:end+pup_shift-1)=nan;
     end
     
@@ -208,8 +195,6 @@ for isubj = SUBJLIST
       para          = [];
       para.reg      = 0.05;
       [filt,pow] = tp_beamformer(real(csd),sa.L_genemaps_aal,para);
-      save(sprintf('~/pp/proc/sens/pp_meg_pupil_spatfilt_f%d_s%d_b%d.mat',ifreq,isubj,iblock),'filt');
-      
       % --------------
       % beamform again with noise to compute "NAI"
       % --------------
@@ -224,18 +209,16 @@ for isubj = SUBJLIST
       % correlate with pupil
       outp.src_r(:,ifreq) = corr(pup(idx),src_pow','type','Spearman');
       outp.src_r_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Spearman');
-      outp.src_r_pearson(:,ifreq) = corr(pup(idx),src_pow','type','Pearson');
-      outp.src_r_pearson_df(:,ifreq) = corr(pup_df(idx),src_pow','type','Pearson');
       
       % mutual information
-%       cnpup     = copnorm(pup(idx));
-%       cnpup_df  = copnorm(pup_df(idx));
-%       cnpow     = copnorm(src_pow)';
-%       for isrc = 1 : size(src_pow,1)
-%         outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
-%         outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
-%       end
-%       
+      cnpup     = copnorm(pup(idx));
+      cnpup_df  = copnorm(pup_df(idx));
+      cnpow     = copnorm(src_pow)';
+      for isrc = 1 : size(src_pow,1)
+        outp.src_mi(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup,[]);
+        outp.src_mi_df(isrc,ifreq) = mi_gg_dfi_ak(cnpow(:,isrc),cnpup_df,[]);
+      end
+      
       % -------------------------------
       % source-level cross correlation
       % -------------------------------
