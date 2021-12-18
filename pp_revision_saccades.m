@@ -46,7 +46,6 @@ for isubj = 25:34
       % load cleaned meg data
       % data from 'pp_prepare_data.m'
       load(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1))
-      load(['/home/tpfeffer/pp/proc/src/' sprintf('pp_sa_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,1)],'sa');
     catch me
       disp('Sth went wrong')
       percent_rejected(subj_counter,iblock) =nan;
@@ -115,58 +114,58 @@ for isubj = 25:34
     pupil1 = zscore(pupil(:,5));
     pupil = zscore(pupil(:,4));
     
-%     tmp = []; meg = []; k = 0;
-%     for i = 1 : size(saccs,1)
-%       if (saccs(i,1)+800)>size(pupil,1)
-%         tmp(1:1001,i)=nan;
-%       elseif (saccs(i,1)-200)<1
-%         tmp(1:1001,i)=nan;
-%       else
-%         k = k +1;
-%         tmp(:,i) = pupil(saccs(i,1)-200:saccs(i,1)+800);
-%         tmp1(:,i) = pupil1(saccs(i,1)-200:saccs(i,1)+800);
-%         meg(:,:,k) = dat(:,saccs(i,1)-200:saccs(i,1)+800);
-%       end
-%     end
-%     pupil_locked=nanmean(tmp,2);
-%     pupil_locked_noregression=nanmean(tmp1,2);
-%     
-    % COMPUTE FFT
-    % ------------
-%     segleng = 200;
-%     segshift = 20;
-%     nseg=floor((size(meg,2)-segleng)/segshift+1);
-%     pxx = zeros(101,size(meg,1),nseg,'single');
-%     tmp_csd = zeros(size(meg,1),size(meg,1),101);
-%     pupil_count = 0; csd_count = 0; pxx_counter = 0;
-%     pup_seg = zeros(41,1);
-%     for isacc = 1 : size(meg,3)
-%       pupil_count = pupil_count+1; 
-%       isacc
-%       tmp_pxx = nan(101,size(meg,1),nseg);
-%       for iseg = 1 : nseg
-%         meg_seg  = squeeze(meg(:,(iseg-1)*segshift+1:(iseg-1)*segshift+segleng,isacc));
-%         win = (hanning(200)./sum(hanning(200)));
-%         tmp_pup = squeeze(pupil((iseg-1)*segshift+1:(iseg-1)*segshift+segleng));
-%         pup_seg(iseg)  = pup_seg(iseg)+sum(win.*tmp_pup);
-%         
-%         if any(isnan(squeeze(meg_seg(1,:))))
-%           continue
-%         else
-%           [tmp_pxx(:,:,iseg),fxx] = pwelch(meg_seg',hanning(200),[],200,400,'power'); 
-%         end
-%       end
-%       if any(isnan(tmp_pxx(1,1,:)))
-%         continue
-%       else
-%         pxx_counter=pxx_counter+1;
-%         pxx = pxx + tmp_pxx;
-%       end
-%     end
-%     
-%     pup_seg = pup_seg ./ pupil_count; 
-% 
-%     save([outdir sprintf('pp_revision_saccades_TFR_hh_isubj%d_iblock%d.mat',isubj,iblock)],'pup_seg','fxx','pupil_locked','pupil_locked_noregression','pxx','-v7.3')
+    tmp = []; meg = []; k = 0;
+    for i = 1 : size(saccs,1)
+      if (saccs(i,1)+800)>size(pupil,1)
+        tmp(1:1001,i)=nan;
+      elseif (saccs(i,1)-200)<1
+        tmp(1:1001,i)=nan;
+      else
+        k = k +1;
+        tmp(:,i) = pupil(saccs(i,1)-200:saccs(i,1)+800);
+        tmp1(:,i) = pupil1(saccs(i,1)-200:saccs(i,1)+800);
+        meg(:,:,k) = dat(:,saccs(i,1)-200:saccs(i,1)+800);
+      end
+    end
+    pupil_locked=nanmean(tmp,2);
+    pupil_locked_noregression=nanmean(tmp1,2);
+    
+%     COMPUTE FFT
+%     ------------
+    segleng = 200;
+    segshift = 20;
+    nseg=floor((size(meg,2)-segleng)/segshift+1);
+    pxx = zeros(101,size(meg,1),nseg,'single');
+    tmp_csd = zeros(size(meg,1),size(meg,1),101);
+    pupil_count = 0; csd_count = 0; pxx_counter = 0;
+    pup_seg = zeros(41,1);
+    for isacc = 1 : size(meg,3)
+      pupil_count = pupil_count+1; 
+      isacc
+      tmp_pxx = nan(101,size(meg,1),nseg);
+      for iseg = 1 : nseg
+        meg_seg  = squeeze(meg(:,(iseg-1)*segshift+1:(iseg-1)*segshift+segleng,isacc));
+        win = (hanning(200)./sum(hanning(200)));
+        tmp_pup = squeeze(pupil((iseg-1)*segshift+1:(iseg-1)*segshift+segleng));
+        pup_seg(iseg)  = pup_seg(iseg)+sum(win.*tmp_pup);
+        
+        if any(isnan(squeeze(meg_seg(1,:))))
+          continue
+        else
+          [tmp_pxx(:,:,iseg),fxx] = pwelch(meg_seg',hanning(200),[],200,400,'power'); 
+        end
+      end
+      if any(isnan(tmp_pxx(1,1,:)))
+        continue
+      else
+        pxx_counter=pxx_counter+1;
+        pxx = pxx + tmp_pxx;
+      end
+    end
+    
+    pup_seg = pup_seg ./ pupil_count; 
+
+    save([outdir sprintf('pp_revision_saccades_TFR_hh_isubj%d_iblock%d.mat',isubj,iblock)],'pup_seg','fxx','pupil_locked','pupil_locked_noregression','pxx','-v7.3')
 
     clear pxx_src csd nai_src  pup_seg csd
     

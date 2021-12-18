@@ -18,7 +18,7 @@ ord    = pconn_randomization;
 for isubj = SUBJLIST
   
   % identify placebo condition (ord==1)
-  im = find(ord(isubj,:)==1);
+  im = find(ord(isubj,:)==1);and
   
   for iblock = 1:2
 
@@ -35,8 +35,9 @@ for isubj = SUBJLIST
     
     load(sprintf('~/pconn/proc/preproc/pconn_preproc_data_s%d_m%d_b%d_v2.mat',isubj,im,iblock))
     label = data.label;
-    
-    pupil = pupil(1:end,:);
+  
+    x = 0;  
+    pupil = pupil(1:end-x,:);
     save(sprintf('~/pp/data/ham/pp_rest_s%d_b%d_v%d.mat',isubj,iblock,1),'dat','pupil','label','art')
 
   end

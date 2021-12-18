@@ -585,7 +585,7 @@ if v == 2 || v == 3
   error('Makes no sense for v2/v3')
 end
 
-is_dt = 0;
+is_dt = 1;
 
 if is_dt==1
   line_x = 0;
@@ -719,9 +719,13 @@ for iff = 1 : size(ff,1)
     end
   end
   
+  cmap = redblue;
+  
   [h,p]=ttest(nanmean(sig,4),zeros(size(nanmean(sig,4))),'dim',3); 
   if strcmp(to_plot,'all')
-    h = p<fdr1(p(:),0.1,1);
+%     error('Check this again')
+    fprintf('Adjusted P: %.5f\n',fdr1(p(:),0.1,0))
+    h = p<fdr1(p(:),0.1,0);
   end
   imagesc(plt_hh.xcorr_lags{ff(iff,2)},1:39,nanmean(nanmean(sig,4),3)'.*h',clims(iff,:))
   set(gca,'ydir','normal','ytick',[],'yticklabels',[]);
@@ -756,21 +760,12 @@ for iff = 1 : size(ff,1)
   i = 0; clear sig
   for ifreq = ff(iff,1):ff(iff,2)
     i = i + 1;
-    if is_task
-      if is_dt
-        xcorr_tmp = squeeze(nanmean(plt_hh_cnt.xcorr{ifreq},2));
-        sig(:,:,i) = interp1(1:size(xcorr_tmp,1),xcorr_tmp,linspace(1,size(xcorr_tmp,1),size(plt_hh_cnt.xcorr{ff(iff,2)},1)));
-      else
-        xcorr_tmp = squeeze(nanmean(plt_hh_cnt.xcorr_df{ifreq},2));
-        sig(:,:,i) = interp1(1:size(xcorr_tmp,1),xcorr_tmp,linspace(1,size(xcorr_tmp,1),size(plt_hh_cnt.xcorr{ff(iff,2)},1)));
-      end
-    else
+    
       if is_dt
         sig(:,:,i) = interp1(1:size(all.xcorr_df{ifreq},1),all.xcorr_df{ifreq},linspace(1,size(all.xcorr_df{ifreq},1),size(all.xcorr_df{ff(iff,2)},1)));
       else
         sig(:,:,i) = interp1(1:size(all.xcorr{ifreq},1),all.xcorr{ifreq},linspace(1,size(all.xcorr{ifreq},1),size(all.xcorr{ff(iff,2)},1)));
       end
-    end
   end
   
   sig_stats = nanmean(sig,3);
@@ -781,7 +776,7 @@ for iff = 1 : size(ff,1)
 %   all_lags(iff,:)=real_lags(j);
   
   sig = zscore(nanmean(nanmean(sig,2),3));
-  plot(plt_hh_cnt.xcorr_lags{ff(iff,2)},sig,'color',cols(color_idx(iff),:))
+  plot(plt_hh.xcorr_lags{ff(iff,2)},sig,'color',cols(color_idx(iff),:))
   line([0.93 0.93],[-6 4],'color',[0 0 0],'linestyle',':')
   line([0 0],[-6 4],'color',[0.8 0.8 0.8],'linestyle',':')
   h=colorbar; colormap(gca,cols); h.Label.String = 'Frequency [Hz]'; h.TickLabels={2;128}; h.Ticks=[0 1];

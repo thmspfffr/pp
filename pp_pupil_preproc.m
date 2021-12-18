@@ -45,7 +45,7 @@ for isubj = SUBJLIST
      saccs=tp_detect_microsaccades(pupil(:,2:3),1000,12,6);
     
      pupil(:,5) = tmp(:,4);
-     pupil(:,4) = blink_regressout(pupil(:,4), fsample, blinksmp, saccsmp, 1, 1);
+     pupil(:,4) = blink_regressout(pupil(:,4), fsample, blinksmp, saccsmp, 0, 1);
 %      pupil(:,4) = blink_regressout(pupil(:,4), fsample, saccs, saccs, 1, 1)
      pupil(:,2) = dat.gazex; % return the interpolated x gaze time series
      pupil(:,3) = dat.gazey; % return the interpolated y gaze time series
