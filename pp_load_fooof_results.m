@@ -24,6 +24,8 @@ for isubj = 1: length(SUBJLIST)
       fooof.offset_df_hh(:,isubj,iblock)=corr(squeeze(aper(1,:,:))',pup_df(~isnan(pup_df))');
       fooof.slope_df_hh(:,isubj,iblock)=corr(squeeze(aper(2,:,:))',pup_df(~isnan(pup_df))');
     catch me
+      
+      fprintf('Not working: %d, %d',SUBJLIST(isubj),iblock)
       fooof.psfit_hh(:,:,isubj,iblock)=nan(246,75);
       fooof.offset_hh(:,isubj,iblock)=nan(246,1);
       fooof.slope_hh(:,isubj,iblock)=nan(246,1);

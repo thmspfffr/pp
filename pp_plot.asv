@@ -676,9 +676,9 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_xcorr_dt%d_task0_allfreqs_v%d.pdf',is_d
 
 %% ORDERED XCORR (FRON ANTERIOR TO POSTERIOR)
 is_task = 0;
-is_dt = 0;
+is_dt = 1;
 
-to_plot = 'mue';
+to_plot = 'gla';
 
 if is_dt==1
   line_x = 0;

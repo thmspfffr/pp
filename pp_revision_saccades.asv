@@ -700,43 +700,41 @@ pxx_all(:,:,:,end-12)=[];
 pup_all(:,end-12) = [];
 rrr(:,:,end-12)=[];
 %%
-t = -250:50:1750;
+t = -100:20:701;
 
 close 
 figure_w; subplot(3,3,1);
 imagesc(nanmean(nanmean(pxx_all(1:67,:,:,:),3),4),[-5 5]); set(gca,'ydir','normal')
 tp_editplots
 line([6 6],[0 67],'color','k','linestyle',':')
-line([13 13],[0 67],'color','k','linestyle','-')
 
 set(gca,'xtick',1:5:41,'xticklabel',t(1:5:end))
 set(gca,'ytick',1:5:67,'yticklabel',fxx(2:5:end))
-colormap(redblue); axis([1 41 1 67])
+colormap(redblue); axis([1 31 1 67])
 
 subplot(3,3,4)
-imagesc(squeeze(nanmean(nanmean(pxx_all(1:67,13,:,:),2),4))',[-5 5]); set(gca,'ydir','normal')
+imagesc(squeeze(nanmean(nanmean(pxx_all(1:67,12,:,:),2),4))',[-5 5]); set(gca,'ydir','normal')
 set(gca,'xtick',1:5:67,'xticklabel',fxx(2:5:end))
 colormap(redblue);
 tp_editplots
 
-[h,p]=ttest(squeeze(pxx_all(1:67,13,:,:)),zeros(size(squeeze(pxx_all(1:67,13,:,:)))),'dim',3); h=p<fdr1(p(:),0.1,0);
+[h,p]=ttest(squeeze(pxx_all(1:67,12,:,:)),zeros(size(squeeze(pxx_all(1:67,12,:,:)))),'dim',3); h=p<fdr1(p(:),0.05,1);
 
 subplot(3,3,5)
-imagesc(squeeze(nanmean(nanmean(pxx_all(1:67,13,:,:),2),4))'.*h',[-5 5]); set(gca,'ydir','normal')
+imagesc(squeeze(nanmean(nanmean(pxx_all(1:67,12,:,:),2),4))'.*h',[-5 5]); set(gca,'ydir','normal')
 set(gca,'xtick',1:5:67,'xticklabel',fxx(2:5:end))
 colormap(redblue);
 tp_editplots
 
 % 
-[h,p] = ttest(squeeze(nanmean(pxx_all,3)),zeros(size(squeeze(nanmean(pxx_all,3)))),'dim',3); h=p<fdr1(p(:),0.1,0);
+[h,p] = ttest(squeeze(nanmean(pxx_all,3)),zeros(size(squeeze(nanmean(pxx_all,3)))),'dim',3); h=p<fdr1(p(:),0.05,1);
 subplot(3,3,2);
 imagesc(nanmean(nanmean(pxx_all(1:67,:,:,:),3),4).*h(1:67,:,:),[-5 5]); set(gca,'ydir','normal')
 tp_editplots
 line([6 6],[0 62],'color','k','linestyle','--')
-line([13 13],[0 67],'color','k','linestyle','-')
 set(gca,'xtick',1:5:41,'xticklabel',t(1:5:end))
 set(gca,'ytick',1:5:62,'yticklabel',fxx(2:5:end))
-colormap(redblue); axis([1 41 1 62])
+colormap(redblue); axis([1 31 1 62])
 
 
 subplot(3,3,7);
@@ -745,7 +743,7 @@ set(gca,'xtick',1:5:67,'xticklabel',fxx(2:5:end))
 tp_editplots
 
 subplot(3,3,8);
-[h,p] = ttest(rrr, zeros(size(rrr)),'dim',3); h=p<fdr1(p(:),0.1,0);
+[h,p] = ttest(rrr, zeros(size(rrr)),'dim',3); h = p<fdr1(p(:),0.05,1);
 imagesc(nanmean(rrr(:,1:67,:),3).*h(:,1:67),[-0.5 0.5]); set(gca,'ydir','normal')
 set(gca,'xtick',1:5:67,'xticklabel',fxx(2:5:end))
 tp_editplots
@@ -753,15 +751,15 @@ tp_editplots
 
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_revision_saccades_TFR_all.pdf'))
 
-g=figure_w;
+g=figure_w
 [h,p]=ttest(pup_all,zeros(size(pup_all)),'dim',2);
 errBar = nanstd(pup_all,[],2)./sqrt(size(pup_all,2));
 shadedErrorBar([],nanmean(pup_all,2),errBar,'k',1)
 line([6 6],[-300 300],'color','k','linestyle',':')
-line([0 31],[0 0],'color','k','linestyle',':')
+line([0 41],[0 0],'color','k','linestyle',':')
 text([5],[70],sprintf('All P>%.3f',min(p)))
 set(gca,'xtick',1:5:41,'xticklabel',t(1:5:end))
 tp_editplots; axis([1 41 -300 300])
-set(g,'Renderer','Painters')
+
 print(gcf,'-dpdf',sprintf('~/pp/plots/pp_revision_saccades_pupil_all.pdf'))
 
