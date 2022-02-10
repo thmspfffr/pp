@@ -21,6 +21,8 @@ v = 1;
 
 [plt_gla,plt_hh,plt_mue,plt_all]=pp_load_results(v);
 
+% save('~/osf_tmp/outputs_v2.mat', 'plt_gla','plt_hh','plt_mue','plt_all','-v7.3')
+
 colors = cbrewer('qual', 'Set3', 10,'pchip');
 colors = colors(4:6,:);
 
@@ -50,6 +52,7 @@ for ifreq=1:25
   for isubj = 1 : 81
     
     [rrr(ifreq,isubj)]=corr(squeeze(par(:,ifreq,isubj)),squeeze(pooled_nai(:,ifreq,isubj)));
+  
   end
 end
 
@@ -977,7 +980,7 @@ for ifoi = [5 11 14 22]
     
     h=p<(fdr1(p(:),0.1,0));
     par=nanmean(pooled,3).*h;
-  par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
+    par=spatfiltergauss(par,BNA.grid_5mm./10,.5,sa_template.grid_fine);
   
   
   clim = [-max([abs([min(par(:)) max(par(:))])]) max([abs([min(par(:)) max(par(:))])])];
@@ -1011,7 +1014,6 @@ for ifoi = [5 11 14 22]
 end
 
 %% PLOT INVERTED U
-
 
 % Load data computed in powerspectra.m
 fooof22 = pp_load_fooof_results(2);
@@ -1400,6 +1402,10 @@ print(gcf,'-dpdf',sprintf('~/pp/plots/pp_invU_avg_all.pdf'))
 
 fooof22 = pp_load_fooof_results(2);
 fooof11 = pp_load_fooof_results(1);
+
+% save('~/osf_tmp/fooof1.mat','fooof11')
+% save('~/osf_tmp/fooof2.mat','fooof22')
+
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 %%
 load ~/pp/proc/pp_atlas_BNA.mat
